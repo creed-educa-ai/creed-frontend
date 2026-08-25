@@ -1,6 +1,6 @@
 // defineConfig vem de vitest/config, não de vite: só essa versão conhece a
 // chave `test` usada abaixo.
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 
@@ -26,6 +26,9 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    // Mesma razão do ignore no ESLint: sem isso o Vitest coleta também os
+    // testes das worktrees em .claude/ e roda o projeto duas vezes.
+    exclude: [...configDefaults.exclude, '.claude/**'],
     coverage: {
       reporter: ['text', 'html'],
       exclude: ['node_modules/', 'src/test/', '**/*.d.ts'],
