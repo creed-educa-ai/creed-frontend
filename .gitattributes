@@ -1,0 +1,7 @@
+# Terminações de linha: LF no repositório E na árvore de trabalho.
+#
+# Só `text=auto` normalizaria o commit, mas com core.autocrlf=true — padrão do
+# instalador do Git no Windows, que é o ambiente do time — o checkout traria
+# CRLF de volta. O `prettier --check` usa endOfLine: "lf" e falharia localmente
+# em todo arquivo, mesmo com o conteúdo já formatado. O `eol=lf` fecha isso.
+* text=auto eol=lf
