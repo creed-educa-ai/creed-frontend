@@ -6,7 +6,7 @@
 // id é explícita — então ela é código nosso, e é o que estes testes protegem.
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ type Dados = z.infer<typeof schema>;
 
 function FormularioDeTeste({ onSubmit }: { onSubmit: (dados: Dados) => void }) {
   const {
-    control,
+    register,
     handleSubmit,
     formState: { errors },
   } = useForm<Dados>({
@@ -36,31 +36,17 @@ function FormularioDeTeste({ onSubmit }: { onSubmit: (dados: Dados) => void }) {
 
   const invalido = Boolean(errors.nome);
 
-  // Controller, e não register: no React 18 os componentes da geração atual do
-  // shadcn são function components sem forwardRef, então o ref que o register
-  // devolve é descartado e o valor nunca chega ao formulário. O Controller passa
-  // value/onChange por prop. O ref do field fica de fora do spread pelo mesmo
-  // motivo: espalhá-lo dispara o aviso de ref em function component.
   return (
     <form onSubmit={(evento) => void handleSubmit(onSubmit)(evento)}>
       <Field data-invalid={invalido}>
         <FieldLabel htmlFor="nome">Nome</FieldLabel>
-        <Controller
-          control={control}
-          name="nome"
-          render={({ field }) => (
-            <Input
-              id="nome"
-              aria-invalid={invalido}
-              aria-describedby={
-                invalido ? 'nome-descricao nome-erro' : 'nome-descricao'
-              }
-              name={field.name}
-              value={field.value}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-            />
-          )}
+        <Input
+          id="nome"
+          aria-invalid={invalido}
+          aria-describedby={
+            invalido ? 'nome-descricao nome-erro' : 'nome-descricao'
+          }
+          {...register('nome')}
         />
         <FieldDescription id="nome-descricao">
           Como aparece no documento.
