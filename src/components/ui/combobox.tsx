@@ -105,8 +105,8 @@ function ComboboxContent({
     ComboboxPrimitive.Positioner.Props,
     'side' | 'align' | 'sideOffset' | 'alignOffset' | 'anchor'
   >) {
-  const contextAnchor = React.useContext(ComboboxAnchorContext);
-  const resolvedAnchor = anchor ?? contextAnchor ?? undefined;
+  //const contextAnchor = React.useContext(ComboboxAnchorContext);
+  //const resolvedAnchor = anchor ?? contextAnchor ?? undefined;
 
   return (
     <ComboboxPrimitive.Portal>
@@ -115,7 +115,7 @@ function ComboboxContent({
         sideOffset={sideOffset}
         align={align}
         alignOffset={alignOffset}
-        anchor={resolvedAnchor}
+        //anchor={resolvedAnchor}
         className="isolate z-50"
       >
         <ComboboxPrimitive.Popup
@@ -137,7 +137,7 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
     <ComboboxPrimitive.List
       data-slot="combobox-list"
       className={cn(
-        'no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1 overflow-y-auto overscroll-contain p-1 data-empty:p-0',
+        'scrollbar-roxa max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1 overflow-y-auto overscroll-contain p-1 pr-3 data-empty:p-0',
         className,
       )}
       {...props}
