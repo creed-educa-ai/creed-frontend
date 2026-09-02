@@ -20,6 +20,7 @@ const RAIOS = [
 
 function CreedSymbol({
   animated = false,
+  className,
   ...props
 }: SVGProps<SVGSVGElement> & { animated?: boolean }) {
   return (
@@ -27,6 +28,11 @@ function CreedSymbol({
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 115 150"
       fill="none"
+      className={
+        animated
+          ? [className, 'animate-logo-giro'].filter(Boolean).join(' ')
+          : className
+      }
       {...props}
     >
       {RAIOS.map((d, i) => (

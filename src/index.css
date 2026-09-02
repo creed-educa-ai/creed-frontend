@@ -178,6 +178,23 @@
   }
 
   .animate-raio {
-    animation: raio-pulse 3s ease-in-out infinite;
+    animation: raio-pulse 3s ease-in infinite;
+  }
+
+  @keyframes logo-giro {
+    0% {
+      transform: rotate(0deg);
+    }
+    52% {
+      transform: rotate(180deg);
+    }
+    100% {
+      transform: rotate(180deg);
+    }
+  }
+
+  .animate-logo-giro {
+    animation: logo-giro 3.5s ease-in infinite;
+    transform-origin: center;
   }
 }
