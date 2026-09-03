@@ -194,7 +194,7 @@
   }
 
   .animate-logo-giro {
-    animation: logo-giro 3.5s ease-in infinite;
+    animation: logo-giro 3s ease-in-out infinite;
     transform-origin: center;
   }
 }
