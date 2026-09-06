@@ -5,6 +5,9 @@ export const ptBR = {
     carregando: 'Carregando…',
     semDado: '—',
     tenteRecarregar: 'Tente recarregar a página.',
+    erros: {
+      obrigatorio: 'Campo obrigatório',
+    },
     acoes: {
       tentarNovamente: 'Tentar novamente',
       cancelar: 'Cancelar',
@@ -27,5 +30,36 @@ export const ptBR = {
     idade_zero: '{{count}} anos',
     idade_one: '{{count}} ano',
     idade_other: '{{count}} anos',
+  },
+  cadastro: {
+    titulo: 'Crie sua conta',
+    subtitulo: 'Informe seus dados para continuar',
+    campos: {
+      nomeEmpresa: {
+        rotulo: 'Nome da empresa',
+        placeholder: 'Digite o nome da empresa',
+      },
+      documento: {
+        rotulo: 'Documento (CPF/CNPJ)',
+        placeholder: 'Digite o documento da empresa',
+      },
+      email: {
+        rotulo: 'E-mail da empresa',
+        placeholder: 'Digite o e-mail da empresa',
+      },
+      nomeCompleto: {
+        rotulo: 'Seu nome completo',
+        placeholder: 'Digite seu nome completo',
+      },
+      telefone: {
+        rotulo: 'Telefone',
+        placeholder: 'Digite seu telefone',
+      },
+    },
+    botaoAvancar: 'Avançar',
+    textoLogin: 'Já tem uma conta?',
+    linkLogin: 'Login',
+    painelDescricao:
+      'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
   },
 };
