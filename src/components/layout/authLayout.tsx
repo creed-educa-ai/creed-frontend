@@ -1,6 +1,6 @@
 // src/components/layout/AuthLayout.tsx
 import * as React from 'react';
-import CreedSymbol from '@/components/logos/logo';
+import CreedSymbol, { Wordmark } from '@/components/logos/logo';
 
 interface AuthLayoutProps {
   children: React.ReactNode; // coluna esquerda: título + campos + botões
@@ -19,6 +19,7 @@ export function AuthLayout({ children, titulo, subtitulo }: AuthLayoutProps) {
       {/* DIREITA — painel de marca (some no mobile) */}
       <div className="bg-brand hidden flex-1 flex-col items-center justify-center gap-6 p-10 text-center text-primary-foreground lg:flex">
         <CreedSymbol className="size-24" />
+        <Wordmark className="h-8 w-auto" />
         <h2 className="text-3xl font-bold text-balance">{titulo}</h2>
         {subtitulo && (
           <p className="max-w-xs text-sm/relaxed text-balance opacity-90">

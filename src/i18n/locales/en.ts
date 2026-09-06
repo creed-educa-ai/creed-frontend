@@ -7,6 +7,9 @@ export const en: typeof ptBR = {
     carregando: 'Loading…',
     semDado: '—',
     tenteRecarregar: 'Try reloading the page.',
+    erros: {
+      obrigatorio: 'Field is required',
+    },
     acoes: {
       tentarNovamente: 'Try again',
       cancelar: 'Cancel',
@@ -27,5 +30,36 @@ export const en: typeof ptBR = {
     idade_zero: '{{count}} years old',
     idade_one: '{{count}} year old',
     idade_other: '{{count}} years old',
+  },
+  cadastro: {
+    titulo: 'Create your account',
+    subtitulo: 'Enter your details to continue',
+    campos: {
+      nomeEmpresa: {
+        rotulo: 'Company Name',
+        placeholder: 'Enter the company name',
+      },
+      documento: {
+        rotulo: 'Document (CPF/CNPJ)',
+        placeholder: 'Enter the company document',
+      },
+      email: {
+        rotulo: 'Company Email',
+        placeholder: 'Enter the company email',
+      },
+      nomeCompleto: {
+        rotulo: 'Your Full Name',
+        placeholder: 'Enter your full name',
+      },
+      telefone: {
+        rotulo: 'Phone',
+        placeholder: 'Enter your phone number',
+      },
+    },
+    botaoAvancar: 'Continue',
+    textoLogin: 'Already have an account?',
+    linkLogin: 'Login',
+    painelDescricao:
+      'Competency assessment that shows your team clearly, without spreadsheets and without guesswork.',
   },
 };
