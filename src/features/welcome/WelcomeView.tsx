@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import CreedSymbol from '@/components/logos/logo';
 
 export function WelcomeView() {
   return (
@@ -40,8 +41,15 @@ export function WelcomeView() {
           </div>
         </div>
       </div>
+      <div className="flex w-[45%] flex-col items-center justify-center gap-4 rounded-l-3xl bg-purple-700 px-16">
+        <CreedSymbol className="h-40 w-40" />
 
-      {/* container direito (roxo) */}
+        <h2 className="text-5xl font-bold text-white">creed.ai</h2>
+        <h3 className="text-2xl font-bold text-white">
+          Avaliação de competências que mostra o seu time com clareza, sem
+          planilha e sem achismo.
+        </h3>
+      </div>
     </div>
   );
 }
