@@ -28,4 +28,22 @@ export const ptBR = {
     idade_one: '{{count}} ano',
     idade_other: '{{count}} anos',
   },
+
+  autenticacao: {
+    primeiroAcesso: {
+      titulo: 'Troque sua senha',
+      subtitulo: 'Insira uma nova senha para sua conta',
+      campoNovaSenha: 'Insira uma nova senha',
+      campoConfirmarSenha: 'Confirme sua nova senha',
+      avancar: 'Avançar',
+      boasVindasTitulo: 'Bem Vindo',
+      boasVindasMensagem:
+        'Este é seu primeiro acesso. Para continuar você deve escolher uma nova senha.',
+    },
+    erros: {
+      senhaCurta: 'A senha precisa ter pelo menos 8 caracteres.',
+      confirmacaoObrigatoria: 'Confirme a nova senha.',
+      senhasDivergentes: 'As senhas não coincidem.',
+    },
+  },
 };
