@@ -3,17 +3,43 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { AuthLayout } from '@/components/layout/authLayout';
-import { useState } from 'react';
 import { Field, FieldLabel, FieldError } from '@/components/ui/field';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { cadastroSchema, type CadastroForm } from '@/lib/validadores';
 
 export function CadastroView() {
   const { t } = useTranslation(['comum', 'cadastro']);
-  const [nomeEmpresa, setNomeEmpresa] = useState('');
-  const [documento, setDocumento] = useState('');
-  const [email, setEmail] = useState('');
-  const [nomeCompleto, setNomeCompleto] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [erros, setErros] = useState<Record<string, boolean>>({});
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<CadastroForm>({
+    resolver: zodResolver(cadastroSchema),
+    defaultValues: {
+      nomeEmpresa: '',
+      documento: '',
+      email: '',
+      nomeCompleto: '',
+      telefone: '',
+    },
+  });
+
+  function aoEnviar(dados: CadastroForm) {
+    console.info('Cadastro validado:', dados);
+  }
+
+  function erroDoCampo(chave?: string) {
+    if (!chave) return undefined;
+    return { message: t(chave as never) };
+  }
+
+  const nomeEmpresaInvalido = Boolean(errors.nomeEmpresa);
+  const documentoInvalido = Boolean(errors.documento);
+  const emailInvalido = Boolean(errors.email);
+  const nomeCompletoInvalido = Boolean(errors.nomeCompleto);
+  const telefoneInvalido = Boolean(errors.telefone);
 
   return (
     <AuthLayout
@@ -29,20 +55,9 @@ export function CadastroView() {
 
       <form
         className="mt-8 space-y-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-
-          const novosErros: Record<string, boolean> = {};
-          if (nomeEmpresa.trim() === '') novosErros.nomeEmpresa = true;
-          if (documento.trim() === '') novosErros.documento = true;
-          if (email.trim() === '') novosErros.email = true;
-          if (nomeCompleto.trim() === '') novosErros.nomeCompleto = true;
-          if (telefone.trim() === '') novosErros.telefone = true;
-
-          setErros(novosErros);
-        }}
+        onSubmit={(evento) => void handleSubmit(aoEnviar)(evento)}
       >
-        <Field data-invalid={erros.nomeEmpresa}>
+        <Field data-invalid={nomeEmpresaInvalido}>
           <FieldLabel htmlFor="nomeEmpresa">
             {t('cadastro:campos.nomeEmpresa.rotulo')}
           </FieldLabel>
@@ -50,18 +65,19 @@ export function CadastroView() {
             id="nomeEmpresa"
             type="text"
             placeholder={t('cadastro:campos.nomeEmpresa.placeholder')}
-            value={nomeEmpresa}
-            onChange={(e) => {
-              setNomeEmpresa(e.target.value);
-            }}
-            aria-invalid={erros.nomeEmpresa}
+            aria-invalid={nomeEmpresaInvalido}
+            aria-describedby={
+              nomeEmpresaInvalido ? 'nomeEmpresa-erro' : undefined
+            }
+            {...register('nomeEmpresa')}
           />
-          {erros.nomeEmpresa && (
-            <FieldError>{t('comum:erros.obrigatorio')}</FieldError>
-          )}
+          <FieldError
+            id="nomeEmpresa-erro"
+            errors={[erroDoCampo(errors.nomeEmpresa?.message)]}
+          />
         </Field>
 
-        <Field data-invalid={erros.documento}>
+        <Field data-invalid={documentoInvalido}>
           <FieldLabel htmlFor="documento">
             {t('cadastro:campos.documento.rotulo')}
           </FieldLabel>
@@ -69,18 +85,17 @@ export function CadastroView() {
             id="documento"
             type="text"
             placeholder={t('cadastro:campos.documento.placeholder')}
-            value={documento}
-            onChange={(e) => {
-              setDocumento(e.target.value);
-            }}
-            aria-invalid={erros.documento}
+            aria-invalid={documentoInvalido}
+            aria-describedby={documentoInvalido ? 'documento-erro' : undefined}
+            {...register('documento')}
           />
-          {erros.documento && (
-            <FieldError>{t('comum:erros.obrigatorio')}</FieldError>
-          )}
+          <FieldError
+            id="documento-erro"
+            errors={[erroDoCampo(errors.documento?.message)]}
+          />
         </Field>
 
-        <Field data-invalid={erros.email}>
+        <Field data-invalid={emailInvalido}>
           <FieldLabel htmlFor="email">
             {t('cadastro:campos.email.rotulo')}
           </FieldLabel>
@@ -88,18 +103,17 @@ export function CadastroView() {
             id="email"
             type="email"
             placeholder={t('cadastro:campos.email.placeholder')}
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-            }}
-            aria-invalid={erros.email}
+            aria-invalid={emailInvalido}
+            aria-describedby={emailInvalido ? 'email-erro' : undefined}
+            {...register('email')}
           />
-          {erros.email && (
-            <FieldError>{t('comum:erros.obrigatorio')}</FieldError>
-          )}
+          <FieldError
+            id="email-erro"
+            errors={[erroDoCampo(errors.email?.message)]}
+          />
         </Field>
 
-        <Field data-invalid={erros.nomeCompleto}>
+        <Field data-invalid={nomeCompletoInvalido}>
           <FieldLabel htmlFor="nomeCompleto">
             {t('cadastro:campos.nomeCompleto.rotulo')}
           </FieldLabel>
@@ -107,17 +121,19 @@ export function CadastroView() {
             id="nomeCompleto"
             type="text"
             placeholder={t('cadastro:campos.nomeCompleto.placeholder')}
-            value={nomeCompleto}
-            onChange={(e) => {
-              setNomeCompleto(e.target.value);
-            }}
-            aria-invalid={erros.nomeCompleto}
+            aria-invalid={nomeCompletoInvalido}
+            aria-describedby={
+              nomeCompletoInvalido ? 'nomeCompleto-erro' : undefined
+            }
+            {...register('nomeCompleto')}
           />
-          {erros.nomeCompleto && (
-            <FieldError>{t('comum:erros.obrigatorio')}</FieldError>
-          )}
+          <FieldError
+            id="nomeCompleto-erro"
+            errors={[erroDoCampo(errors.nomeCompleto?.message)]}
+          />
         </Field>
-        <Field data-invalid={erros.telefone}>
+
+        <Field data-invalid={telefoneInvalido}>
           <FieldLabel htmlFor="telefone">
             {t('cadastro:campos.telefone.rotulo')}
           </FieldLabel>
@@ -125,17 +141,17 @@ export function CadastroView() {
             id="telefone"
             type="tel"
             placeholder={t('cadastro:campos.telefone.placeholder')}
-            value={telefone}
-            onChange={(e) => {
-              setTelefone(e.target.value);
-            }}
-            aria-invalid={erros.telefone}
+            aria-invalid={telefoneInvalido}
+            aria-describedby={telefoneInvalido ? 'telefone-erro' : undefined}
+            {...register('telefone')}
           />
-          {erros.telefone && (
-            <FieldError>{t('comum:erros.obrigatorio')}</FieldError>
-          )}
+          <FieldError
+            id="telefone-erro"
+            errors={[erroDoCampo(errors.telefone?.message)]}
+          />
         </Field>
-        <Button type="submit" className="mt-8 w-full">
+
+        <Button type="submit" className="mt-8 w-full" disabled={isSubmitting}>
           {t('cadastro:botaoAvancar')}
         </Button>
         <p className="text-center text-sm text-muted-foreground">
