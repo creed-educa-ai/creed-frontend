@@ -31,6 +31,23 @@ export const en: typeof ptBR = {
     idade_one: '{{count}} year old',
     idade_other: '{{count}} years old',
   },
+  boasVindas: {
+    titulo: 'Welcome!',
+    apresentacao:
+      'CREED.ai Educa is a competency assessment platform for organizations in transformation, bringing together Human Plasticity and Neuroinnovative Intelligence for Education, Entrepreneurship and Organizations in Transformation.',
+    entrar: {
+      chamada: 'Already have access? Sign in to your account.',
+      acao: 'Sign in',
+    },
+    criarConta: {
+      chamada: 'Account creation is available to companies only.',
+      acao: 'Create account',
+    },
+    saibaMais: 'Learn more about the platform',
+    faleConosco: 'Contact us',
+    tagline:
+      'Competency assessment that shows your team clearly, with no spreadsheets and no guesswork.',
+  },
   cadastro: {
     titulo: 'Create your account',
     subtitulo: 'Enter your details to continue',
