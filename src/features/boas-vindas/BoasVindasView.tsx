@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import CreedSymbol from '@/components/logos/logo';
+import wordmark from '@/components/logos/wordmark-light.svg';
 
 export function BoasVindasView() {
   // Os namespaces usados na tela precisam ser declarados aqui: é o que dá o
@@ -45,10 +46,8 @@ export function BoasVindasView() {
 
       {/* container da direita — painel de marca */}
       <div className="bg-brand order-first flex w-full flex-col items-center justify-center gap-4 rounded-b-3xl p-8 text-center text-primary-foreground lg:order-none lg:w-[45%] lg:rounded-l-3xl lg:rounded-b-none lg:px-16">
-        <CreedSymbol className="h-24 w-24 lg:h-40 lg:w-40" />
-
-        {/* Nome de marca não passa pelo i18n. */}
-        <h2 className="text-4xl font-bold lg:text-5xl">creed.ai</h2>
+        <CreedSymbol className="size-24" />
+        <img src={wordmark} alt="CREED.ai" className="w-48" />
         <h3 className="max-w-sm text-lg font-bold text-balance lg:text-2xl">
           {t('boasVindas:tagline')}
         </h3>
