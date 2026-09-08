@@ -62,4 +62,22 @@ export const en: typeof ptBR = {
     painelDescricao:
       'Competency assessment that shows your team clearly, without spreadsheets and without guesswork.',
   },
+
+  autenticacao: {
+    primeiroAcesso: {
+      titulo: 'Change your password',
+      subtitulo: 'Enter a new password for your account',
+      campoNovaSenha: 'Enter a new password',
+      campoConfirmarSenha: 'Confirm your new password',
+      avancar: 'Continue',
+      boasVindasTitulo: 'Welcome',
+      boasVindasMensagem:
+        'This is your first access. To continue, choose a new password.',
+    },
+    erros: {
+      senhaCurta: 'Password must be at least 8 characters long.',
+      confirmacaoObrigatoria: 'Confirm the new password.',
+      senhasDivergentes: 'Passwords do not match.',
+    },
+  },
 };
