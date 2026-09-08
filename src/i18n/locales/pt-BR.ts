@@ -28,4 +28,22 @@ export const ptBR = {
     idade_one: '{{count}} ano',
     idade_other: '{{count}} anos',
   },
+  boasVindas: {
+    titulo: 'Bem vindo!',
+    apresentacao:
+      'O CREED.ai Educa é uma plataforma de avaliação de competências para organizações em transformação. Envolvendo Plasticidade Humana e Inteligência Neuroinovadora para Educação, Empreendedorismo e Organizações em Transformação.',
+    entrar: {
+      chamada: 'Já tem acesso? Entre na sua conta.',
+      acao: 'Entrar',
+    },
+    criarConta: {
+      chamada: 'Criar conta disponível apenas para empresas.',
+      acao: 'Criar Conta',
+    },
+    saibaMais: 'Saiba mais sobre a plataforma',
+    faleConosco: 'Fale conosco',
+    // `creed.ai` não entra aqui: nome de marca não se traduz.
+    tagline:
+      'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
+  },
 };
