@@ -1,7 +1,11 @@
 // Cliente HTTP compartilhado. Centraliza base URL e tratamento de erro
 // para as features não reimplementarem fetch cada uma à sua maneira.
 
-const BASE_URL = '/api/v1';
+// Relativa por padrão: o proxy do Vite encaminha `/api/v1` ao backend local.
+// `VITE_API_BASE_URL` no `.env.local` troca por uma base absoluta — é assim que o
+// front consome o mock do contrato enquanto o backend não existe, sem tocar em
+// código. Apagar a variável devolve o comportamento padrão.
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
 export class ApiError extends Error {
   constructor(

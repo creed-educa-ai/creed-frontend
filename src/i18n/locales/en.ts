@@ -7,6 +7,9 @@ export const en: typeof ptBR = {
     carregando: 'Loading…',
     semDado: '—',
     tenteRecarregar: 'Try reloading the page.',
+    erros: {
+      obrigatorio: 'Field is required',
+    },
     acoes: {
       tentarNovamente: 'Try again',
       cancelar: 'Cancel',
@@ -44,5 +47,54 @@ export const en: typeof ptBR = {
     faleConosco: 'Contact us',
     tagline:
       'Competency assessment that shows your team clearly, with no spreadsheets and no guesswork.',
+  },
+  cadastro: {
+    titulo: 'Create your account',
+    subtitulo: 'Enter your details to continue',
+    campos: {
+      nomeEmpresa: {
+        rotulo: 'Company Name',
+        placeholder: 'Enter the company name',
+      },
+      documento: {
+        rotulo: 'Document (CPF/CNPJ)',
+        placeholder: 'Enter the company document',
+      },
+      email: {
+        rotulo: 'Company Email',
+        placeholder: 'Enter the company email',
+      },
+      nomeCompleto: {
+        rotulo: 'Your Full Name',
+        placeholder: 'Enter your full name',
+      },
+      telefone: {
+        rotulo: 'Phone',
+        placeholder: 'Enter your phone number',
+      },
+    },
+    botaoAvancar: 'Continue',
+    textoLogin: 'Already have an account?',
+    linkLogin: 'Login',
+    painelDescricao:
+      'Competency assessment that shows your team clearly, without spreadsheets and without guesswork.',
+  },
+
+  autenticacao: {
+    primeiroAcesso: {
+      titulo: 'Change your password',
+      subtitulo: 'Enter a new password for your account',
+      campoNovaSenha: 'Enter a new password',
+      campoConfirmarSenha: 'Confirm your new password',
+      avancar: 'Continue',
+      boasVindasTitulo: 'Welcome',
+      boasVindasMensagem:
+        'This is your first access. To continue, choose a new password.',
+    },
+    erros: {
+      senhaCurta: 'Password must be at least 8 characters long.',
+      confirmacaoObrigatoria: 'Confirm the new password.',
+      senhasDivergentes: 'Passwords do not match.',
+    },
   },
 };
