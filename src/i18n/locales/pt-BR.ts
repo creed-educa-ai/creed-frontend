@@ -27,5 +27,25 @@ export const ptBR = {
     idade_zero: '{{count}} anos',
     idade_one: '{{count}} ano',
     idade_other: '{{count}} anos',
+
+    escolher: 'Escolher',
+    semResultado: 'Nenhuma opção encontrada',
+    avancar: 'Avançar',
+    pular: 'Pular',
+    demograficos2: {
+      etapa: 'Dados demográficos 2',
+      titulo: 'Fale mais sobre você',
+      subtitulo: 'Todas as respostas são opcionais!',
+    },
+    campos: {
+      genero: 'Gênero (opcional)',
+      faixaEtaria: 'Faixa etária (opcional)',
+      origemEtnica: 'Origem Étnica (opcional)',
+      religiao: 'Religião (opcional)',
+      nacionalidade: 'Nacionalidade (opcional)',
+      nacionalidadeOutra: 'Qual nacionalidade?',
+      estado: 'Estado',
+      regiao: 'Região',
+    },
   },
 };

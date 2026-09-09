@@ -27,5 +27,25 @@ export const en: typeof ptBR = {
     idade_zero: '{{count}} years old',
     idade_one: '{{count}} year old',
     idade_other: '{{count}} years old',
+
+    escolher: 'Choose',
+    semResultado: 'No option found',
+    avancar: 'Continue',
+    pular: 'Skip',
+    demograficos2: {
+      etapa: 'Demographic data 2',
+      titulo: 'Tell us more about you',
+      subtitulo: 'All answers are optional!',
+    },
+    campos: {
+      genero: 'Gender (optional)',
+      faixaEtaria: 'Age range (optional)',
+      origemEtnica: 'Ethnic background (optional)',
+      religiao: 'Religion (optional)',
+      nacionalidade: 'Nationality (optional)',
+      nacionalidadeOutra: 'Which nationality?',
+      estado: 'State',
+      regiao: 'Region',
+    },
   },
 };
