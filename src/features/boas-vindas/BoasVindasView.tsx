@@ -2,14 +2,11 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-light.svg';
-import { ContactModal } from '@/components/modals/ContactModal';
-import { useState } from 'react';
 
 export function BoasVindasView() {
   // Os namespaces usados na tela precisam ser declarados aqui: é o que dá o
   // autocomplete das chaves. O primeiro é o padrão para chaves sem prefixo.
   const { t } = useTranslation(['boasVindas']);
-  const [contactOpen, setContactOpen] = useState(false);
 
   return (
     <div className="flex min-h-svh flex-col bg-background lg:flex-row">
@@ -42,14 +39,7 @@ export function BoasVindasView() {
 
           <div className="flex flex-col gap-3">
             <Button variant="outline">{t('boasVindas:saibaMais')}</Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setContactOpen(true);
-              }}
-            >
-              {t('boasVindas:faleConosco')}
-            </Button>
+            <Button variant="outline">{t('boasVindas:faleConosco')}</Button>
           </div>
         </div>
       </div>
@@ -62,7 +52,6 @@ export function BoasVindasView() {
           {t('boasVindas:tagline')}
         </h3>
       </div>
-      <ContactModal open={contactOpen} onOpenChange={setContactOpen} />
     </div>
   );
 }

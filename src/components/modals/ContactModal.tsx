@@ -25,7 +25,11 @@ export function ContactModal({ open, onOpenChange }: ContactModalProps) {
 
           <div>
             <p className="font-medium">Email</p>
-            <p>professora@creed.ai</p>
+            <p>naira.libermann@gmail.com</p>
+          </div>
+          <div>
+            <p className="font-medium">Telefone</p>
+            <p>+55 (51) 9961.4494</p>
           </div>
         </div>
       </DialogContent>
