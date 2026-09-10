@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { FormLayout } from '@/components/layout/formLayout';
@@ -20,6 +21,7 @@ import {
   ComboboxEmpty,
   ComboboxItem,
   ComboboxList,
+  ComboboxValue,
 } from '@/components/ui/combobox';
 import {
   definirEstadoBrasil,
@@ -41,18 +43,28 @@ import {
   opcoesReligiao,
 } from '@/features/respondentes/respondentesDemograficasOpcoes';
 
+// Combobox trabalha melhor com itens simples (strings); mantemos o rótulo
+// em opcoesX (objetos) só para exibição, via rotuloDe().
+const valoresOrigemEtnica = opcoesOrigemEtnica.map((o) => o.value);
+const valoresReligiao = opcoesReligiao.map((o) => o.value);
+
+function rotuloDe(opcoes: { value: string; label: string }[], value: string) {
+  return opcoes.find((o) => o.value === value)?.label ?? value;
+}
+
 export function Demograficos2View() {
   const { t } = useTranslation(['comum', 'respondentes']);
   const dispatch = useAppDispatch();
   const dados = useAppSelector((state) => state.respondentesDemograficos);
 
-  const rotuloDe = (
-    opcoes: { value: string; label: string }[],
-    value: string,
-  ) => opcoes.find((o) => o.value === value)?.label ?? value;
+  // Popup fecha ao selecionar (comportamento padrao do Base UI em modo
+  // multiple); controlado explicitamente para garantir isso mesmo que o
+  // padrao da lib varie entre versoes.
+  const [origemEtnicaAberta, setOrigemEtnicaAberta] = useState(false);
+  const [religiaoAberta, setReligiaoAberta] = useState(false);
 
   return (
-    <FormLayout etapa={t('respondentes:demograficos2.etapa')}>
+    <FormLayout>
       <h1 className="text-2xl font-bold text-heading">
         {t('respondentes:demograficos2.titulo')}
       </h1>
@@ -66,7 +78,7 @@ export function Demograficos2View() {
             {t('respondentes:campos.genero')}
           </FieldLabel>
           <Select
-            value={dados.genero ?? undefined}
+            {...(dados.genero ? { value: dados.genero } : {})}
             onValueChange={(v) => dispatch(definirGenero(v))}
           >
             <SelectTrigger id="genero" className="w-full">
@@ -87,7 +99,7 @@ export function Demograficos2View() {
             {t('respondentes:campos.faixaEtaria')}
           </FieldLabel>
           <Select
-            value={dados.faixaEtaria ?? undefined}
+            {...(dados.faixaEtaria ? { value: dados.faixaEtaria } : {})}
             onValueChange={(v) => dispatch(definirFaixaEtaria(v))}
           >
             <SelectTrigger id="faixa-etaria" className="w-full">
@@ -109,16 +121,25 @@ export function Demograficos2View() {
           </FieldLabel>
           <Combobox
             multiple
-            items={opcoesOrigemEtnica}
+            items={valoresOrigemEtnica}
             value={dados.origemEtnica}
-            onValueChange={(v: string[]) => dispatch(definirOrigemEtnica(v))}
+            onValueChange={(v: string[]) => {
+              dispatch(definirOrigemEtnica(v));
+              setOrigemEtnicaAberta(false);
+            }}
+            open={origemEtnicaAberta}
+            onOpenChange={setOrigemEtnicaAberta}
           >
             <ComboboxChips>
-              {dados.origemEtnica.map((v) => (
-                <ComboboxChip key={v} value={v}>
-                  {rotuloDe(opcoesOrigemEtnica, v)}
-                </ComboboxChip>
-              ))}
+              <ComboboxValue>
+                {(value: string[]) =>
+                  value.map((v) => (
+                    <ComboboxChip key={v}>
+                      {rotuloDe(opcoesOrigemEtnica, v)}
+                    </ComboboxChip>
+                  ))
+                }
+              </ComboboxValue>
               <ComboboxChipsInput
                 id="origem-etnica"
                 placeholder={t('respondentes:escolher')}
@@ -127,11 +148,11 @@ export function Demograficos2View() {
             <ComboboxContent>
               <ComboboxEmpty>{t('respondentes:semResultado')}</ComboboxEmpty>
               <ComboboxList>
-                {opcoesOrigemEtnica.map((o) => (
-                  <ComboboxItem key={o.value} value={o.value}>
-                    {o.label}
+                {(v: string) => (
+                  <ComboboxItem key={v} value={v}>
+                    {rotuloDe(opcoesOrigemEtnica, v)}
                   </ComboboxItem>
-                ))}
+                )}
               </ComboboxList>
             </ComboboxContent>
           </Combobox>
@@ -143,16 +164,25 @@ export function Demograficos2View() {
           </FieldLabel>
           <Combobox
             multiple
-            items={opcoesReligiao}
+            items={valoresReligiao}
             value={dados.religiao}
-            onValueChange={(v: string[]) => dispatch(definirReligiao(v))}
+            onValueChange={(v: string[]) => {
+              dispatch(definirReligiao(v));
+              setReligiaoAberta(false);
+            }}
+            open={religiaoAberta}
+            onOpenChange={setReligiaoAberta}
           >
             <ComboboxChips>
-              {dados.religiao.map((v) => (
-                <ComboboxChip key={v} value={v}>
-                  {rotuloDe(opcoesReligiao, v)}
-                </ComboboxChip>
-              ))}
+              <ComboboxValue>
+                {(value: string[]) =>
+                  value.map((v) => (
+                    <ComboboxChip key={v}>
+                      {rotuloDe(opcoesReligiao, v)}
+                    </ComboboxChip>
+                  ))
+                }
+              </ComboboxValue>
               <ComboboxChipsInput
                 id="religiao"
                 placeholder={t('respondentes:escolher')}
@@ -161,11 +191,11 @@ export function Demograficos2View() {
             <ComboboxContent>
               <ComboboxEmpty>{t('respondentes:semResultado')}</ComboboxEmpty>
               <ComboboxList>
-                {opcoesReligiao.map((o) => (
-                  <ComboboxItem key={o.value} value={o.value}>
-                    {o.label}
+                {(v: string) => (
+                  <ComboboxItem key={v} value={v}>
+                    {rotuloDe(opcoesReligiao, v)}
                   </ComboboxItem>
-                ))}
+                )}
               </ComboboxList>
             </ComboboxContent>
           </Combobox>
@@ -176,7 +206,7 @@ export function Demograficos2View() {
             {t('respondentes:campos.nacionalidade')}
           </FieldLabel>
           <Select
-            value={dados.nacionalidade ?? undefined}
+            {...(dados.nacionalidade ? { value: dados.nacionalidade } : {})}
             onValueChange={(v) => dispatch(definirNacionalidade(v))}
           >
             <SelectTrigger id="nacionalidade" className="w-full">
@@ -193,7 +223,7 @@ export function Demograficos2View() {
 
           {dados.nacionalidade === 'brasileira' && (
             <Select
-              value={dados.estadoBrasil ?? undefined}
+              {...(dados.estadoBrasil ? { value: dados.estadoBrasil } : {})}
               onValueChange={(v) => dispatch(definirEstadoBrasil(v))}
             >
               <SelectTrigger id="estado-brasil" className="w-full">
@@ -211,7 +241,7 @@ export function Demograficos2View() {
 
           {dados.nacionalidade === 'portuguesa' && (
             <Select
-              value={dados.regiaoPortugal ?? undefined}
+              {...(dados.regiaoPortugal ? { value: dados.regiaoPortugal } : {})}
               onValueChange={(v) => dispatch(definirRegiaoPortugal(v))}
             >
               <SelectTrigger id="regiao-portugal" className="w-full">
