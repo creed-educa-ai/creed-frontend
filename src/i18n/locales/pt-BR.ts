@@ -49,6 +49,12 @@ export const ptBR = {
     tagline:
       'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
   },
+  sobre: {
+    titulo: 'Sobre',
+    subtitulo: 'Mais informações sobre o Creed.ai',
+    texto:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+  },
   cadastro: {
     titulo: 'Crie sua conta',
     subtitulo: 'Informe seus dados para continuar',
