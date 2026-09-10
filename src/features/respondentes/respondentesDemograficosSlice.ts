@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 interface Demograficos2State {
+  nome: string;
   genero: string | null;
   faixaEtaria: string | null;
   origemEtnica: string[];
@@ -12,6 +13,7 @@ interface Demograficos2State {
 }
 
 const initialState: Demograficos2State = {
+  nome: '',
   genero: null,
   faixaEtaria: null,
   origemEtnica: [],
@@ -34,6 +36,9 @@ const respondentesDemograficosSlice = createSlice({
   name: 'respondentesDemograficos',
   initialState,
   reducers: {
+    definirNome(state, action: PayloadAction<string>) {
+      state.nome = action.payload;
+    },
     definirGenero(state, action: PayloadAction<string>) {
       state.genero = action.payload;
     },
@@ -63,6 +68,7 @@ const respondentesDemograficosSlice = createSlice({
 });
 
 export const {
+  definirNome,
   definirGenero,
   definirFaixaEtaria,
   definirOrigemEtnica,

@@ -32,12 +32,20 @@ export const en: typeof ptBR = {
     semResultado: 'No option found',
     avancar: 'Continue',
     pular: 'Skip',
+
+    demograficos1: {
+      titulo: "Let's get started! What's your name?",
+      descricaoNome: 'This is the name shown to other users',
+    },
+
     demograficos2: {
       etapa: 'Demographic data 2',
       titulo: 'Tell us more about you',
       subtitulo: 'All answers are optional!',
     },
     campos: {
+      nome: 'Name',
+      nomePlaceholder: 'Your full name',
       genero: 'Gender (optional)',
       faixaEtaria: 'Age range (optional)',
       origemEtnica: 'Ethnic background (optional)',

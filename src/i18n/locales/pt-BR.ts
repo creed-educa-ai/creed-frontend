@@ -32,12 +32,19 @@ export const ptBR = {
     semResultado: 'Nenhuma opção encontrada',
     avancar: 'Avançar',
     pular: 'Pular',
+
+    demograficos1: {
+      titulo: 'Vamos começar! Qual o seu nome?',
+      descricaoNome: 'Este será o nome que será exibido para outros usuários',
+    },
     demograficos2: {
       etapa: 'Dados demográficos 2',
       titulo: 'Fale mais sobre você',
       subtitulo: 'Todas as respostas são opcionais!',
     },
     campos: {
+      nome: 'Nome',
+      nomePlaceholder: 'Seu nome completo',
       genero: 'Gênero (opcional)',
       faixaEtaria: 'Faixa etária (opcional)',
       origemEtnica: 'Origem Étnica (opcional)',
