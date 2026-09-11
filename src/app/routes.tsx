@@ -1,13 +1,26 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RespondentesView } from '@/features/respondentes/RespondentesView';
-import { BoasVindasView } from '@/features/boas-vindas/BoasVindasView';
 import { CadastroView } from '@/features/cadastro/CadastroView';
 import { AlterarSenhaView } from '@/features/autenticacao/AlterarSenhaView';
+import { LoginView } from '@/features/login/LoginView';
+import { ProtectedRoute } from '@/app/ProtectedRoute';
 
-// Features ainda não implementadas seguem o molde de respondentes.
+const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
+
 export const router = createBrowserRouter([
-  { path: '/', element: <BoasVindasView /> },
-  { path: '/respondentes', element: <RespondentesView /> },
+  {
+    path: '/',
+    element: loginHabilitado ? (
+      <LoginView />
+    ) : (
+      <Navigate to="/respondentes" replace />
+    ),
+  },
+  ...(loginHabilitado ? [{ path: '/login', element: <LoginView /> }] : []),
+  {
+    element: <ProtectedRoute enabled={loginHabilitado} />,
+    children: [{ path: '/respondentes', element: <RespondentesView /> }],
+  },
   { path: '/cadastro', element: <CadastroView /> },
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
 ]);
