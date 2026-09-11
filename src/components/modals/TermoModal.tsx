@@ -3,6 +3,7 @@ import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
@@ -43,19 +44,17 @@ export function TermoModal({ open, onOpenChange, onAccept }: TermsModalProps) {
         </AlertDialogHeader>
 
         {/* Área com scroll para o texto dos termos */}
-        <div className="max-h-80 overflow-y-auto rounded-lg border border-border bg-card p-4">
-          <p className="text-sm leading-relaxed whitespace-pre-line text-card-foreground">
-            {t('termo:corpo')}
-          </p>
-        </div>
+        <AlertDialogDescription asChild>
+          <div className="max-h-80 overflow-y-auto rounded-lg border border-border bg-card p-4">
+            <p className="text-sm leading-relaxed whitespace-pre-line text-card-foreground">
+              {t('termo:corpo')}
+            </p>
+          </div>
+        </AlertDialogDescription>
 
         {/* Botões */}
         <div className="flex justify-end gap-3">
-          <Button
-            variant="outline"
-
-            onClick={handleDecline}
-          >
+          <Button variant="outline" onClick={handleDecline}>
             {t('termo:recusar')}
           </Button>
 
