@@ -5,6 +5,7 @@ import reducer, {
 } from '@/features/respondentes/respondentesDemograficosSlice';
 
 const estadoInicial = {
+  nome: '',
   genero: null,
   faixaEtaria: null,
   origemEtnica: [],

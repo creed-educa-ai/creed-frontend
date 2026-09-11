@@ -17,9 +17,9 @@ export function Demograficos1View() {
         {t('respondentes:demograficos1.titulo')}
       </h1>
 
-      <div className="mt-6">
+      <div className="mt-4">
         <Field>
-          <FieldLabel htmlFor="nome">
+          <FieldLabel htmlFor="nome" className="text-lg font-semibold">
             {t('respondentes:campos.nome')}
           </FieldLabel>
           <FieldDescription>
@@ -27,6 +27,7 @@ export function Demograficos1View() {
           </FieldDescription>
           <Input
             id="nome"
+            className="h-11"
             placeholder={t('respondentes:campos.nomePlaceholder')}
             value={nome}
             onChange={(e) => dispatch(definirNome(e.target.value))}
@@ -34,7 +35,7 @@ export function Demograficos1View() {
         </Field>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <Button type="button" className="w-full">
           {t('respondentes:avancar')}
         </Button>
