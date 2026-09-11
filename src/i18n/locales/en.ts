@@ -33,7 +33,6 @@ export const en: typeof ptBR = {
     avancar: 'Continue',
     pular: 'Skip',
     demograficos2: {
-      etapa: 'Demographic data 2',
       titulo: 'Tell us more about you',
       subtitulo: 'All answers are optional!',
     },

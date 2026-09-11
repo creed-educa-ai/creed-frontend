@@ -33,7 +33,6 @@ export const ptBR = {
     avancar: 'Avançar',
     pular: 'Pular',
     demograficos2: {
-      etapa: 'Dados demográficos 2',
       titulo: 'Fale mais sobre você',
       subtitulo: 'Todas as respostas são opcionais!',
     },
