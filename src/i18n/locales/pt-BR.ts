@@ -98,4 +98,9 @@ export const ptBR = {
       senhasDivergentes: 'As senhas não coincidem.',
     },
   },
+  contato: {
+    titulo: 'Entre em contato',
+    email: 'Email',
+    telefone: 'Telefone',
+  },
 };
