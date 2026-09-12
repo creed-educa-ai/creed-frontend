@@ -4,18 +4,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useTranslation } from 'react-i18next';
 
-interface ContactModalProps {
+interface ModalContatoProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function ContactModal({ open, onOpenChange }: ContactModalProps) {
+export function ModalContato({ open, onOpenChange }: ModalContatoProps) {
+  const { t } = useTranslation(['contato']);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-background">
         <DialogHeader>
-          <DialogTitle>Entre em contato</DialogTitle>
+          <DialogTitle>{t('contato:titulo')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -24,11 +27,11 @@ export function ContactModal({ open, onOpenChange }: ContactModalProps) {
           </div>
 
           <div>
-            <p className="font-bold">Email</p>
+            <p className="font-bold">{t('contato:email')}</p>
             <p>naira.libermann@gmail.com</p>
           </div>
           <div>
-            <p className="font-bold">Telefone</p>
+            <p className="font-bold">{t('contato:telefone')}</p>
             <p>+55 (51) 9961.4494</p>
           </div>
         </div>

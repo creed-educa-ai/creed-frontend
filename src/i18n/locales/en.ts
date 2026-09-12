@@ -97,4 +97,9 @@ export const en: typeof ptBR = {
       senhasDivergentes: 'Passwords do not match.',
     },
   },
+  contato: {
+    titulo: 'Contact us',
+    email: 'Email',
+    telefone: 'Phone',
+  },
 };

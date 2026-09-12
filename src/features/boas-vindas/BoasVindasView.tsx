@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-light.svg';
-import { ContactModal } from '@/components/modals/ContactModal';
+import { ModalContato } from '@/components/modals/ModalContato';
 import { useState } from 'react';
 
 export function BoasVindasView() {
@@ -62,7 +62,7 @@ export function BoasVindasView() {
           {t('boasVindas:tagline')}
         </h3>
       </div>
-      <ContactModal open={contactOpen} onOpenChange={setContactOpen} />
+      <ModalContato open={contactOpen} onOpenChange={setContactOpen} />
     </div>
   );
 }
