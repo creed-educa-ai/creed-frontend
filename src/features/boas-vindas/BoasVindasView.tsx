@@ -9,7 +9,7 @@ export function BoasVindasView() {
   // Os namespaces usados na tela precisam ser declarados aqui: é o que dá o
   // autocomplete das chaves. O primeiro é o padrão para chaves sem prefixo.
   const { t } = useTranslation(['boasVindas']);
-  const [contactOpen, setContactOpen] = useState(false);
+  const [contatoAberto, setContatoAberto] = useState(false);
 
   return (
     <div className="flex min-h-svh flex-col bg-background lg:flex-row">
@@ -45,7 +45,7 @@ export function BoasVindasView() {
             <Button
               variant="outline"
               onClick={() => {
-                setContactOpen(true);
+                setContatoAberto(true);
               }}
             >
               {t('boasVindas:faleConosco')}
@@ -62,7 +62,7 @@ export function BoasVindasView() {
           {t('boasVindas:tagline')}
         </h3>
       </div>
-      <ModalContato open={contactOpen} onOpenChange={setContactOpen} />
+      <ModalContato open={contatoAberto} onOpenChange={setContatoAberto} />
     </div>
   );
 }
