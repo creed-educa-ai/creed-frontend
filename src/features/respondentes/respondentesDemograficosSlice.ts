@@ -9,6 +9,7 @@ interface Demograficos2State {
   estadoBrasil: string | null;
   regiaoPortugal: string | null;
   nacionalidadeOutra: string;
+  perspectiva: string;
 }
 
 const initialState: Demograficos2State = {
@@ -20,6 +21,7 @@ const initialState: Demograficos2State = {
   estadoBrasil: null,
   regiaoPortugal: null,
   nacionalidadeOutra: '',
+  perspectiva: '',
 };
 
 // Limpa os campos dependentes de nacionalidade que nao correspondem mais a
@@ -59,6 +61,9 @@ const respondentesDemograficosSlice = createSlice({
     definirNacionalidadeOutra(state, action: PayloadAction<string>) {
       state.nacionalidadeOutra = action.payload;
     },
+    definirPerspectiva(state, action: PayloadAction<string>) {
+      state.perspectiva = action.payload;
+    },
   },
 });
 
@@ -71,5 +76,6 @@ export const {
   definirEstadoBrasil,
   definirRegiaoPortugal,
   definirNacionalidadeOutra,
+  definirPerspectiva,
 } = respondentesDemograficosSlice.actions;
 export default respondentesDemograficosSlice.reducer;

@@ -47,5 +47,13 @@ export const ptBR = {
       estado: 'Estado',
       regiao: 'Região',
     },
+    // O mockup está em português europeu; aqui vai a versão pt-BR (P-008).
+    demograficos3: {
+      titulo: 'Compartilhe brevemente a sua perspectiva',
+      subtitulo: 'Questão aberta - opcional',
+      pergunta:
+        'De que forma a sua educação familiar influenciou, ou não, a sua trajetória empreendedora ou inovadora? Justifique brevemente (opcional)',
+      placeholder: 'Sua resposta',
+    },
   },
 };

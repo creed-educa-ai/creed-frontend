@@ -47,5 +47,12 @@ export const en: typeof ptBR = {
       estado: 'State',
       regiao: 'Region',
     },
+    demograficos3: {
+      titulo: 'Briefly share your perspective',
+      subtitulo: 'Open question - optional',
+      pergunta:
+        'How did your family upbringing influence, or not, your entrepreneurial or innovative path? Briefly explain (optional)',
+      placeholder: 'Your answer',
+    },
   },
 };
