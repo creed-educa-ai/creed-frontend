@@ -36,23 +36,11 @@ function headersOf(init?: RequestInit): Headers {
 }
 
 describe('apiClient', () => {
-  const originalLocation = window.location;
-  let assignMock: ReturnType<typeof vi.fn>;
-
   beforeEach(() => {
     localStorage.clear();
-    assignMock = vi.fn();
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: { pathname: originalLocation.pathname, assign: assignMock },
-    });
   });
 
   afterEach(() => {
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: originalLocation,
-    });
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
@@ -116,7 +104,7 @@ describe('apiClient', () => {
     expect(getSession()?.access_token).toBe(refreshedSession.access_token);
   });
 
-  it('when the refresh fails, clears the session and sends to /login', async () => {
+  it('clears the session when the refresh fails', async () => {
     setSession(oldSession);
     const fetchMock = vi.fn((url: string): Promise<Response> =>
       Promise.resolve(
@@ -130,10 +118,9 @@ describe('apiClient', () => {
     await expect(apiClient.get('/whatever')).rejects.toThrow(ApiError);
 
     expect(getSession()).toBeNull();
-    expect(assignMock).toHaveBeenCalledWith('/login');
   });
 
-  it('without a session, a 401 also clears and sends to /login (session deleted via DevTools)', async () => {
+  it('without a session, a 401 just throws (nothing to refresh)', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(jsonResponse('not authenticated', 401));
@@ -141,10 +128,10 @@ describe('apiClient', () => {
 
     await expect(apiClient.get('/protected')).rejects.toThrow(ApiError);
 
-    expect(assignMock).toHaveBeenCalledWith('/login');
+    expect(getSession()).toBeNull();
   });
 
-  it('a 403 does not clear the session nor redirect', async () => {
+  it('a 403 does not clear the session', async () => {
     setSession(oldSession);
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse('forbidden', 403));
     vi.stubGlobal('fetch', fetchMock);
@@ -152,10 +139,9 @@ describe('apiClient', () => {
     await expect(apiClient.get('/restricted')).rejects.toThrow(ApiError);
 
     expect(getSession()).not.toBeNull();
-    expect(assignMock).not.toHaveBeenCalled();
   });
 
-  it('a 401 on /auth/login does not redirect — it is an invalid credential, not an expired session', async () => {
+  it('a 401 on /auth/login surfaces the backend message, not a generic session-expired one', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(jsonResponse('Invalid email or password', 401));
@@ -163,8 +149,6 @@ describe('apiClient', () => {
 
     await expect(
       apiClient.post('/auth/login', { email: 'a@a.com', password: 'x' }),
-    ).rejects.toThrow(ApiError);
-
-    expect(assignMock).not.toHaveBeenCalled();
+    ).rejects.toThrow('Invalid email or password');
   });
 });
