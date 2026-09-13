@@ -106,4 +106,9 @@ export const ptBR = {
     aceitar: 'Aceitar',
     recusar: 'Recusar',
   },
+  contato: {
+    titulo: 'Entre em contato',
+    email: 'Email',
+    telefone: 'Telefone',
+  },
 };

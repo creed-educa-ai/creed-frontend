@@ -105,4 +105,9 @@ export const en: typeof ptBR = {
     aceitar: 'Accept',
     recusar: 'Decline',
   },
+  contato: {
+    titulo: 'Contact us',
+    email: 'Email',
+    telefone: 'Phone',
+  },
 };
