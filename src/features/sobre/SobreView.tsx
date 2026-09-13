@@ -45,7 +45,7 @@ export function SobreView() {
               navigate(-1);
             }}
           >
-            {t('sobre:voltar', 'Voltar')}
+            {t('sobre:voltar')}
           </Button>
         </div>
       </div>

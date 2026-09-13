@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { SobreView } from '@/features/saiba-mais/SaibaMaisView';
+import { SobreView } from '@/features/sobre/SobreView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
 describe('SobreView', () => {
@@ -22,7 +22,7 @@ describe('SobreView', () => {
 
     expect(screen.getByText('Sobre')).toBeInTheDocument();
     expect(
-      screen.getByText('Texto placeholder da página sobre o CREED.ai.'),
+      screen.getByText((content) => content.includes('Lorem ipsum')),
     ).toBeInTheDocument();
   });
 
