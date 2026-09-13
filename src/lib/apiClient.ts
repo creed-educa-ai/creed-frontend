@@ -53,12 +53,6 @@ function getOrStartRefresh(): Promise<SessionResponse> {
   return refreshInFlight;
 }
 
-function redirectToLogin(): void {
-  if (window.location.pathname !== '/login') {
-    window.location.assign('/login');
-  }
-}
-
 async function request<T>(
   path: string,
   init?: RequestInit,
@@ -87,8 +81,8 @@ async function request<T>(
       }
     }
 
+    // Só limpa o storage aqui. Redirecionar para o "/login" é com a UI
     clearSession();
-    redirectToLogin();
     throw new ApiError('Sessão expirada, por favor faça login novamente', 401);
   }
 
