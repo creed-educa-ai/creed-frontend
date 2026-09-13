@@ -31,3 +31,16 @@ if (
     writable: true,
   });
 }
+// jsdom não implementa ResizeObserver; componentes Radix (ex.: Checkbox) usam
+// essa API internamente e quebram no render sem esse stub.
+global.ResizeObserver = class ResizeObserver {
+  observe() {
+    return undefined;
+  }
+  unobserve() {
+    return undefined;
+  }
+  disconnect() {
+    return undefined;
+  }
+};

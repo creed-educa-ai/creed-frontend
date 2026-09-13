@@ -81,6 +81,20 @@ export const en: typeof ptBR = {
   },
 
   autenticacao: {
+    login: {
+      titulo: 'Sign in to your account',
+      subtitulo: 'Use the email registered by your company.',
+      email: { rotulo: 'Email', placeholder: 'you@yourcompany.com' },
+      senha: { rotulo: 'Password', placeholder: 'Enter your password' },
+      lembrarDeMim: 'Remember me',
+      esqueciSenha: 'Forgot my password',
+      entrar: 'Sign in',
+      semConta: 'Your company does not have an account yet?',
+      criarConta: 'Create account',
+      painelTitulo: 'Good to have you here.',
+      painelDescricao:
+        'Competency assessment that shows your team clearly, without spreadsheets and without guesswork.',
+    },
     primeiroAcesso: {
       titulo: 'Change your password',
       subtitulo: 'Enter a new password for your account',
@@ -92,14 +106,26 @@ export const en: typeof ptBR = {
         'This is your first access. To continue, choose a new password.',
     },
     erros: {
+      emailInvalido: 'Enter a valid email.',
+      loginInvalido: 'Unable to sign in with these credentials.',
       senhaCurta: 'Password must be at least 8 characters long.',
       confirmacaoObrigatoria: 'Confirm the new password.',
       senhasDivergentes: 'Passwords do not match.',
     },
   },
+
   contato: {
     titulo: 'Contact us',
     email: 'Email',
     telefone: 'Phone',
+  },
+
+  aguardeConfirmacao: {
+    titulo: 'Await confirmation',
+    mensagem:
+      'Your data has been submitted and is awaiting approval. After confirmation, try logging in again.',
+    voltar: 'Back',
+    ouSaibaMais: 'OR LEARN MORE',
+    saibaMais: 'What is the CREED method?',
   },
 };
