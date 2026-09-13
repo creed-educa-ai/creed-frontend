@@ -113,9 +113,19 @@ export const en: typeof ptBR = {
       senhasDivergentes: 'Passwords do not match.',
     },
   },
+
   contato: {
     titulo: 'Contact us',
     email: 'Email',
     telefone: 'Phone',
+  },
+
+  aguardeConfirmacao: {
+    titulo: 'Await confirmation',
+    mensagem:
+      'Your data has been submitted and is awaiting approval. After confirmation, try logging in again.',
+    voltar: 'Back',
+    ouSaibaMais: 'OR LEARN MORE',
+    saibaMais: 'What is the CREED method?',
   },
 };

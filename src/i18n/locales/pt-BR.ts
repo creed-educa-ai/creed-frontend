@@ -114,9 +114,19 @@ export const ptBR = {
       senhasDivergentes: 'As senhas não coincidem.',
     },
   },
+
   contato: {
     titulo: 'Entre em contato',
     email: 'Email',
     telefone: 'Telefone',
+  },
+
+  aguardeConfirmacao: {
+    titulo: 'Aguarde confirmação',
+    mensagem:
+      'Seus dados foram enviados e aguardam aprovação. Após a confirmação, tente realizar o login novamente.',
+    voltar: 'Voltar',
+    ouSaibaMais: 'OU SAIBA MAIS',
+    saibaMais: 'O que é o método CREED?',
   },
 };

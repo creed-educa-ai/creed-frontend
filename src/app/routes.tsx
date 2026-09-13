@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RespondentesView } from '@/features/respondentes/RespondentesView';
 import { CadastroView } from '@/features/cadastro/CadastroView';
 import { AlterarSenhaView } from '@/features/autenticacao/AlterarSenhaView';
+import { AguardeConfirmacaoView } from '@/features/aguarde-confirmacao/AguardeConfirmacaoView';
 import { LoginView } from '@/features/login/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 
@@ -23,5 +24,6 @@ export const router = createBrowserRouter([
   },
   { path: '/cadastro', element: <CadastroView /> },
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
+  { path: '/aguarde-confirmacao', element: <AguardeConfirmacaoView /> },
   { path: '/recuperar-senha', element: <AlterarSenhaView /> },
 ]);
