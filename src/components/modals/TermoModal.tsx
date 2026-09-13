@@ -9,13 +9,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 
-interface TermsModalProps {
+interface TermoModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAccept: () => void;
 }
 
-export function TermoModal({ open, onOpenChange, onAccept }: TermsModalProps) {
+export function TermoModal({ open, onOpenChange, onAccept }: TermoModalProps) {
   const { t } = useTranslation(['termo']);
 
   const handleAccept = () => {

@@ -13,7 +13,7 @@ describe('TermoModal', () => {
       <TermoModal open={true} onOpenChange={vi.fn()} onAccept={vi.fn()} />,
     );
 
-    expect(screen.getByRole('heading')).toHaveTextContent('Termos');
+    expect(screen.getByRole('heading')).toHaveTextContent(/consentimento/i);
     expect(screen.getByText(/termo/i)).toBeInTheDocument();
   });
 
