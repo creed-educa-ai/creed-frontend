@@ -23,4 +23,5 @@ export const router = createBrowserRouter([
   },
   { path: '/cadastro', element: <CadastroView /> },
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
+  { path: '/recuperar-senha', element: <AlterarSenhaView /> },
 ]);

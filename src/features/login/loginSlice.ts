@@ -12,7 +12,8 @@ interface AuthState {
 const tokenInicial =
   typeof window === 'undefined'
     ? null
-    : window.localStorage.getItem(TOKEN_STORAGE_KEY);
+    : (window.localStorage.getItem(TOKEN_STORAGE_KEY) ??
+      window.sessionStorage.getItem(TOKEN_STORAGE_KEY));
 
 const initialState: AuthState = {
   token: tokenInicial,
@@ -22,7 +23,8 @@ const initialState: AuthState = {
 
 export const entrar = createAsyncThunk(
   'auth/entrar',
-  async (dados: LoginCredentials) => loginApi.entrar(dados),
+  async (dados: LoginCredentials & { lembrarDeMim: boolean }) =>
+    loginApi.entrar(dados),
 );
 
 const authSlice = createSlice({
@@ -34,6 +36,7 @@ const authSlice = createSlice({
       state.status = 'idle';
       state.erro = null;
       window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+      window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
     },
   },
   extraReducers: (builder) => {
@@ -45,7 +48,10 @@ const authSlice = createSlice({
       .addCase(entrar.fulfilled, (state, action) => {
         state.status = 'autenticado';
         state.token = action.payload.token;
-        window.localStorage.setItem(TOKEN_STORAGE_KEY, action.payload.token);
+        const armazenamento = action.meta.arg.lembrarDeMim
+          ? window.localStorage
+          : window.sessionStorage;
+        armazenamento.setItem(TOKEN_STORAGE_KEY, action.payload.token);
       })
       .addCase(entrar.rejected, (state, action) => {
         state.status = 'erro';

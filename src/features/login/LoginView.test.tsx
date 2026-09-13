@@ -1,12 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import userEvent from '@testing-library/user-event';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { LoginView } from '@/features/login/LoginView';
-import { store } from '@/app/store';
+import authReducer from '@/features/login/loginSlice';
 
+// 🟡 Premissa P-013 (creed-ai-context/decisoes/premissas.md) — store isolada
+// por teste, só com o reducer que esta tela usa. Ver
+// creed-ai-context/conventions/camadas-do-front.md § "Testando View
+// conectada ao Redux".
 function renderizar() {
+  const store = configureStore({ reducer: { auth: authReducer } });
   return render(
     <MemoryRouter>
       <Provider store={store}>
@@ -19,6 +25,7 @@ function renderizar() {
 describe('LoginView', () => {
   beforeEach(async () => {
     window.localStorage.clear();
+    window.sessionStorage.clear();
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
@@ -40,6 +47,9 @@ describe('LoginView', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
 
-    expect(screen.getAllByText('Campo obrigatório')).toHaveLength(2);
+    // E-mail vazio não passa em z.email() e cai na mensagem de formato
+    // inválido, não na de campo obrigatório — só a senha usa min(1).
+    expect(screen.getByText('Digite um e-mail válido.')).toBeInTheDocument();
+    expect(screen.getByText('Campo obrigatório')).toBeInTheDocument();
   });
 });
