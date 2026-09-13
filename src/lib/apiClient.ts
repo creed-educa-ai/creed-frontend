@@ -1,11 +1,17 @@
-// Cliente HTTP compartilhado. Centraliza base URL e tratamento de erro
-// para as features não reimplementarem fetch cada uma à sua maneira.
+// Cliente HTTP compartilhado. Centraliza base URL, injeção do token de
+// sessão e renovação automática, as features não reimplementam fetch nem
+// sabem como a sessão funciona.
 
 // Relativa por padrão: o proxy do Vite encaminha `/api/v1` ao backend local.
 // `VITE_API_BASE_URL` no `.env.local` troca por uma base absoluta — é assim que o
 // front consome o mock do contrato enquanto o backend não existe, sem tocar em
 // código. Apagar a variável devolve o comportamento padrão.
+import { clearSession, getSession, setSession } from '@/lib/session';
+import type { SessionResponse } from '@/types/api';
+
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
+
+const ROUTES_WITHOUT_INTERCEPTOR = new Set(['/auth/login']);
 
 export class ApiError extends Error {
   constructor(
@@ -17,16 +23,74 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+let refreshInFlight: Promise<SessionResponse> | null = null;
+
+async function refreshSession(): Promise<SessionResponse> {
+  const currentSession = getSession();
+  if (!currentSession) {
+    throw new ApiError('Não há sessão para renovar', 401);
+  }
+
+  const response = await fetch(`${BASE_URL}/auth/renew`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: currentSession.refresh_token }),
+  });
+
+  if (!response.ok) {
+    throw new ApiError(await response.text(), response.status);
+  }
+
+  const newSession = (await response.json()) as SessionResponse;
+  setSession(newSession);
+  return newSession;
+}
+
+function getOrStartRefresh(): Promise<SessionResponse> {
+  refreshInFlight ??= refreshSession().finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
+}
+
+function redirectToLogin(): void {
+  if (window.location.pathname !== '/login') {
+    window.location.assign('/login');
+  }
+}
+
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  alreadyRetried = false,
+): Promise<T> {
+  const session = getSession();
+
   // Montado pela API nativa: init.headers pode chegar como Headers, como array
   // de pares ou como objeto — espalhar às cegas descartaria as duas primeiras
   // formas. `headers` vai depois de ...init para não ser sobrescrito por ele.
   const headers = new Headers({ 'Content-Type': 'application/json' });
-  new Headers(init?.headers).forEach((valor, chave) => {
-    headers.set(chave, valor);
+  new Headers(init?.headers).forEach((value, key) => {
+    headers.set(key, value);
   });
+  if (session) headers.set('Authorization', `Bearer ${session.access_token}`);
 
   const response = await fetch(`${BASE_URL}${path}`, { ...init, headers });
+
+  if (response.status === 401 && !ROUTES_WITHOUT_INTERCEPTOR.has(path)) {
+    if (session && !alreadyRetried) {
+      try {
+        await getOrStartRefresh();
+        return await request<T>(path, init, true);
+      } catch {
+        // catch silencioso
+      }
+    }
+
+    clearSession();
+    redirectToLogin();
+    throw new ApiError('Sessão expirada, por favor faça login novamente', 401);
+  }
 
   if (!response.ok) {
     const detail = await response.text();
