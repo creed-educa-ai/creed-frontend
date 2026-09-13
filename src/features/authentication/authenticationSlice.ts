@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { authenticationApi } from '@/features/authentication/authenticationApi';
+import { ApiError } from '@/lib/apiClient';
 import { clearSession, getSession, setSession } from '@/lib/session';
 import type { LoginRequest, UserSessionResponse } from '@/types/api';
 
 interface AuthenticationState {
   user: UserSessionResponse | null;
   status: 'idle' | 'loading' | 'authenticated' | 'error';
+  /** Chave de i18n, não mensagem pronta: a tela é que traduz. */
   error: string | null;
 }
 
@@ -17,14 +19,35 @@ const initialState: AuthenticationState = {
   error: null,
 };
 
-export const login = createAsyncThunk(
-  'authentication/login',
-  async (credentials: LoginRequest) => {
-    const session = await authenticationApi.login(credentials);
-    setSession(session);
+/**
+ * O que atravessa daqui para a tela é chave de tradução, nunca o texto do
+ * backend — que vem só em português e não passa pelo i18n.
+ *
+ * Um 401 vira sempre a MESMA chave: o contrato exige que senha errada, e-mail
+ * inexistente e acesso desativado sejam indistinguíveis para quem está na tela.
+ */
+function chaveDeErro(erro: unknown): string {
+  if (erro instanceof ApiError && erro.status === 401) {
+    return 'autenticacao:erros.loginInvalido';
+  }
+  return 'autenticacao:erros.servicoIndisponivel';
+}
+
+export const login = createAsyncThunk<
+  UserSessionResponse,
+  LoginRequest & { lembrarDeMim?: boolean },
+  { rejectValue: string }
+>('authentication/login', async (credenciais, { rejectWithValue }) => {
+  const { lembrarDeMim, ...dados } = credenciais;
+
+  try {
+    const session = await authenticationApi.login(dados);
+    setSession(session, lembrarDeMim);
     return session.user;
-  },
-);
+  } catch (erro) {
+    return rejectWithValue(chaveDeErro(erro));
+  }
+});
 
 const authenticationSlice = createSlice({
   name: 'authentication',
@@ -49,7 +72,8 @@ const authenticationSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.status = 'error';
-        state.error = action.error.message ?? 'Unable to log in.';
+        state.error =
+          action.payload ?? 'autenticacao:erros.servicoIndisponivel';
       });
   },
 });

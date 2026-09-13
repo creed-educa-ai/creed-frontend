@@ -6,10 +6,10 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ enabled = true }: ProtectedRouteProps) {
-  const token = useAppSelector((state) => state.auth.token);
+  const user = useAppSelector((state) => state.authentication.user);
   const location = useLocation();
 
-  if (enabled && !token) {
+  if (enabled && !user) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

@@ -9,14 +9,14 @@ import { Input } from '@/components/ui/input';
 import { AuthLayout } from '@/components/layout/authLayout';
 import { loginSchema, type LoginForm } from '@/lib/validadores';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { entrar } from '@/features/login/loginSlice';
+import { login } from '@/features/authentication/authenticationSlice';
 
 export function LoginView() {
   const { t } = useTranslation(['autenticacao']);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const loginErro = useAppSelector((state) => state.auth.erro);
+  const loginErro = useAppSelector((state) => state.authentication.error);
   const {
     register,
     handleSubmit,
@@ -29,7 +29,15 @@ export function LoginView() {
 
   async function aoEnviar(dados: LoginForm) {
     try {
-      await dispatch(entrar(dados)).unwrap();
+      // O formulário fala português (`senha`), o contrato da API fala inglês
+      // (`password`). A tradução acontece aqui, na borda, e em nenhum outro lugar.
+      await dispatch(
+        login({
+          email: dados.email,
+          password: dados.senha,
+          lembrarDeMim: dados.lembrarDeMim,
+        }),
+      ).unwrap();
       const origem = (location.state as { from?: { pathname?: string } } | null)
         ?.from?.pathname;
       navigate(origem ?? '/respondentes', { replace: true });

@@ -109,6 +109,7 @@ export const ptBR = {
     erros: {
       emailInvalido: 'Digite um e-mail válido.',
       loginInvalido: 'Não foi possível entrar com esses dados.',
+      servicoIndisponivel: 'Não foi possível entrar agora. Tente novamente.',
       senhaCurta: 'A senha precisa ter pelo menos 8 caracteres.',
       confirmacaoObrigatoria: 'Confirme a nova senha.',
       senhasDivergentes: 'As senhas não coincidem.',

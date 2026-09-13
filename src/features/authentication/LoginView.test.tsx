@@ -4,15 +4,16 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import userEvent from '@testing-library/user-event';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
-import { LoginView } from '@/features/login/LoginView';
-import authReducer from '@/features/login/loginSlice';
+import { LoginView } from '@/features/authentication/LoginView';
+import authenticationReducer from '@/features/authentication/authenticationSlice';
 
-// 🟡 Premissa P-013 (creed-ai-context/decisoes/premissas.md) — store isolada
-// por teste, só com o reducer que esta tela usa. Ver
+// Store isolada por teste, só com o reducer que esta tela usa. Ver
 // creed-ai-context/conventions/camadas-do-front.md § "Testando View
 // conectada ao Redux".
 function renderizar() {
-  const store = configureStore({ reducer: { auth: authReducer } });
+  const store = configureStore({
+    reducer: { authentication: authenticationReducer },
+  });
   return render(
     <MemoryRouter>
       <Provider store={store}>
