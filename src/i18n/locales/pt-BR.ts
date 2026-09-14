@@ -5,6 +5,9 @@ export const ptBR = {
     carregando: 'Carregando…',
     semDado: '—',
     tenteRecarregar: 'Tente recarregar a página.',
+    erros: {
+      obrigatorio: 'Campo obrigatório',
+    },
     acoes: {
       tentarNovamente: 'Tentar novamente',
       cancelar: 'Cancelar',
@@ -46,5 +49,119 @@ export const ptBR = {
       estado: 'Estado',
       regiao: 'Região',
     },
+  },
+  boasVindas: {
+    titulo: 'Bem vindo!',
+    apresentacao:
+      'O CREED.ai Educa é uma plataforma de avaliação de competências para organizações em transformação. Envolvendo Plasticidade Humana e Inteligência Neuroinovadora para Educação, Empreendedorismo e Organizações em Transformação.',
+    entrar: {
+      chamada: 'Já tem acesso? Entre na sua conta.',
+      acao: 'Entrar',
+    },
+    criarConta: {
+      chamada: 'Criar conta disponível apenas para empresas.',
+      acao: 'Criar Conta',
+    },
+    saibaMais: 'Saiba mais sobre a plataforma',
+    faleConosco: 'Fale conosco',
+    // `creed.ai` não entra aqui: nome de marca não se traduz.
+    tagline:
+      'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
+  },
+  sobre: {
+    titulo: 'Sobre',
+    subtitulo: 'Mais informações sobre o Creed.ai',
+    // TODO placeholder: texto institucional definitivo ainda não definido com a cliente.
+    texto:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+    voltar: 'Voltar',
+  },
+  cadastro: {
+    titulo: 'Crie sua conta',
+    subtitulo: 'Informe seus dados para continuar',
+    campos: {
+      nomeEmpresa: {
+        rotulo: 'Nome da empresa',
+        placeholder: 'Digite o nome da empresa',
+      },
+      documento: {
+        rotulo: 'Documento (CPF/CNPJ)',
+        placeholder: 'Digite o documento da empresa',
+      },
+      email: {
+        rotulo: 'E-mail da empresa',
+        placeholder: 'Digite o e-mail da empresa',
+      },
+      nomeCompleto: {
+        rotulo: 'Seu nome completo',
+        placeholder: 'Digite seu nome completo',
+      },
+      telefone: {
+        rotulo: 'Telefone',
+        placeholder: 'Digite seu telefone',
+      },
+    },
+    botaoAvancar: 'Avançar',
+    textoLogin: 'Já tem uma conta?',
+    linkLogin: 'Login',
+    painelDescricao:
+      'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
+  },
+
+  autenticacao: {
+    login: {
+      titulo: 'Entre na sua conta',
+      subtitulo: 'Acesse com o e-mail cadastrado pela sua empresa.',
+      email: { rotulo: 'E-mail', placeholder: 'voce@suaempresa.com.br' },
+      senha: { rotulo: 'Senha', placeholder: 'Digite sua senha' },
+      lembrarDeMim: 'Lembrar de mim',
+      esqueciSenha: 'Esqueci minha senha',
+      entrar: 'Entrar',
+      semConta: 'Sua empresa ainda não tem conta?',
+      criarConta: 'Criar conta',
+      painelTitulo: 'Que bom ter você aqui.',
+      painelDescricao:
+        'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
+    },
+    primeiroAcesso: {
+      titulo: 'Troque sua senha',
+      subtitulo: 'Insira uma nova senha para sua conta',
+      campoNovaSenha: 'Insira uma nova senha',
+      campoConfirmarSenha: 'Confirme sua nova senha',
+      avancar: 'Avançar',
+      boasVindasTitulo: 'Bem Vindo',
+      boasVindasMensagem:
+        'Este é seu primeiro acesso. Para continuar você deve escolher uma nova senha.',
+    },
+    erros: {
+      emailInvalido: 'Digite um e-mail válido.',
+      loginInvalido: 'Não foi possível entrar com esses dados.',
+      servicoIndisponivel: 'Não foi possível entrar agora. Tente novamente.',
+      senhaCurta: 'A senha precisa ter pelo menos 8 caracteres.',
+      confirmacaoObrigatoria: 'Confirme a nova senha.',
+      senhasDivergentes: 'As senhas não coincidem.',
+    },
+  },
+
+  termo: {
+    titulo: 'TERMO DE CONSENTIMENTO INFORMADO, ESCLARECIDO E LIVRE',
+    corpo:
+      'Investigação: Culturally Responsive Entrepreneurship Education (CREED) \nInstituição: Universidade Aberta (UAb) — Portugal \nInvestigadora responsável: Naira Libermann · 2406837@estudante.uab.pt \nOrientador: Doutor Manuel Jacinto de Ascensão Jardim · jacinto.jardim@uab.pt \nOBJETIVO: Compreender o impacto das abordagens multiculturais na educação empreendedora. \nPARTICIPAÇÃO: Instrumento de autorrelato com 49 itens Likert em 7 dimensões + 4 questões abertas (~15 min). \nCONFIDENCIALIDADE: Dados tratados de forma estritamente confidencial, analisados de forma agregada e anonimizados. \nVOLUNTARIEDADE: Participação inteiramente voluntária e gratuita. Pode retirar o consentimento a qualquer momento. \nBASE LEGAL: RGPD (UE) 2016/679 · Lei n.º 58/2019 (Portugal) · LGPD Lei nº 13.709/2018 (Brasil)',
+    aceitar: 'Aceitar',
+    recusar: 'Recusar',
+  },
+  contato: {
+    titulo: 'Entre em contato',
+    email: 'Email',
+    telefone: 'Telefone',
+  },
+
+  aguardeConfirmacao: {
+    titulo: 'Aguarde confirmação',
+    mensagem:
+      'Seus dados foram enviados e aguardam aprovação. Após a confirmação, tente realizar o login novamente.',
+    voltar: 'Voltar',
+    ouSaibaMais: 'OU SAIBA MAIS',
+    saibaMais: 'O que é o método CREED?',
   },
 };
