@@ -10,6 +10,18 @@ export const cadastroSchema = z.object({
 
 export type CadastroForm = z.infer<typeof cadastroSchema>;
 
+export const loginSchema = z.object({
+  email: z.email('autenticacao:erros.emailInvalido'),
+  senha: z.string().min(1, 'comum:erros.obrigatorio'),
+  lembrarDeMim: z.boolean(),
+});
+
+export interface LoginForm {
+  email: string;
+  senha: string;
+  lembrarDeMim: boolean;
+}
+
 // autenticacao/alterarSenha — ainda não existe domínio de autenticação no
 // creed-backend, então não há contrato definindo a política de senha.
 // > 🟡 Premissa P-004 — mínimo de 8 caracteres, sem regra extra de
