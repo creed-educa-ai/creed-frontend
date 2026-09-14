@@ -3,6 +3,7 @@ import { RespondentesView } from '@/features/respondentes/RespondentesView';
 import { CadastroView } from '@/features/cadastro/CadastroView';
 import { AlterarSenhaView } from '@/features/autenticacao/AlterarSenhaView';
 import { SobreView } from '@/features/sobre/SobreView';
+import { BoasVindasView } from '@/features/boas-vindas/BoasVindasView';
 import { AguardeConfirmacaoView } from '@/features/aguarde-confirmacao/AguardeConfirmacaoView';
 import { LoginView } from '@/features/login/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
     children: [{ path: '/respondentes', element: <RespondentesView /> }],
   },
   { path: '/sobre', element: <SobreView /> },
+  { path: '/boas-vindas', element: <BoasVindasView /> },
   { path: '/cadastro', element: <CadastroView /> },
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
   { path: '/aguarde-confirmacao', element: <AguardeConfirmacaoView /> },
