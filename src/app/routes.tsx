@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RespondentesView } from '@/features/respondentes/RespondentesView';
+import { Demograficos2View } from '@/features/respondentes/Demograficos2View';
 import { CadastroView } from '@/features/cadastro/CadastroView';
 import { AlterarSenhaView } from '@/features/autenticacao/AlterarSenhaView';
 import { SobreView } from '@/features/sobre/SobreView';
@@ -11,6 +12,8 @@ import { ProtectedRoute } from '@/app/ProtectedRoute';
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
 export const router = createBrowserRouter([
+  // Tela isolada da CREED-20.5; a guarda e o fluxo completo entram na CREED-20.7.
+  { path: '/demograficos-2', element: <Demograficos2View /> },
   // > 🟡 Premissa P-014 — a plataforma abre na tela de boas-vindas, inclusive
   // > para quem já tem sessão. Confirmar na próxima reunião.
   { path: '/', element: <BoasVindasView /> },
