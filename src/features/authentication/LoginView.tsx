@@ -55,6 +55,7 @@ export function LoginView() {
     <AuthLayout
       titulo={t('autenticacao:login.painelTitulo')}
       subtitulo={t('autenticacao:login.painelDescricao')}
+      carregando={isSubmitting}
     >
       <h1 className="text-3xl font-bold text-heading">
         {t('autenticacao:login.titulo')}

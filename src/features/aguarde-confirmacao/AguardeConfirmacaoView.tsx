@@ -2,12 +2,20 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import CreedSymbol from '@/components/logos/logo';
 import { Button } from '@/components/ui/button';
+import { useAtrasoDaAnimacaoMarca } from '@/hooks/useAtrasoDaAnimacaoMarca';
 
 export function AguardeConfirmacaoView() {
   const { t } = useTranslation(['aguardeConfirmacao']);
+  const atrasoDaAnimacao = useAtrasoDaAnimacaoMarca();
 
   return (
-    <div className="bg-brand flex min-h-svh flex-col items-center justify-center gap-6 p-10 text-center text-primary-foreground">
+    // Mesmo fundo girando do painel do AuthLayout, no mesmo ponto do relógio,
+    // e o mesmo nome de transição: vindo do cadastro, o painel cresce até
+    // virar esta tela (ver `transicao-painel-marca` em index.css).
+    <div
+      className="bg-brand animate-brand-giro transicao-painel-marca flex min-h-svh flex-col items-center justify-center gap-6 p-10 text-center text-primary-foreground"
+      style={{ animationDelay: atrasoDaAnimacao }}
+    >
       <CreedSymbol animated className="size-28" />
 
       <div>
