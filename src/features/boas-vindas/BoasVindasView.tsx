@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-light.svg';
+import { useNavigate } from 'react-router-dom';
 import { ModalContato } from '@/components/modals/ModalContato';
 import { useState } from 'react';
 
@@ -9,6 +10,7 @@ export function BoasVindasView() {
   // Os namespaces usados na tela precisam ser declarados aqui: é o que dá o
   // autocomplete das chaves. O primeiro é o padrão para chaves sem prefixo.
   const { t } = useTranslation(['boasVindas']);
+  const navigate = useNavigate();
   const [contatoAberto, setContatoAberto] = useState(false);
 
   return (
@@ -41,7 +43,14 @@ export function BoasVindasView() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <Button variant="outline">{t('boasVindas:saibaMais')}</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                navigate('/sobre');
+              }}
+            >
+              {t('boasVindas:saibaMais')}
+            </Button>
             <Button
               variant="outline"
               onClick={() => {
