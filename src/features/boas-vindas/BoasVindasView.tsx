@@ -3,12 +3,15 @@ import { Button } from '@/components/ui/button';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-light.svg';
 import { useNavigate } from 'react-router-dom';
+import { ModalContato } from '@/components/modals/ModalContato';
+import { useState } from 'react';
 
 export function BoasVindasView() {
   // Os namespaces usados na tela precisam ser declarados aqui: é o que dá o
   // autocomplete das chaves. O primeiro é o padrão para chaves sem prefixo.
   const { t } = useTranslation(['boasVindas']);
   const navigate = useNavigate();
+  const [contatoAberto, setContatoAberto] = useState(false);
 
   return (
     <div className="flex min-h-svh flex-col bg-background lg:flex-row">
@@ -48,7 +51,14 @@ export function BoasVindasView() {
             >
               {t('boasVindas:saibaMais')}
             </Button>
-            <Button variant="outline">{t('boasVindas:faleConosco')}</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setContatoAberto(true);
+              }}
+            >
+              {t('boasVindas:faleConosco')}
+            </Button>
           </div>
         </div>
       </div>
@@ -61,6 +71,7 @@ export function BoasVindasView() {
           {t('boasVindas:tagline')}
         </h3>
       </div>
+      <ModalContato open={contatoAberto} onOpenChange={setContatoAberto} />
     </div>
   );
 }

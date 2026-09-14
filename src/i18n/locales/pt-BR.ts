@@ -90,6 +90,20 @@ export const ptBR = {
   },
 
   autenticacao: {
+    login: {
+      titulo: 'Entre na sua conta',
+      subtitulo: 'Acesse com o e-mail cadastrado pela sua empresa.',
+      email: { rotulo: 'E-mail', placeholder: 'voce@suaempresa.com.br' },
+      senha: { rotulo: 'Senha', placeholder: 'Digite sua senha' },
+      lembrarDeMim: 'Lembrar de mim',
+      esqueciSenha: 'Esqueci minha senha',
+      entrar: 'Entrar',
+      semConta: 'Sua empresa ainda não tem conta?',
+      criarConta: 'Criar conta',
+      painelTitulo: 'Que bom ter você aqui.',
+      painelDescricao:
+        'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
+    },
     primeiroAcesso: {
       titulo: 'Troque sua senha',
       subtitulo: 'Insira uma nova senha para sua conta',
@@ -101,9 +115,33 @@ export const ptBR = {
         'Este é seu primeiro acesso. Para continuar você deve escolher uma nova senha.',
     },
     erros: {
+      emailInvalido: 'Digite um e-mail válido.',
+      loginInvalido: 'Não foi possível entrar com esses dados.',
       senhaCurta: 'A senha precisa ter pelo menos 8 caracteres.',
       confirmacaoObrigatoria: 'Confirme a nova senha.',
       senhasDivergentes: 'As senhas não coincidem.',
     },
+  },
+
+  termo: {
+    titulo: 'TERMO DE CONSENTIMENTO INFORMADO, ESCLARECIDO E LIVRE',
+    corpo:
+      'Investigação: Culturally Responsive Entrepreneurship Education (CREED) \nInstituição: Universidade Aberta (UAb) — Portugal \nInvestigadora responsável: Naira Libermann · 2406837@estudante.uab.pt \nOrientador: Doutor Manuel Jacinto de Ascensão Jardim · jacinto.jardim@uab.pt \nOBJETIVO: Compreender o impacto das abordagens multiculturais na educação empreendedora. \nPARTICIPAÇÃO: Instrumento de autorrelato com 49 itens Likert em 7 dimensões + 4 questões abertas (~15 min). \nCONFIDENCIALIDADE: Dados tratados de forma estritamente confidencial, analisados de forma agregada e anonimizados. \nVOLUNTARIEDADE: Participação inteiramente voluntária e gratuita. Pode retirar o consentimento a qualquer momento. \nBASE LEGAL: RGPD (UE) 2016/679 · Lei n.º 58/2019 (Portugal) · LGPD Lei nº 13.709/2018 (Brasil)',
+    aceitar: 'Aceitar',
+    recusar: 'Recusar',
+  },
+  contato: {
+    titulo: 'Entre em contato',
+    email: 'Email',
+    telefone: 'Telefone',
+  },
+
+  aguardeConfirmacao: {
+    titulo: 'Aguarde confirmação',
+    mensagem:
+      'Seus dados foram enviados e aguardam aprovação. Após a confirmação, tente realizar o login novamente.',
+    voltar: 'Voltar',
+    ouSaibaMais: 'OU SAIBA MAIS',
+    saibaMais: 'O que é o método CREED?',
   },
 };
