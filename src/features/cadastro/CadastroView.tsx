@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthLayout } from '@/components/layout/authLayout';
 import { Field, FieldLabel, FieldError } from '@/components/ui/field';
 import { useForm } from 'react-hook-form';
@@ -10,6 +10,7 @@ import { cadastroSchema, type CadastroForm } from '@/lib/validadores';
 
 export function CadastroView() {
   const { t } = useTranslation(['comum', 'cadastro']);
+  const navigate = useNavigate();
 
   const {
     register,
@@ -26,8 +27,15 @@ export function CadastroView() {
     },
   });
 
-  function aoEnviar(dados: CadastroForm) {
+  async function aoEnviar(dados: CadastroForm) {
     console.info('Cadastro validado:', dados);
+    // PROVISÓRIO — espera simulada para a apresentação. Sem API, o envio é
+    // instantâneo e o símbolo do painel não chegaria a girar. Sai quando o
+    // cadastro chamar o backend: a própria requisição passa a ser a espera.
+    await new Promise((resolver) => setTimeout(resolver, 1500));
+    // viewTransition: o painel roxo cresce até virar a tela de aguarde, que
+    // tem o mesmo fundo (ver `transicao-painel-marca` em index.css).
+    navigate('/aguarde-confirmacao', { viewTransition: true });
   }
 
   function erroDoCampo(chave?: string) {
@@ -45,6 +53,7 @@ export function CadastroView() {
     <AuthLayout
       titulo={t('cadastro:titulo')}
       subtitulo={t('cadastro:painelDescricao')}
+      carregando={isSubmitting}
     >
       <h1 className="text-3xl font-semibold text-heading">
         {t('cadastro:titulo')}

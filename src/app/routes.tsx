@@ -11,21 +11,24 @@ import { ProtectedRoute } from '@/app/ProtectedRoute';
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
 export const router = createBrowserRouter([
+  // > 🟡 Premissa P-014 — a plataforma abre na tela de boas-vindas, inclusive
+  // > para quem já tem sessão. Confirmar na próxima reunião.
+  { path: '/', element: <BoasVindasView /> },
   {
-    path: '/',
+    path: '/login',
+    // Com o login desligado, o botão "Entrar" das boas-vindas pula direto para
+    // a área logada em vez de cair numa rota inexistente.
     element: loginHabilitado ? (
       <LoginView />
     ) : (
       <Navigate to="/respondentes" replace />
     ),
   },
-  ...(loginHabilitado ? [{ path: '/login', element: <LoginView /> }] : []),
   {
     element: <ProtectedRoute enabled={loginHabilitado} />,
     children: [{ path: '/respondentes', element: <RespondentesView /> }],
   },
   { path: '/sobre', element: <SobreView /> },
-  { path: '/boas-vindas', element: <BoasVindasView /> },
   { path: '/cadastro', element: <CadastroView /> },
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
   { path: '/aguarde-confirmacao', element: <AguardeConfirmacaoView /> },

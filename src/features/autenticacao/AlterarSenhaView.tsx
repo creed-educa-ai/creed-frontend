@@ -22,8 +22,12 @@ export function AlterarSenhaView() {
   // > 🟡 Premissa P-003 — sem integração com o backend ainda (não existe
   // domínio de autenticação no creed-backend). Atualizar quando o contrato
   // existir.
-  function aoEnviar(dados: AlterarSenhaForm) {
+  async function aoEnviar(dados: AlterarSenhaForm) {
     console.info('Senha validada, pronta para quando a API existir:', dados);
+    // PROVISÓRIO — espera simulada para a apresentação. Sem API, o envio é
+    // instantâneo e o símbolo do painel não chegaria a girar. Sai junto com a
+    // P-003: a própria requisição passa a ser a espera.
+    await new Promise((resolver) => setTimeout(resolver, 1500));
   }
 
   // t() só aceita, em tempo de compilação, as chaves que existem no
@@ -40,6 +44,7 @@ export function AlterarSenhaView() {
     <AuthLayout
       titulo={t('autenticacao:primeiroAcesso.boasVindasTitulo')}
       subtitulo={t('autenticacao:primeiroAcesso.boasVindasMensagem')}
+      carregando={isSubmitting}
     >
       <h1 className="text-2xl font-bold text-heading">
         {t('autenticacao:primeiroAcesso.titulo')}
