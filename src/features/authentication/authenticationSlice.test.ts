@@ -77,15 +77,70 @@ describe('authenticationSlice', () => {
   });
 
   it('marks error when login fails, without storing a user', () => {
+    // `error` guarda CHAVE de i18n, não texto: a mensagem do backend só existe
+    // em português e nunca passaria pelo seletor de idioma.
     const credentials = { email: fakeUser.email, password: 'wrong' };
     const state = reducer(
       initialState,
-      login.rejected(new Error('Invalid email or password'), '', credentials),
+      login.rejected(
+        new Error('rejeitado'),
+        '',
+        credentials,
+        'autenticacao:erros.loginInvalido',
+      ),
     );
 
     expect(state.status).toBe('error');
-    expect(state.error).toBe('Invalid email or password');
+    expect(state.error).toBe('autenticacao:erros.loginInvalido');
     expect(state.user).toBeNull();
+  });
+
+  describe('which error key each failure produces', () => {
+    beforeEach(() => {
+      vi.resetModules();
+    });
+
+    it('401 becomes the invalid-credentials key', async () => {
+      const { ApiError } = await import('@/lib/apiClient');
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue(
+          new Response(
+            JSON.stringify({ detail: 'E-mail ou senha inválidos' }),
+            {
+              status: 401,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          ),
+        ),
+      );
+
+      const action = await login({
+        email: fakeUser.email,
+        password: 'wrong',
+      })(vi.fn(), () => ({}), undefined);
+
+      expect(ApiError).toBeDefined();
+      expect(action.payload).toBe('autenticacao:erros.loginInvalido');
+    });
+
+    it('backend down becomes the unavailable key, not invalid credentials', async () => {
+      // Contrato: indisponibilidade NUNCA pode aparecer como "senha inválida",
+      // ou o usuário troca a senha que estava certa.
+      vi.stubGlobal(
+        'fetch',
+        vi
+          .fn()
+          .mockResolvedValue(new Response('upstream down', { status: 503 })),
+      );
+
+      const action = await login({
+        email: fakeUser.email,
+        password: 'secret',
+      })(vi.fn(), () => ({}), undefined);
+
+      expect(action.payload).toBe('autenticacao:erros.servicoIndisponivel');
+    });
   });
 
   it('logout clears the user and the saved session', () => {

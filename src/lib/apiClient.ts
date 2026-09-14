@@ -13,6 +13,27 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
 const ROUTES_WITHOUT_INTERCEPTOR = new Set(['/auth/login']);
 
+// O backend responde erro como `{"detail": "..."}` (FastAPI). Sem desembrulhar,
+// a mensagem que chega na tela é o JSON inteiro, com chaves e aspas.
+async function mensagemDeErro(response: Response): Promise<string> {
+  const texto = await response.text();
+  if (!texto) return response.statusText;
+
+  try {
+    const corpo: unknown = JSON.parse(texto);
+    if (corpo && typeof corpo === 'object' && 'detail' in corpo) {
+      const { detail } = corpo;
+      // 422 do FastAPI traz `detail` como lista de erros de campo; aí o texto
+      // cru é mais útil do que "[object Object]".
+      if (typeof detail === 'string') return detail;
+    }
+  } catch {
+    // Não era JSON: o texto cru já é a melhor mensagem que existe.
+  }
+
+  return texto;
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -38,7 +59,7 @@ async function refreshSession(): Promise<SessionResponse> {
   });
 
   if (!response.ok) {
-    throw new ApiError(await response.text(), response.status);
+    throw new ApiError(await mensagemDeErro(response), response.status);
   }
 
   const newSession = (await response.json()) as SessionResponse;
@@ -87,8 +108,7 @@ async function request<T>(
   }
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new ApiError(detail || response.statusText, response.status);
+    throw new ApiError(await mensagemDeErro(response), response.status);
   }
 
   if (response.status === 204) return undefined as T;

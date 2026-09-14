@@ -116,6 +116,8 @@ export const en: typeof ptBR = {
     erros: {
       emailInvalido: 'Enter a valid email.',
       loginInvalido: 'Unable to sign in with these credentials.',
+      servicoIndisponivel:
+        'Sign-in is unavailable right now. Please try again.',
       senhaCurta: 'Password must be at least 8 characters long.',
       confirmacaoObrigatoria: 'Confirm the new password.',
       senhasDivergentes: 'Passwords do not match.',
