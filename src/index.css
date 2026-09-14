@@ -197,4 +197,89 @@
     animation: logo-giro 3s ease-in-out infinite;
     transform-origin: center;
   }
+
+  /* Degradê da marca girando: o mesmo degradê do `bg-brand`, mas com o ângulo
+     numa variável que a animação gira uma volta inteira. Começa nos 135deg do
+     `bg-brand` e termina em 135 + 360: o fim cai no mesmo ponto do início e o
+     giro emenda sem salto. O lado claro dá a volta no elemento, devagar e em
+     velocidade constante.
+     Ajuste fino: a duração é o tempo de uma volta inteira. */
+  @keyframes brand-giro {
+    from {
+      --brand-angulo: 135deg;
+    }
+    to {
+      --brand-angulo: 495deg;
+    }
+  }
+
+  .animate-brand-giro {
+    background-image: linear-gradient(
+      var(--brand-angulo),
+      var(--bg-brand-from),
+      var(--bg-brand-to)
+    );
+    animation: brand-giro 14s linear infinite;
+  }
+
+  /* Quem pediu menos movimento ao sistema operacional vê o degradê parado,
+     no mesmo ângulo do `bg-brand`. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-brand-giro {
+      animation: none;
+    }
+  }
+
+  /* Painel da marca virando a tela inteira (cadastro → aguarde confirmação).
+     View Transitions API: elementos com o mesmo `view-transition-name` nas
+     duas telas são tratados pelo navegador como "o mesmo elemento", e ele
+     anima tamanho e posição de um para o outro. Só roda na navegação que pede
+     (`navigate(..., { viewTransition: true })`); nas outras, nada muda.
+     Navegador sem suporte troca de tela seco, sem quebrar. */
+  .transicao-painel-marca {
+    view-transition-name: painel-marca;
+  }
+
+  ::view-transition-group(painel-marca) {
+    animation-duration: 600ms;
+    animation-timing-function: ease-in-out;
+  }
+
+  /* Por padrão as duas "fotos" (painel antigo e tela nova) mantêm a proporção
+     e sobram para fora enquanto a caixa cresce. Preenchendo a caixa com
+     `cover`, o que se vê é o fundo roxo crescendo; a foto do painel antigo sai
+     rápido para o símbolo e o texto não aparecerem esticados. */
+  ::view-transition-old(painel-marca),
+  ::view-transition-new(painel-marca) {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  ::view-transition-old(painel-marca) {
+    animation-duration: 200ms;
+  }
+
+  /* O resto da página (formulário saindo, tela nova entrando) acompanha o
+     tempo do painel, para as duas partes terminarem juntas. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 600ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+      animation: none;
+    }
+  }
+}
+
+/* Sem registrar a variável como ângulo, o navegador não sabe interpolar o
+   valor: o degradê pularia de uma posição para outra em vez de girar.
+   Fica fora do @layer porque @property é declaração global. */
+@property --brand-angulo {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 135deg;
 }

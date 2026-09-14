@@ -53,6 +53,25 @@ describe('TermoModal', () => {
     expect(onAccept).not.toHaveBeenCalled();
   });
 
+  it('chama onDecline só ao recusar', () => {
+    const onDecline = vi.fn();
+
+    render(
+      <TermoModal
+        open={true}
+        onOpenChange={vi.fn()}
+        onAccept={vi.fn()}
+        onDecline={onDecline}
+      />,
+    );
+
+    screen.getByRole('button', { name: 'Aceitar' }).click();
+    expect(onDecline).not.toHaveBeenCalled();
+
+    screen.getByRole('button', { name: 'Recusar' }).click();
+    expect(onDecline).toHaveBeenCalledTimes(1);
+  });
+
   it('associa o modal ao texto do termo para acessibilidade', () => {
     render(
       <TermoModal open={true} onOpenChange={vi.fn()} onAccept={vi.fn()} />,

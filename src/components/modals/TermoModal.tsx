@@ -13,9 +13,17 @@ interface TermoModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAccept: () => void;
+  // Aceitar e recusar chamam onOpenChange(false): quem precisa reagir à
+  // recusa (ex.: deslogar) não distingue as duas por ali.
+  onDecline?: () => void;
 }
 
-export function TermoModal({ open, onOpenChange, onAccept }: TermoModalProps) {
+export function TermoModal({
+  open,
+  onOpenChange,
+  onAccept,
+  onDecline,
+}: TermoModalProps) {
   const { t } = useTranslation(['termo']);
 
   const handleAccept = () => {
@@ -25,6 +33,7 @@ export function TermoModal({ open, onOpenChange, onAccept }: TermoModalProps) {
 
   const handleDecline = () => {
     onOpenChange(false);
+    onDecline?.();
   };
 
   return (

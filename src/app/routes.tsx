@@ -14,21 +14,24 @@ const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 export const router = createBrowserRouter([
   // Tela isolada da CREED-20.5; a guarda e o fluxo completo entram na CREED-20.7.
   { path: '/demograficos-2', element: <Demograficos2View /> },
+  // > 🟡 Premissa P-014 — a plataforma abre na tela de boas-vindas, inclusive
+  // > para quem já tem sessão. Confirmar na próxima reunião.
+  { path: '/', element: <BoasVindasView /> },
   {
-    path: '/',
+    path: '/login',
+    // Com o login desligado, o botão "Entrar" das boas-vindas pula direto para
+    // a área logada em vez de cair numa rota inexistente.
     element: loginHabilitado ? (
       <LoginView />
     ) : (
       <Navigate to="/respondentes" replace />
     ),
   },
-  ...(loginHabilitado ? [{ path: '/login', element: <LoginView /> }] : []),
   {
     element: <ProtectedRoute enabled={loginHabilitado} />,
     children: [{ path: '/respondentes', element: <RespondentesView /> }],
   },
   { path: '/sobre', element: <SobreView /> },
-  { path: '/boas-vindas', element: <BoasVindasView /> },
   { path: '/cadastro', element: <CadastroView /> },
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
   { path: '/aguarde-confirmacao', element: <AguardeConfirmacaoView /> },
