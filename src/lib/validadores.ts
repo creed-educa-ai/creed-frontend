@@ -11,7 +11,9 @@ export const cadastroSchema = z.object({
 export type CadastroForm = z.infer<typeof cadastroSchema>;
 
 export const loginSchema = z.object({
-  email: z.email('autenticacao:erros.emailInvalido'),
+  email: z
+    .string()
+    .regex(/^[^\s@]+@[^\s@]+$/, 'autenticacao:erros.emailInvalido'),
   senha: z.string().min(1, 'comum:erros.obrigatorio'),
   lembrarDeMim: z.boolean(),
 });
