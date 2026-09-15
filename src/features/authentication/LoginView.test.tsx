@@ -37,6 +37,10 @@ describe('LoginView', () => {
     expect(screen.getByLabelText('Senha')).toBeInTheDocument();
     expect(screen.getByText('Lembrar de mim')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Entrar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Voltar' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Ir para a tela de boas-vindas' }),
+    ).toHaveAttribute('href', '/');
     expect(screen.getByRole('link', { name: 'Criar conta' })).toHaveAttribute(
       'href',
       '/cadastro',
