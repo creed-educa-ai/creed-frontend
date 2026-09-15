@@ -11,7 +11,7 @@ import type { SessionResponse } from '@/types/api';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
-const ROUTES_WITHOUT_INTERCEPTOR = new Set(['/auth/login']);
+const ROUTES_WITHOUT_INTERCEPTOR = new Set(['/authentication/login']);
 
 // O backend responde erro como `{"detail": "..."}` (FastAPI). Sem desembrulhar,
 // a mensagem que chega na tela é o JSON inteiro, com chaves e aspas.
@@ -52,7 +52,7 @@ async function refreshSession(): Promise<SessionResponse> {
     throw new ApiError('Não há sessão para renovar', 401);
   }
 
-  const response = await fetch(`${BASE_URL}/auth/renew`, {
+  const response = await fetch(`${BASE_URL}/authentication/renew`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refresh_token: currentSession.refresh_token }),

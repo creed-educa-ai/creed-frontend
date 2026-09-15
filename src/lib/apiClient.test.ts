@@ -72,7 +72,7 @@ describe('apiClient', () => {
 
     const fetchMock = vi.fn(
       (url: string, init?: RequestInit): Promise<Response> => {
-        if (url.endsWith('/auth/renew')) {
+        if (url.endsWith('/authentication/renew')) {
           refreshCalls += 1;
           return Promise.resolve(jsonResponse(refreshedSession));
         }
@@ -108,7 +108,7 @@ describe('apiClient', () => {
     setSession(oldSession);
     const fetchMock = vi.fn((url: string): Promise<Response> =>
       Promise.resolve(
-        url.endsWith('/auth/renew')
+        url.endsWith('/authentication/renew')
           ? jsonResponse('session expired', 401)
           : jsonResponse('token expired', 401),
       ),
@@ -141,14 +141,17 @@ describe('apiClient', () => {
     expect(getSession()).not.toBeNull();
   });
 
-  it('a 401 on /auth/login surfaces the backend message, not a generic session-expired one', async () => {
+  it('a 401 on /authentication/login surfaces the backend message, not a generic session-expired one', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValue(jsonResponse('Invalid email or password', 401));
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(
-      apiClient.post('/auth/login', { email: 'a@a.com', password: 'x' }),
+      apiClient.post('/authentication/login', {
+        email: 'a@a.com',
+        password: 'x',
+      }),
     ).rejects.toThrow('Invalid email or password');
   });
 });
