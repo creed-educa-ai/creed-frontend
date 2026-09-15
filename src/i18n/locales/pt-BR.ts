@@ -35,6 +35,12 @@ export const ptBR = {
     semResultado: 'Nenhuma opção encontrada',
     avancar: 'Avançar',
     pular: 'Pular',
+
+    demograficos1: {
+      titulo: 'Vamos começar! Qual o seu nome?',
+      descricaoNome: 'Este será o nome que será exibido para outros usuários',
+      nomeObrigatorio: 'Informe seu nome para continuar.',
+    },
     demograficos2: {
       clear: 'Limpar {{field}}',
       remove: 'Remover {{option}}',
@@ -126,6 +132,8 @@ export const ptBR = {
       subtitulo: 'Todas as respostas são opcionais!',
     },
     campos: {
+      nome: 'Nome',
+      nomePlaceholder: 'Seu nome completo',
       genero: 'Gênero (opcional)',
       faixaEtaria: 'Faixa etária (opcional)',
       origemEtnica: 'Origem Étnica (opcional)',

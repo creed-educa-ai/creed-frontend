@@ -3,13 +3,15 @@ import { emptyDemographics } from './demographicsSchema';
 import { login, logout } from '@/features/authentication/authenticationSlice';
 import reducer, {
   definirGenero,
+  definirNome,
   definirNacionalidade,
   definirPerspectiva,
   saveDemographicsStep,
-  type Demograficos2State,
+  type DemographicsDraft,
 } from '@/features/respondentes/respondentesDemograficosSlice';
 
-const estadoInicial: Demograficos2State = {
+const estadoInicial: DemographicsDraft = {
+  nome: '',
   genero: null,
   faixaEtaria: null,
   origemEtnica: [],
@@ -58,8 +60,14 @@ describe('respondentesDemograficosSlice', () => {
     expect(estado.genero).toBe('feminino');
   });
 
+  it('guarda o nome confirmado e o limpa ao iniciar outra sessão', () => {
+    const salvo = reducer(estadoInicial, definirNome('Pessoa de teste'));
+    expect(salvo.nome).toBe('Pessoa de teste');
+    expect(reducer(salvo, { type: logout.type }).nome).toBe('');
+  });
+
   it('limpa estadoBrasil ao trocar nacionalidade para portuguesa', () => {
-    const comEstado: Demograficos2State = {
+    const comEstado: DemographicsDraft = {
       ...estadoInicial,
       nacionalidade: 'brasileira',
       estadoBrasil: 'RS',
@@ -69,7 +77,7 @@ describe('respondentesDemograficosSlice', () => {
   });
 
   it('limpa regiaoPortugal e nacionalidadeOutra ao trocar para brasileira', () => {
-    const comRegiao: Demograficos2State = {
+    const comRegiao: DemographicsDraft = {
       ...estadoInicial,
       nacionalidade: 'outra',
       regiaoPortugal: 'norte',
