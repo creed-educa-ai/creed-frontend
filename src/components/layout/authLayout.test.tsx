@@ -2,9 +2,16 @@
 // é CSS e o jsdom não faz layout: isso se confere no navegador, em 375 · 768 ·
 // 1280. Aqui fica só o que o componente promete para quem o usa.
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { AuthLayout } from '@/components/layout/authLayout';
+import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
 describe('AuthLayout', () => {
+  beforeEach(async () => {
+    await i18n.changeLanguage(IDIOMA_PADRAO);
+  });
+
   it('mostra o conteúdo da tela, o título do painel e a marca', () => {
     render(
       <AuthLayout titulo="Título do painel" subtitulo="Texto de apoio">
@@ -30,6 +37,52 @@ describe('AuthLayout', () => {
     );
 
     expect(container.querySelectorAll('p')).toHaveLength(1);
+  });
+
+  it('leva para boas-vindas ao clicar na marca', async () => {
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/" element={<p>Tela de boas-vindas</p>} />
+          <Route
+            path="/login"
+            element={
+              <AuthLayout titulo="Login" exibirNavegacao>
+                <p>Conteúdo</p>
+              </AuthLayout>
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(
+      screen.getByRole('link', { name: 'Ir para a tela de boas-vindas' }),
+    );
+
+    expect(screen.getByText('Tela de boas-vindas')).toBeInTheDocument();
+  });
+
+  it('volta para a entrada anterior do histórico', async () => {
+    render(
+      <MemoryRouter initialEntries={['/origem', '/login']} initialIndex={1}>
+        <Routes>
+          <Route path="/origem" element={<p>Tela anterior</p>} />
+          <Route
+            path="/login"
+            element={
+              <AuthLayout titulo="Login" exibirNavegacao>
+                <p>Conteúdo</p>
+              </AuthLayout>
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Voltar' }));
+
+    expect(screen.getByText('Tela anterior')).toBeInTheDocument();
   });
 
   // O símbolo não tem papel acessível próprio: a classe da animação é o que

@@ -13,6 +13,10 @@ export const ptBR = {
       cancelar: 'Cancelar',
       salvar: 'Salvar',
     },
+    navegacao: {
+      voltar: 'Voltar',
+      irParaBoasVindas: 'Ir para a tela de boas-vindas',
+    },
     idioma: {
       rotulo: 'Idioma',
       'pt-BR': 'Português',

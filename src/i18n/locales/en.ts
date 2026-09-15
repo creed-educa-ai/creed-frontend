@@ -15,6 +15,10 @@ export const en: typeof ptBR = {
       cancelar: 'Cancel',
       salvar: 'Save',
     },
+    navegacao: {
+      voltar: 'Back',
+      irParaBoasVindas: 'Go to the welcome page',
+    },
     idioma: {
       rotulo: 'Language',
       'pt-BR': 'Portuguese',
