@@ -21,12 +21,14 @@ function criarStore() {
 }
 
 function renderizar(store = criarStore()) {
+  const onContinue = vi.fn();
+  const onSkip = vi.fn();
   render(
     <Provider store={store}>
-      <Demograficos3View />
+      <Demograficos3View onContinue={onContinue} onSkip={onSkip} />
     </Provider>,
   );
-  return store;
+  return { store, onContinue, onSkip };
 }
 
 function campoPerspectiva() {
@@ -38,8 +40,8 @@ describe('Demograficos3View', () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
-  it('salva a resposta no slice ao clicar em Avançar', async () => {
-    const store = renderizar();
+  it('salva a resposta no slice e avisa o fluxo uma vez ao clicar em Avançar', async () => {
+    const { store, onContinue } = renderizar();
 
     await userEvent.type(
       campoPerspectiva(),
@@ -50,11 +52,15 @@ describe('Demograficos3View', () => {
     expect(store.getState().respondentesDemograficos.perspectiva).toBe(
       'Cresci vendo meus pais empreender.',
     );
+    expect(onContinue).toHaveBeenCalledOnce();
+    expect(onContinue).toHaveBeenCalledWith({
+      perspectiva: 'Cresci vendo meus pais empreender.',
+    });
   });
 
   // É a regra 6 de formularios.md: o texto não vai para o Redux a cada tecla.
   it('não grava no slice enquanto a pessoa ainda está digitando', async () => {
-    const store = renderizar();
+    const { store } = renderizar();
 
     await userEvent.type(campoPerspectiva(), 'Rascunho');
 
@@ -79,5 +85,29 @@ describe('Demograficos3View', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Avançar' }));
 
     expect(store.getState().respondentesDemograficos.perspectiva).toBe('');
+  });
+
+  it('descarta a resposta salva e avisa o fluxo ao clicar em Pular', async () => {
+    const store = criarStore();
+    store.dispatch(definirPerspectiva('Resposta de antes'));
+    const { onContinue, onSkip } = renderizar(store);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Pular' }));
+
+    expect(campoPerspectiva()).toHaveValue('');
+    expect(store.getState().respondentesDemograficos.perspectiva).toBe('');
+    expect(onSkip).toHaveBeenCalledOnce();
+    expect(onContinue).not.toHaveBeenCalled();
+  });
+
+  it('remove os espaços das pontas antes de salvar', async () => {
+    const { store } = renderizar();
+
+    await userEvent.type(campoPerspectiva(), '   Texto com espaços   ');
+    await userEvent.click(screen.getByRole('button', { name: 'Avançar' }));
+
+    expect(store.getState().respondentesDemograficos.perspectiva).toBe(
+      'Texto com espaços',
+    );
   });
 });
