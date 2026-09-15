@@ -6,13 +6,16 @@ import {
 } from './demographicsSchema';
 import { login, logout } from '@/features/authentication/authenticationSlice';
 
-type Demograficos2State = DemographicsForm;
+export type DemographicsDraft = DemographicsForm & { nome: string };
 
-const initialState: Demograficos2State = emptyDemographics;
+const initialState: DemographicsDraft = {
+  ...emptyDemographics,
+  nome: '',
+};
 
 // Limpa os campos dependentes de nacionalidade que nao correspondem mais a
 // opcao escolhida, pra nao ficar lixo salvo de uma escolha anterior.
-function limparDependentesDeNacionalidade(state: Demograficos2State) {
+function limparDependentesDeNacionalidade(state: DemographicsDraft) {
   if (state.nacionalidade !== 'brasileira') state.estadoBrasil = null;
   if (state.nacionalidade !== 'portuguesa') state.regiaoPortugal = null;
   if (state.nacionalidade !== 'outra') state.nacionalidadeOutra = '';
@@ -22,6 +25,9 @@ const respondentesDemograficosSlice = createSlice({
   name: 'respondentesDemograficos',
   initialState,
   reducers: {
+    definirNome(state, action: PayloadAction<string>) {
+      state.nome = action.payload;
+    },
     saveDemographicsStep(state, action: PayloadAction<DemographicsForm>) {
       // Atualiza somente os campos desta etapa, preservando os das telas 1 e 3.
       Object.assign(state, normalizeDemographics(action.payload));
@@ -78,6 +84,7 @@ const respondentesDemograficosSlice = createSlice({
 });
 
 export const {
+  definirNome,
   saveDemographicsStep,
   definirGenero,
   definirFaixaEtaria,

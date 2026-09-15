@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import type { DemographicsForm } from './demographicsSchema';
+import { emptyDemographics } from './demographicsSchema';
 import { login, logout } from '@/features/authentication/authenticationSlice';
 import reducer, {
   definirGenero,
+  definirNome,
   definirNacionalidade,
   saveDemographicsStep,
+  type DemographicsDraft,
 } from '@/features/respondentes/respondentesDemograficosSlice';
 
-const estadoInicial: DemographicsForm = {
+const estadoInicial: DemographicsDraft = {
+  nome: '',
   genero: null,
   faixaEtaria: null,
   origemEtnica: [],
@@ -27,14 +30,14 @@ describe('respondentesDemograficosSlice', () => {
     };
     const saved = reducer(
       previousSteps,
-      saveDemographicsStep({ ...estadoInicial, genero: 'feminino' }),
+      saveDemographicsStep({ ...emptyDemographics, genero: 'feminino' }),
     );
     expect(saved).toMatchObject({
       nome: previousSteps.nome,
       perspectiva: previousSteps.perspectiva,
       genero: 'feminino',
     });
-    const skipped = reducer(saved, saveDemographicsStep(estadoInicial));
+    const skipped = reducer(saved, saveDemographicsStep(emptyDemographics));
     expect(skipped).toMatchObject({
       nome: previousSteps.nome,
       perspectiva: previousSteps.perspectiva,
@@ -54,8 +57,14 @@ describe('respondentesDemograficosSlice', () => {
     expect(estado.genero).toBe('feminino');
   });
 
+  it('guarda o nome confirmado e o limpa ao iniciar outra sessão', () => {
+    const salvo = reducer(estadoInicial, definirNome('Pessoa de teste'));
+    expect(salvo.nome).toBe('Pessoa de teste');
+    expect(reducer(salvo, { type: logout.type }).nome).toBe('');
+  });
+
   it('limpa estadoBrasil ao trocar nacionalidade para portuguesa', () => {
-    const comEstado: DemographicsForm = {
+    const comEstado: DemographicsDraft = {
       ...estadoInicial,
       nacionalidade: 'brasileira',
       estadoBrasil: 'RS',
@@ -65,7 +74,7 @@ describe('respondentesDemograficosSlice', () => {
   });
 
   it('limpa regiaoPortugal e nacionalidadeOutra ao trocar para brasileira', () => {
-    const comRegiao: DemographicsForm = {
+    const comRegiao: DemographicsDraft = {
       ...estadoInicial,
       nacionalidade: 'outra',
       regiaoPortugal: 'norte',

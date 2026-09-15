@@ -129,7 +129,7 @@ describe('Demograficos2View', () => {
     await user.click(screen.getByRole('button', { name: 'Pular' }));
     expect(onSkip).toHaveBeenCalledOnce();
     expect(screen.queryByText('Budismo')).not.toBeInTheDocument();
-    expect(store.getState().respondentesDemograficos).toEqual(
+    expect(store.getState().respondentesDemograficos).toMatchObject(
       emptyDemographics,
     );
   });
