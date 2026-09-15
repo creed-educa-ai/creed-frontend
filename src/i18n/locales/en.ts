@@ -39,6 +39,7 @@ export const en: typeof ptBR = {
     demograficos1: {
       titulo: "Let's get started! What's your name?",
       descricaoNome: 'This is the name shown to other users',
+      nomeObrigatorio: 'Enter your name to continue.',
     },
 
     demograficos2: {

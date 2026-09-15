@@ -1,70 +1,92 @@
-import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { FormLayout } from '@/components/layout/formLayout';
 import { Button } from '@/components/ui/button';
-import { Field, FieldLabel, FieldDescription } from '@/components/ui/field';
+import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { definirNome } from '@/features/respondentes/respondentesDemograficosSlice';
+import { definirNome } from './respondentesDemograficosSlice';
 
-export function Demograficos1View() {
-  const { t } = useTranslation(['comum', 'respondentes']);
+const demograficos1Schema = z.object({
+  nome: z.string().trim().min(1, {
+    error: 'respondentes:demograficos1.nomeObrigatorio',
+  }),
+});
+
+export type Demograficos1Form = z.infer<typeof demograficos1Schema>;
+
+interface Demograficos1ViewProps {
+  // A CREED-20.7 conecta esta etapa ao restante do onboarding.
+  onContinue?: (data: Demograficos1Form) => void;
+}
+
+export function Demograficos1View({ onContinue }: Demograficos1ViewProps) {
+  const { t } = useTranslation('respondentes');
   const dispatch = useAppDispatch();
-  const nome = useAppSelector((state) => state.respondentesDemograficos.nome);
+  const nomeSalvo = useAppSelector(
+    (state) => state.respondentesDemograficos.nome,
+  );
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<Demograficos1Form>({
+    resolver: zodResolver(demograficos1Schema),
+    defaultValues: { nome: nomeSalvo },
+  });
 
-  const [erro, setErro] = useState(false);
-
-  function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    if (!nome.trim()) {
-      setErro(true);
-      return;
-    }
-
-    setErro(false);
+  function salvar(dados: Demograficos1Form) {
+    dispatch(definirNome(dados.nome));
+    onContinue?.(dados);
   }
+
+  const nomeInvalido = Boolean(errors.nome);
 
   return (
     <FormLayout>
-      <form onSubmit={handleSubmit}>
-        <h1 className="text-3xl font-bold text-heading">
-          {t('respondentes:demograficos1.titulo')}
+      <div className="mx-auto w-full max-w-sm">
+        <h1 className="text-2xl font-bold text-heading">
+          {t('demograficos1.titulo')}
         </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {t('demograficos1.descricaoNome')}
+        </p>
 
-        <div className="mt-4">
-          <Field>
-            <FieldLabel htmlFor="nome" className="text-lg font-semibold">
-              {t('respondentes:campos.nome')}
+        <form
+          className="mt-6 flex flex-col gap-5"
+          onSubmit={(evento) => void handleSubmit(salvar)(evento)}
+        >
+          <Field data-invalid={nomeInvalido}>
+            <FieldLabel htmlFor="nome" className="sr-only">
+              {t('campos.nome')}
             </FieldLabel>
-
-            <FieldDescription>
-              {t('respondentes:demograficos1.descricaoNome')}
-            </FieldDescription>
-
             <Input
               id="nome"
-              className="h-11"
-              placeholder={t('respondentes:campos.nomePlaceholder')}
-              value={nome}
-              onChange={(e) => {
-                dispatch(definirNome(e.target.value));
-                setErro(false);
-              }}
+              className="min-h-10"
+              placeholder={t('campos.nomePlaceholder')}
+              aria-invalid={nomeInvalido}
+              aria-describedby={nomeInvalido ? 'nome-erro' : undefined}
+              autoComplete="name"
+              {...register('nome')}
             />
-
-            {erro && (
-              <p className="text-sm text-destructive">Nome é obrigatório.</p>
+            {nomeInvalido && (
+              <FieldError id="nome-erro">
+                {t('demograficos1.nomeObrigatorio')}
+              </FieldError>
             )}
           </Field>
-        </div>
 
-        <div className="mt-5">
-          <Button type="submit" className="w-full">
-            {t('respondentes:avancar')}
+          <Button
+            type="submit"
+            className="min-h-10 w-full"
+            disabled={isSubmitting}
+          >
+            {t('avancar')}
           </Button>
-        </div>
-      </form>
+        </form>
+      </div>
     </FormLayout>
   );
 }

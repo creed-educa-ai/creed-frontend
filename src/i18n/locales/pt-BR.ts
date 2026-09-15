@@ -39,6 +39,7 @@ export const ptBR = {
     demograficos1: {
       titulo: 'Vamos começar! Qual o seu nome?',
       descricaoNome: 'Este será o nome que será exibido para outros usuários',
+      nomeObrigatorio: 'Informe seu nome para continuar.',
     },
     demograficos2: {
       clear: 'Limpar {{field}}',
