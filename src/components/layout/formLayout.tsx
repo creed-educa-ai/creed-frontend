@@ -18,7 +18,7 @@ export function FormLayout({ children }: FormLayoutProps) {
       </div>
 
       {/* Conteúdo centralizado */}
-      <div className="mx-auto mt-25 w-full max-w-lg">{children}</div>
+      <div className="mx-auto mt-25 w-full max-w-md">{children}</div>
     </div>
   );
 }
