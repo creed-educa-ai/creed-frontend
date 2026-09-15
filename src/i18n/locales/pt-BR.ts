@@ -270,4 +270,18 @@ export const ptBR = {
     ouSaibaMais: 'OU SAIBA MAIS',
     saibaMais: 'O que é o método CREED?',
   },
+  // PROVISÓRIO — prévia estática do questionário para a apresentação.
+  questionario: {
+    emConstrucao: 'Em construção',
+    aviso:
+      'Prévia do questionário. As perguntas e as respostas reais entram nas próximas entregas.',
+    secao: 'Seção {{numero}}',
+    progresso: 'Pergunta {{atual}} de {{total}}',
+    tipo: 'Pergunta objetiva',
+    instrucao: 'Escolha apenas uma opção',
+    resposta: 'Resposta {{numero}}',
+    tempoRestante: '{{minutos}} min restantes · faltam {{secoes}} seções',
+    voltar: 'Voltar',
+    avancar: 'Avançar',
+  },
 };

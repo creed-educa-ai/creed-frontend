@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
 import { Demograficos3View } from '@/features/respondentes/Demograficos3View';
 import respondentesDemograficosReducer, {
   definirPerspectiva,
@@ -23,10 +24,13 @@ function criarStore() {
 function renderizar(store = criarStore()) {
   const onContinue = vi.fn();
   const onSkip = vi.fn();
+  // MemoryRouter: a seta de voltar do FormLayout usa o roteador.
   render(
-    <Provider store={store}>
-      <Demograficos3View onContinue={onContinue} onSkip={onSkip} />
-    </Provider>,
+    <MemoryRouter>
+      <Provider store={store}>
+        <Demograficos3View onContinue={onContinue} onSkip={onSkip} />
+      </Provider>
+    </MemoryRouter>,
   );
   return { store, onContinue, onSkip };
 }

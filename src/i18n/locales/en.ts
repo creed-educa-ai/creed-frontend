@@ -270,4 +270,17 @@ export const en: typeof ptBR = {
     ouSaibaMais: 'OR LEARN MORE',
     saibaMais: 'What is the CREED method?',
   },
+  questionario: {
+    emConstrucao: 'Under construction',
+    aviso:
+      'Questionnaire preview. The real questions and answers arrive in upcoming releases.',
+    secao: 'Section {{numero}}',
+    progresso: 'Question {{atual}} of {{total}}',
+    tipo: 'Multiple-choice question',
+    instrucao: 'Choose only one option',
+    resposta: 'Answer {{numero}}',
+    tempoRestante: '{{minutos}} min left · {{secoes}} sections to go',
+    voltar: 'Back',
+    avancar: 'Next',
+  },
 };
