@@ -6,11 +6,15 @@ import {
 } from './demographicsSchema';
 import { login, logout } from '@/features/authentication/authenticationSlice';
 
-export type DemographicsDraft = DemographicsForm & { nome: string };
+export type DemographicsDraft = DemographicsForm & {
+  nome: string;
+  perspectiva: string;
+};
 
 const initialState: DemographicsDraft = {
   ...emptyDemographics,
   nome: '',
+  perspectiva: '',
 };
 
 // Limpa os campos dependentes de nacionalidade que nao correspondem mais a
@@ -75,6 +79,9 @@ const respondentesDemograficosSlice = createSlice({
     definirNacionalidadeOutra(state, action: PayloadAction<string>) {
       state.nacionalidadeOutra = action.payload;
     },
+    definirPerspectiva(state, action: PayloadAction<string>) {
+      state.perspectiva = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -94,5 +101,6 @@ export const {
   definirEstadoBrasil,
   definirRegiaoPortugal,
   definirNacionalidadeOutra,
+  definirPerspectiva,
 } = respondentesDemograficosSlice.actions;
 export default respondentesDemograficosSlice.reducer;

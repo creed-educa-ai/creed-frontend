@@ -5,6 +5,7 @@ import reducer, {
   definirGenero,
   definirNome,
   definirNacionalidade,
+  definirPerspectiva,
   saveDemographicsStep,
   type DemographicsDraft,
 } from '@/features/respondentes/respondentesDemograficosSlice';
@@ -19,6 +20,7 @@ const estadoInicial: DemographicsDraft = {
   estadoBrasil: null,
   regiaoPortugal: null,
   nacionalidadeOutra: '',
+  perspectiva: '',
 };
 
 describe('respondentesDemograficosSlice', () => {
@@ -28,6 +30,7 @@ describe('respondentesDemograficosSlice', () => {
       nome: 'Pessoa de teste',
       perspectiva: 'Resposta sintética',
     };
+    // O payload tem só os campos da etapa 2, como a tela 2 envia.
     const saved = reducer(
       previousSteps,
       saveDemographicsStep({ ...emptyDemographics, genero: 'feminino' }),
@@ -83,5 +86,30 @@ describe('respondentesDemograficosSlice', () => {
     const estado = reducer(comRegiao, definirNacionalidade('brasileira'));
     expect(estado.regiaoPortugal).toBeNull();
     expect(estado.nacionalidadeOutra).toBe('');
+  });
+
+  it('guarda a perspectiva escrita', () => {
+    const estado = reducer(
+      estadoInicial,
+      definirPerspectiva('Meus pais tinham um pequeno comércio.'),
+    );
+    expect(estado.perspectiva).toBe('Meus pais tinham um pequeno comércio.');
+  });
+
+  // A pergunta é opcional: quem apaga a resposta e avança precisa conseguir
+  // deixar o campo vazio, não ficar preso ao texto salvo antes.
+  it('substitui a perspectiva salva por texto vazio', () => {
+    const comPerspectiva = { ...estadoInicial, perspectiva: 'Texto antigo' };
+    const estado = reducer(comPerspectiva, definirPerspectiva(''));
+    expect(estado.perspectiva).toBe('');
+  });
+
+  // Logout e login descartam o rascunho de todas as etapas, inclusive a tela 3.
+  it('limpa a perspectiva junto com o rascunho no logout', () => {
+    const comPerspectiva = reducer(
+      estadoInicial,
+      definirPerspectiva('Resposta sintética'),
+    );
+    expect(reducer(comPerspectiva, { type: logout.type }).perspectiva).toBe('');
   });
 });

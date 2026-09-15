@@ -129,6 +129,7 @@ describe('Demograficos2View', () => {
     await user.click(screen.getByRole('button', { name: 'Pular' }));
     expect(onSkip).toHaveBeenCalledOnce();
     expect(screen.queryByText('Budismo')).not.toBeInTheDocument();
+    // Pular limpa só os campos desta etapa; o estado também guarda as outras telas.
     expect(store.getState().respondentesDemograficos).toMatchObject(
       emptyDemographics,
     );
