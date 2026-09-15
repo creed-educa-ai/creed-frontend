@@ -54,6 +54,7 @@ export function CadastroView() {
       titulo={t('cadastro:titulo')}
       subtitulo={t('cadastro:painelDescricao')}
       carregando={isSubmitting}
+      exibirNavegacao
     >
       <h1 className="text-3xl font-semibold text-heading">
         {t('cadastro:titulo')}

@@ -24,6 +24,10 @@ describe('CadastroView', () => {
     expect(screen.getByLabelText('E-mail da empresa')).toBeInTheDocument();
     expect(screen.getByLabelText('Seu nome completo')).toBeInTheDocument();
     expect(screen.getByLabelText('Telefone')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Voltar' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Ir para a tela de boas-vindas' }),
+    ).toHaveAttribute('href', '/');
   });
 
   it('mostra erro nos campos obrigatórios ao submeter vazio', async () => {
