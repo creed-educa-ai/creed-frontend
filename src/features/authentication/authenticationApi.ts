@@ -8,7 +8,8 @@ import type {
 
 export const authenticationApi = {
   login: (credentials: LoginRequest) =>
-    apiClient.post<SessionResponse>('/auth/login', credentials),
+    apiClient.post<SessionResponse>('/authentication/login', credentials),
 
-  getCurrentUser: () => apiClient.get<UserSessionResponse>('/auth/me'),
+  getCurrentUser: () =>
+    apiClient.get<UserSessionResponse>('/authentication/session'),
 };
