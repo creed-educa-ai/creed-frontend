@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
 import { Demograficos1View } from './Demograficos1View';
 import respondentesDemograficosReducer, {
   definirNome,
@@ -16,10 +17,13 @@ function criarStore() {
 
 function renderizar(store = criarStore()) {
   const onContinue = vi.fn();
+  // MemoryRouter: a seta de voltar do FormLayout usa o roteador.
   render(
-    <Provider store={store}>
-      <Demograficos1View onContinue={onContinue} />
-    </Provider>,
+    <MemoryRouter>
+      <Provider store={store}>
+        <Demograficos1View onContinue={onContinue} />
+      </Provider>
+    </MemoryRouter>,
   );
   return { store, onContinue };
 }

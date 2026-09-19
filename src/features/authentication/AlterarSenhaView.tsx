@@ -45,6 +45,7 @@ export function AlterarSenhaView() {
       titulo={t('autenticacao:primeiroAcesso.boasVindasTitulo')}
       subtitulo={t('autenticacao:primeiroAcesso.boasVindasMensagem')}
       carregando={isSubmitting}
+      exibirNavegacao
     >
       <h1 className="text-2xl font-bold text-heading">
         {t('autenticacao:primeiroAcesso.titulo')}
