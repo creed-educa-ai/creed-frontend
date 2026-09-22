@@ -1,4 +1,5 @@
 // Namespaces espelham as features (ADR-003): `comum` guarda o que é
+
 // compartilhado; cada feature ganha o seu.
 export const ptBR = {
   comum: {
@@ -269,5 +270,15 @@ export const ptBR = {
     voltar: 'Voltar',
     ouSaibaMais: 'OU SAIBA MAIS',
     saibaMais: 'O que é o método CREED?',
+  },
+  Onboard_Quest: {
+    titulo: 'FORMULÁRIO',
+    start: 'Vamos começar?',
+    subtitulo: 'você tem um questionário disponível',
+    mensagem:
+      'Suas respostas ajudam a mapear o panorama da sua organização.\n É rápido e você pode pausar quando quiser, seu progresso ficará salvo',
+    tempo: '15 minutos',
+    secao: '4 seções',
+    avancar: 'Avançar',
   },
 };

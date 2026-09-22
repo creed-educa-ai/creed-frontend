@@ -270,4 +270,14 @@ export const en: typeof ptBR = {
     ouSaibaMais: 'OR LEARN MORE',
     saibaMais: 'What is the CREED method?',
   },
+  Onboard_Quest: {
+    titulo: 'FORM',
+    start: 'Shall we get started?',
+    subtitulo: 'you have a questionnaire available',
+    mensagem:
+      "Your answers help us map your organization's landscape.\n It's quick and you can pause whenever you want, your progress will be saved",
+    tempo: '15 minutes',
+    secao: '4 sections',
+    avancar: 'Next',
+  },
 };
