@@ -1,15 +1,35 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
-import { AlterarSenhaView } from '@/features/autenticacao/AlterarSenhaView';
+import { AlterarSenhaView } from '@/features/authentication/AlterarSenhaView';
+
+// O layout com navegação (voltar e logo) usa o roteador.
+function renderizar() {
+  return render(
+    <MemoryRouter>
+      <AlterarSenhaView />
+    </MemoryRouter>,
+  );
+}
 
 describe('AlterarSenhaView', () => {
   beforeEach(async () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
+  // O que cada controle faz está coberto em authLayout.test.tsx.
+  it('mostra a seta de voltar e o logo que leva ao início', () => {
+    renderizar();
+
+    expect(screen.getByRole('button', { name: 'Voltar' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Ir para a tela de boas-vindas' }),
+    ).toBeInTheDocument();
+  });
+
   it('mostra as mensagens de erro ao enviar os campos vazios', async () => {
-    render(<AlterarSenhaView />);
+    renderizar();
 
     await userEvent.click(screen.getByRole('button', { name: 'Avançar' }));
 
@@ -22,7 +42,7 @@ describe('AlterarSenhaView', () => {
   });
 
   it('mostra erro quando as senhas não coincidem', async () => {
-    render(<AlterarSenhaView />);
+    renderizar();
 
     await userEvent.type(
       screen.getByLabelText('Insira uma nova senha'),
@@ -43,7 +63,7 @@ describe('AlterarSenhaView', () => {
     const infoEspiao = vi
       .spyOn(console, 'info')
       .mockImplementation(() => undefined);
-    render(<AlterarSenhaView />);
+    renderizar();
 
     await userEvent.type(
       screen.getByLabelText('Insira uma nova senha'),

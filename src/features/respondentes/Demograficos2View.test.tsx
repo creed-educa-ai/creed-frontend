@@ -2,6 +2,7 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
 import { Demograficos2View } from './Demograficos2View';
 import demographicsReducer from './respondentesDemograficosSlice';
 import i18n from '@/i18n/config';
@@ -20,10 +21,13 @@ function renderView(store = createStore()) {
     store,
     onContinue,
     onSkip,
+    // MemoryRouter: a seta de voltar do FormLayout usa o roteador.
     ...render(
-      <Provider store={store}>
-        <Demograficos2View onContinue={onContinue} onSkip={onSkip} />
-      </Provider>,
+      <MemoryRouter>
+        <Provider store={store}>
+          <Demograficos2View onContinue={onContinue} onSkip={onSkip} />
+        </Provider>
+      </MemoryRouter>,
     ),
   };
 }

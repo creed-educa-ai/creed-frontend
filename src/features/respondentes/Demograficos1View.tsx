@@ -46,7 +46,7 @@ export function Demograficos1View({ onContinue }: Demograficos1ViewProps) {
 
   return (
     <FormLayout>
-      <div className="mx-auto w-full max-w-sm">
+      <div className="mx-auto w-full max-w-sm lg:max-w-none">
         <h1 className="text-2xl font-bold text-heading">
           {t('demograficos1.titulo')}
         </h1>

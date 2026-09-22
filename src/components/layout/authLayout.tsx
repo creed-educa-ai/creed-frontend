@@ -1,10 +1,10 @@
 // src/components/layout/AuthLayout.tsx
 import * as React from 'react';
-import { ChevronLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { BotaoVoltar } from '@/components/layout/botaoVoltar';
 import CreedSymbol, { Wordmark } from '@/components/logos/logo';
-import { Button } from '@/components/ui/button';
+import { SeletorIdioma } from '@/components/SeletorIdioma';
 import { useAtrasoDaAnimacaoMarca } from '@/hooks/useAtrasoDaAnimacaoMarca';
 
 interface AuthLayoutProps {
@@ -13,26 +13,6 @@ interface AuthLayoutProps {
   subtitulo?: React.ReactNode; // texto de apoio (opcional)
   carregando?: boolean; // gira o símbolo do painel enquanto a ação processa
   exibirNavegacao?: boolean; // ativa voltar e link da marca nas telas que pedem isso
-}
-
-function BotaoVoltar() {
-  const { t } = useTranslation('comum');
-  const navigate = useNavigate();
-
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-lg"
-      aria-label={t('navegacao.voltar')}
-      className="absolute top-4 left-4 z-10 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground lg:text-foreground lg:hover:bg-accent lg:hover:text-accent-foreground"
-      onClick={() => {
-        navigate(-1);
-      }}
-    >
-      <ChevronLeft aria-hidden="true" className="size-6" />
-    </Button>
-  );
 }
 
 export function AuthLayout({
@@ -58,7 +38,11 @@ export function AuthLayout({
 
   return (
     <div className="relative flex min-h-svh flex-col bg-background lg:flex-row">
-      {exibirNavegacao && <BotaoVoltar />}
+      {/* No mobile a seta fica sobre o painel roxo do topo: por isso a cor
+          clara abaixo de lg. */}
+      {exibirNavegacao && (
+        <BotaoVoltar className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground lg:text-foreground lg:hover:bg-accent lg:hover:text-accent-foreground" />
+      )}
 
       {/* ESQUERDA — conteúdo da tela */}
       <div className="flex w-full flex-1 flex-col justify-center p-6 lg:w-[55%] lg:flex-none lg:px-16 lg:py-10">
@@ -67,6 +51,11 @@ export function AuthLayout({
             a tela só re-renderiza (digitar, enviar). */}
         <div className="mx-auto w-full max-w-md animate-in duration-500 ease-out fade-in slide-in-from-bottom-8 motion-reduce:animate-none">
           {children}
+          {/* Troca de idioma em todas as telas de acesso: abaixo de tudo,
+              discreta, para não competir com a ação principal da tela. */}
+          <div className="mt-10 flex justify-center opacity-80 transition-opacity focus-within:opacity-100 hover:opacity-100">
+            <SeletorIdioma />
+          </div>
         </div>
       </div>
 
