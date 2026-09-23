@@ -70,9 +70,7 @@ describe('Onboard_QuestView', () => {
 
     expect(screen.getByText('FORM')).toBeInTheDocument();
     expect(screen.getByText('Shall we get started?')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Continue' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
   });
 
   it('should render CREED.ai wordmark', () => {
