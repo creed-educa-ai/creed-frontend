@@ -281,4 +281,10 @@ export const ptBR = {
     secao: '4 seções',
     avancar: 'Avançar',
   },
+  info: {
+    titulo: 'Atualizar Informações',
+    mensagem: 'Você gostaria de revisar alguns de seus dados pessoais?',
+    sim: 'Sim',
+    não: 'Não',
+  },
 };

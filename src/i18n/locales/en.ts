@@ -280,4 +280,10 @@ export const en: typeof ptBR = {
     secao: '4 sections',
     avancar: 'Next',
   },
+  info: {
+    titulo: 'Update Information',
+    mensagem: 'Would you like to review some of your personal data?',
+    sim: 'Yes',
+    não: 'No',
+  },
 };

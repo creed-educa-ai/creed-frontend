@@ -3,13 +3,16 @@ import { Button } from '@/components/ui/button';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
 import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
+import { ModalInfo } from '@/components/modals/ModalInfo';
+import { useState } from 'react';
 
 export function Onboard_QuestView() {
   const { t } = useTranslation(['Onboard_Quest']);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   return (
-    <>
-      <header className="bg-brand flex w-full items-center justify-between px-6 py-10">
+    <div className="bg-brand flex min-h-svh flex-col overflow-hidden">
+      <header className="flex w-full items-center justify-between px-6 py-10">
         <div>
           <p className="text-sm font-bold text-primary-foreground">
             João Silva
@@ -18,6 +21,7 @@ export function Onboard_QuestView() {
             {t('Onboard_Quest:titulo')}
           </h1>
         </div>
+
         <div className="flex items-center justify-end gap-1 rounded-2xl border border-border bg-background p-2">
           <button className="text-brand p-2 transition-colors hover:opacity-80">
             <LayoutDashboard size={24} />
@@ -35,7 +39,7 @@ export function Onboard_QuestView() {
           </button>
         </div>
       </header>
-      <div className="bg-brand flex min-h-screen flex-col p-6 lg:p-12">
+      <div className="flex flex-1 flex-col overflow-hidden p-6 lg:p-12">
         <div className="mx-auto my-auto flex w-full max-w-xl flex-col items-center justify-center gap-6 py-6">
           <div className="w-full rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="bg-brand flex flex-col items-start justify-start gap-4 rounded-xl p-8 text-primary-foreground">
@@ -54,13 +58,19 @@ export function Onboard_QuestView() {
               </div>
             </div>
             <div className="flex w-full items-center justify-end rounded-2xl border border-border bg-background p-2">
-              <Button className="bg-brand text-primary-foreground">
+              <Button
+                className="bg-brand text-primary-foreground"
+                onClick={() => {
+                  setInfoOpen(true);
+                }}
+              >
                 {t('Onboard_Quest:avancar')}
               </Button>
             </div>
           </div>
         </div>
       </div>
-    </>
+      <ModalInfo open={infoOpen} onOpenChange={setInfoOpen} />
+    </div>
   );
 }
