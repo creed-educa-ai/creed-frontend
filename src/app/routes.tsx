@@ -12,6 +12,7 @@ import { BoasVindasView } from '@/features/boas-vindas/BoasVindasView';
 import { AguardeConfirmacaoView } from '@/features/aguarde-confirmacao/AguardeConfirmacaoView';
 import { LoginView } from '@/features/authentication/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
+import { FormView } from '@/features/form/formView';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
@@ -45,4 +46,5 @@ export const router = createBrowserRouter([
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
   { path: '/aguarde-confirmacao', element: <AguardeConfirmacaoView /> },
   { path: '/recuperar-senha', element: <AlterarSenhaView /> },
+  { path: '/form', element: <FormView /> },
 ]);
