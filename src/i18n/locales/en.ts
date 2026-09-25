@@ -276,14 +276,14 @@ export const en: typeof ptBR = {
     subtitulo: 'you have a questionnaire available',
     mensagem:
       "Your answers help us map your organization's landscape.\n It's quick and you can pause whenever you want, your progress will be saved",
-    tempo: '15 minutes',
+    tempo: '~15 minutes',
     secao: '4 sections',
     avancar: 'Next',
   },
   info: {
     titulo: 'Update Information',
     mensagem: 'Would you like to review some of your personal data?',
-    sim: 'Yes',
-    não: 'No',
+    yes: 'Yes',
+    no: 'No',
   },
 };

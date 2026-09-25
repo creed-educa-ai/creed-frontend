@@ -27,10 +27,11 @@ export function ModalInfo({ open, onOpenChange }: ModalInfoProps) {
             <p className="font-bold">{t('info:mensagem')}</p>
           </div>
 
-          <div className="flex justify-end">
-            <Button variant="outline">{t('info:sim')}</Button>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline">{t('info:yes')}</Button>
+            {/* botão de não deve navegar ao questionário em si quando for adicionado*/}
             <Button className="bg-brand text-primary-foreground">
-              {t('info:não')}
+              {t('info:no')}
             </Button>
           </div>
         </div>

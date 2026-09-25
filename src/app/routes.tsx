@@ -10,7 +10,7 @@ import { BoasVindasView } from '@/features/boas-vindas/BoasVindasView';
 import { AguardeConfirmacaoView } from '@/features/aguarde-confirmacao/AguardeConfirmacaoView';
 import { LoginView } from '@/features/authentication/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
-import { Onboard_QuestView } from '@/features/onboarding-questionario/onboard-questionarioView';
+import { OnboardQuestView } from '@/features/onboarding-questionario/OnboardQuestionarioView';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
@@ -42,5 +42,5 @@ export const router = createBrowserRouter([
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
   { path: '/aguarde-confirmacao', element: <AguardeConfirmacaoView /> },
   { path: '/recuperar-senha', element: <AlterarSenhaView /> },
-  { path: '/onboard-quest', element: <Onboard_QuestView /> },
+  { path: '/onboard-quest', element: <OnboardQuestView /> },
 ]);

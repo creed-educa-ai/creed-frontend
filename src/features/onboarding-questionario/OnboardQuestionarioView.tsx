@@ -3,26 +3,27 @@ import { Button } from '@/components/ui/button';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
 import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
-import { ModalInfo } from '@/components/modals/ModalInfo';
+import { ModalInfo } from '@/features/onboarding-questionario/ModalInfo';
 import { useState } from 'react';
 
-export function Onboard_QuestView() {
+export function OnboardQuestView() {
   const { t } = useTranslation(['Onboard_Quest']);
   const [infoOpen, setInfoOpen] = useState(false);
 
   return (
     <div className="bg-brand flex min-h-svh flex-col overflow-hidden">
-      <header className="flex w-full items-center justify-between px-6 py-10">
+      <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-10 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-bold text-primary-foreground">
             João Silva
           </p>
-          <h1 className="text-3xl font-bold text-primary-foreground">
+          <h1 className="text-center text-3xl font-bold text-primary-foreground sm:text-left">
             {t('Onboard_Quest:titulo')}
           </h1>
         </div>
-
-        <div className="flex items-center justify-end gap-1 rounded-2xl border border-border bg-background p-2">
+        {/* navbar placeholder" */}
+        <div className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-background p-2 sm:justify-end">
+          {/* para que seja possível navegar com estes botões, precisaremos implementar "aria-label" e "type=button" */}
           <button className="text-brand p-2 transition-colors hover:opacity-80">
             <LayoutDashboard size={24} />
           </button>

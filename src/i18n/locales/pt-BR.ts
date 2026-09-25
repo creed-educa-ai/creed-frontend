@@ -1,5 +1,4 @@
 // Namespaces espelham as features (ADR-003): `comum` guarda o que é
-
 // compartilhado; cada feature ganha o seu.
 export const ptBR = {
   comum: {
@@ -277,14 +276,14 @@ export const ptBR = {
     subtitulo: 'você tem um questionário disponível',
     mensagem:
       'Suas respostas ajudam a mapear o panorama da sua organização.\n É rápido e você pode pausar quando quiser, seu progresso ficará salvo',
-    tempo: '15 minutos',
+    tempo: '~15 minutos',
     secao: '4 seções',
     avancar: 'Avançar',
   },
   info: {
     titulo: 'Atualizar Informações',
     mensagem: 'Você gostaria de revisar alguns de seus dados pessoais?',
-    sim: 'Sim',
-    não: 'Não',
+    yes: 'Sim',
+    no: 'Não',
   },
 };
