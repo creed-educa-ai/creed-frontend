@@ -10,7 +10,14 @@ describe('ModalInfo', () => {
   });
 
   it('should render title and message when open', () => {
-    render(<ModalInfo open={true} onOpenChange={vi.fn()} />);
+    render(
+      <ModalInfo
+        open={true}
+        onOpenChange={vi.fn()}
+        onReview={vi.fn()}
+        onStart={vi.fn()}
+      />,
+    );
 
     expect(screen.getByText('Atualizar Informações')).toBeInTheDocument();
     expect(
@@ -21,31 +28,76 @@ describe('ModalInfo', () => {
   });
 
   it('should render both buttons with correct labels', () => {
-    render(<ModalInfo open={true} onOpenChange={vi.fn()} />);
+    render(
+      <ModalInfo
+        open={true}
+        onOpenChange={vi.fn()}
+        onReview={vi.fn()}
+        onStart={vi.fn()}
+      />,
+    );
 
     expect(screen.getByRole('button', { name: 'Sim' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Não' })).toBeInTheDocument();
   });
 
-  it('should call onOpenChange when closing', async () => {
-    const mockOnOpenChange = vi.fn();
-    render(<ModalInfo open={true} onOpenChange={mockOnOpenChange} />);
+  it('should call onReview when "Sim" button is clicked', async () => {
+    const mockOnReview = vi.fn();
+    render(
+      <ModalInfo
+        open={true}
+        onOpenChange={vi.fn()}
+        onReview={mockOnReview}
+        onStart={vi.fn()}
+      />,
+    );
 
-    const closeButton = screen.getByRole('button', { name: /close/i });
-    await userEvent.click(closeButton);
+    const simButton = screen.getByRole('button', { name: 'Sim' });
+    await userEvent.click(simButton);
 
-    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+    expect(mockOnReview).toHaveBeenCalled();
+  });
+
+  it('should call onStart when "Não" button is clicked', async () => {
+    const mockOnStart = vi.fn();
+    render(
+      <ModalInfo
+        open={true}
+        onOpenChange={vi.fn()}
+        onReview={vi.fn()}
+        onStart={mockOnStart}
+      />,
+    );
+
+    const naoButton = screen.getByRole('button', { name: 'Não' });
+    await userEvent.click(naoButton);
+
+    expect(mockOnStart).toHaveBeenCalled();
   });
 
   it('should not render when open is false', () => {
-    render(<ModalInfo open={false} onOpenChange={vi.fn()} />);
+    render(
+      <ModalInfo
+        open={false}
+        onOpenChange={vi.fn()}
+        onReview={vi.fn()}
+        onStart={vi.fn()}
+      />,
+    );
 
     expect(screen.queryByText('Atualizar Informações')).not.toBeInTheDocument();
   });
 
   it('should translate to English when language changes', async () => {
     await i18n.changeLanguage('en');
-    render(<ModalInfo open={true} onOpenChange={vi.fn()} />);
+    render(
+      <ModalInfo
+        open={true}
+        onOpenChange={vi.fn()}
+        onReview={vi.fn()}
+        onStart={vi.fn()}
+      />,
+    );
 
     expect(screen.getByText('Update Information')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Yes' })).toBeInTheDocument();

@@ -5,10 +5,12 @@ import wordmark from '@/components/logos/wordmark-dark.svg';
 import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
 import { ModalInfo } from '@/features/onboarding-questionario/ModalInfo';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export function OnboardQuestView() {
   const { t } = useTranslation(['Onboard_Quest']);
   const [infoOpen, setInfoOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="bg-brand flex min-h-svh flex-col overflow-hidden">
@@ -71,7 +73,16 @@ export function OnboardQuestView() {
           </div>
         </div>
       </div>
-      <ModalInfo open={infoOpen} onOpenChange={setInfoOpen} />
+      <ModalInfo
+        open={infoOpen}
+        onOpenChange={setInfoOpen}
+        onReview={() => {
+          navigate('/demograficos-1');
+        }}
+        onStart={() => {
+          /* TODO */
+        }}
+      />
     </div>
   );
 }

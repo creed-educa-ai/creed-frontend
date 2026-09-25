@@ -10,9 +10,16 @@ import { Button } from '@/components/ui/button';
 interface ModalInfoProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onReview: () => void;
+  onStart: () => void;
 }
 
-export function ModalInfo({ open, onOpenChange }: ModalInfoProps) {
+export function ModalInfo({
+  open,
+  onOpenChange,
+  onReview,
+  onStart,
+}: ModalInfoProps) {
   const { t } = useTranslation(['info']);
 
   return (
@@ -26,11 +33,22 @@ export function ModalInfo({ open, onOpenChange }: ModalInfoProps) {
           <div>
             <p className="font-bold">{t('info:mensagem')}</p>
           </div>
-
           <div className="flex justify-end gap-2">
-            <Button variant="outline">{t('info:yes')}</Button>
-            {/* botão de não deve navegar ao questionário em si quando for adicionado*/}
-            <Button className="bg-brand text-primary-foreground">
+            <Button
+              variant="outline"
+              onClick={() => {
+                onReview();
+              }}
+            >
+              {t('info:yes')}
+            </Button>
+            {/* botão "não" deve navegar ao questionário em si quando for adicionado*/}
+            <Button
+              className="bg-brand text-primary-foreground"
+              onClick={() => {
+                onStart();
+              }}
+            >
               {t('info:no')}
             </Button>
           </div>

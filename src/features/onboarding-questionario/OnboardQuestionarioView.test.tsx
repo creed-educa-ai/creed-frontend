@@ -44,7 +44,7 @@ describe('OnboardQuestView', () => {
   it('should render time and sections information', () => {
     renderizar();
 
-    expect(screen.getByText('15 minutos')).toBeInTheDocument();
+    expect(screen.getByText('~15 minutos')).toBeInTheDocument();
     expect(screen.getByText('4 seções')).toBeInTheDocument();
   });
 
@@ -52,9 +52,10 @@ describe('OnboardQuestView', () => {
     renderizar();
 
     const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBeGreaterThan(1);
-  });
+    const iconButtons = buttons.filter((button) => button.querySelector('svg'));
 
+    expect(iconButtons.length).toBeGreaterThanOrEqual(4);
+  });
   it('should open modal when advance button is clicked', async () => {
     renderizar();
 
