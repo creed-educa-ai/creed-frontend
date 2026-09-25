@@ -1,11 +1,11 @@
 # Dados demográficos — CREED-20.4, 20.5 e 20.6
 
-As três telas isoladas do onboarding estão disponíveis nesta branch. A tela 1
-coleta o nome obrigatório, a tela 2 coleta respostas demográficas opcionais e a
-tela 3 recebe uma resposta aberta opcional. Os valores permitidos da tela 2 e o
-tipo do formulário são definidos em `demographicsSchema.ts`; todos os rótulos
-ficam nos dois locales. As opções preservam os valores da PR original e ainda
-não representam o contrato da API.
+As três telas do onboarding estão encadeadas em fluxo por
+`fluxoDemograficos.tsx`. A tela 1 coleta o nome obrigatório, a tela 2 coleta
+respostas demográficas opcionais e a tela 3 recebe uma resposta aberta opcional.
+Os valores permitidos da tela 2 e o tipo do formulário são definidos em
+`demographicsSchema.ts`; todos os rótulos ficam nos dois locales. As opções
+preservam os valores da PR original e ainda não representam o contrato da API.
 
 ## Estado entre etapas
 
@@ -20,11 +20,17 @@ resposta do servidor. Ele mantém um ponto de compartilhamento entre as três
 etapas sem despachar a cada tecla. Os setters existentes permanecem exportados
 para compatibilidade; a tela 2 usa somente `saveDemographicsStep`.
 
-`onContinue(data)` e `onSkip()` são pontos de conexão para a CREED-20.7. Nas rotas
-isoladas, avançar confirma o rascunho e pular o limpa; nenhum deles chama uma API
-ou promete que os dados foram persistidos. A montagem das rotas ainda é pública.
-A integração deve posicioná-las no fluxo de sessão/consentimento e usar a guarda
-compartilhada já existente.
+`onContinue(data)` e `onSkip()` são os pontos de conexão: as telas não navegam
+sozinhas. Quem os preenche é `fluxoDemograficos.tsx`, que encadeia
+etapa 1 → etapa 2 → etapa 3 → `/respondentes`. Avançar confirma o rascunho e
+pular o limpa; nenhum deles chama uma API ou promete que os dados foram
+persistidos.
+
+As três rotas ficam atrás do `ProtectedRoute` (ver `src/app/routes.tsx`): só
+chega nelas quem entrou e aceitou o termo, e é o próprio aceite que leva à
+etapa 1. O que falta é o envio à API, que depende da tabela `respondentes` —
+ela ainda não existe no backend, e por isso o fluxo termina na área logada em
+vez de persistir.
 
 ## Estado compartilhado das três telas
 
@@ -64,8 +70,8 @@ seleção/remoção, campos condicionais, limpeza, rascunho e respostas opcionai
 O schema recusa opções inválidas. Os testes do slice verificam o isolamento entre
 etapas e a limpeza da sessão.
 
-No navegador, conferir as três rotas em 375, 768 e 1280 px. Na tela 2, testar
-opções longas, navegação pelo teclado, busca por “portuguesa” e “Candomblé”,
-mudança de nacionalidade e seleção em inglês. Conferir também que `/login`,
-`/sobre`, `/boas-vindas` e a guarda de `/respondentes` seguem disponíveis
-conforme `dev`.
+No navegador, conferir as três rotas em 375, 768 e 1280 px — elas agora exigem
+sessão, então entre primeiro e aceite o termo. Na tela 2, testar opções longas,
+navegação pelo teclado, busca por “portuguesa” e “Candomblé”, mudança de
+nacionalidade e seleção em inglês. Conferir também que `/login`, `/sobre`, `/`
+(boas-vindas) e a guarda de `/respondentes` seguem disponíveis conforme `dev`.

@@ -29,6 +29,22 @@ describe('AuthLayout', () => {
     expect(screen.getByRole('img', { name: 'CREED.ai' })).toBeInTheDocument();
   });
 
+  // O seletor em si tem teste próprio (SeletorIdioma.test.tsx); aqui só a
+  // garantia de que toda tela de acesso oferece a troca de idioma.
+  it('oferece a troca de idioma abaixo do conteúdo', async () => {
+    render(
+      <AuthLayout titulo="Título do painel">
+        <h1>Conteúdo da tela</h1>
+      </AuthLayout>,
+    );
+
+    expect(screen.getByRole('group', { name: 'Idioma' })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Inglês' }));
+
+    expect(i18n.resolvedLanguage).toBe('en');
+  });
+
   it('não reserva espaço para o subtítulo quando ele não é passado', () => {
     const { container } = render(
       <AuthLayout titulo="Título do painel">

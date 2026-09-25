@@ -23,7 +23,7 @@ export function ModalContato({ open, onOpenChange }: ModalContatoProps) {
 
         <div className="space-y-4">
           <div>
-            <p className="font-bold">Profª Naira Maria Lobraico Libermann</p>
+            <p className="font-bold">Naira Maria Lobraico Libermann</p>
           </div>
 
           <div>
