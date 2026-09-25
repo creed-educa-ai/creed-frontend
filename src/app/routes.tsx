@@ -12,6 +12,7 @@ import { BoasVindasView } from '@/features/boas-vindas/BoasVindasView';
 import { AguardeConfirmacaoView } from '@/features/aguarde-confirmacao/AguardeConfirmacaoView';
 import { LoginView } from '@/features/authentication/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
+import { OnboardQuestView } from '@/features/onboarding-questionario/OnboardQuestionarioView';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
       { path: '/demograficos-2', element: <Demograficos2Etapa /> },
       { path: '/demograficos-3', element: <Demograficos3Etapa /> },
       { path: '/respondentes', element: <RespondentesView /> },
+      { path: '/onboard-quest', element: <OnboardQuestView /> },
     ],
   },
   { path: '/sobre', element: <SobreView /> },
