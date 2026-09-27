@@ -8,10 +8,12 @@ import { useTranslation } from 'react-i18next';
 export function FormView() {
   const [secao, setSecao] = useState(1);
   const [perguntaAtual, setPerguntaAtual] = useState(1);
+  const [respostas, setRespostas] = useState<Record<string, string>>({});
   const totalSecoes = 2;
   const perguntasPerSecao = 3;
   const progresso = (perguntaAtual / perguntasPerSecao) * 100;
   const { t } = useTranslation(['formulario']);
+
   {
     /* TODO: Todas as perguntas são placeholders hardcodadas e serão importadas do backend quando possível */
   }
@@ -82,6 +84,16 @@ export function FormView() {
     );
   }
 
+  const chaveResposta = `${String(secao)}-${String(perguntaAtual)}`;
+  const valorAtual = respostas[chaveResposta] ?? '';
+
+  const handleRespostaChange = (valor: string) => {
+    setRespostas({
+      ...respostas,
+      [chaveResposta]: valor,
+    });
+  };
+
   const handleProximo = () => {
     if (perguntaAtual < perguntasPerSecao) {
       setPerguntaAtual(perguntaAtual + 1);
@@ -135,6 +147,7 @@ export function FormView() {
 
       <div className="flex flex-1 flex-col overflow-hidden p-6 lg:p-12">
         <Questions
+          key={chaveResposta}
           secao={secao}
           totalSecoes={totalSecoes}
           perguntaAtual={perguntaAtual}
@@ -144,6 +157,8 @@ export function FormView() {
           subtitulo={perguntaAtualData.subtitulo}
           tipo={perguntaAtualData.tipo}
           respostas={perguntaAtualData.respostas}
+          valor={valorAtual}
+          onMudar={handleRespostaChange}
           onProximo={handleProximo}
           onVoltar={handleVoltar}
         />

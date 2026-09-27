@@ -14,6 +14,8 @@ interface QuestionProps {
   subtitulo: string;
   tipo: 'objetiva' | 'dissertativa' | 'quantitativa';
   respostas?: string[];
+  valor?: string;
+  onMudar?: (valor: string) => void;
   onProximo: () => void;
   onVoltar: () => void;
 }
@@ -28,11 +30,19 @@ export function Questions({
   subtitulo,
   tipo,
   respostas = [],
+  valor = '',
+  onMudar,
   onProximo,
   onVoltar,
 }: QuestionProps) {
   const [texto, setTexto] = useState('');
   const { t } = useTranslation(['formulario']);
+  const [selecionado, setSelecionado] = useState(valor);
+  const handleChange = (novoValor: string) => {
+    setSelecionado(novoValor);
+    onMudar?.(novoValor);
+  };
+
   return (
     <div className="mx-auto my-auto flex w-full max-w-xl flex-col items-center justify-center gap-6 py-6">
       {/* Seletor de seções */}
@@ -67,7 +77,7 @@ export function Questions({
         </div>
         {/* perguntas objetivas */}
         {tipo === 'objetiva' && (
-          <RadioGroup>
+          <RadioGroup value={selecionado} onValueChange={handleChange}>
             {respostas.map((resposta, index) => (
               <div
                 key={`op${String(index)}`}
@@ -98,7 +108,10 @@ export function Questions({
         )}
         {/* perguntas quantitativas */}
         {tipo === 'quantitativa' && (
-          <RadioGroup className="flex flex-wrap justify-center gap-2 sm:gap-3">
+          <RadioGroup
+            onValueChange={handleChange}
+            className="flex flex-wrap justify-center gap-2 sm:gap-3"
+          >
             {respostas.map((resposta, index) => (
               <RadioGroupItem
                 key={`op${String(index)}`}
