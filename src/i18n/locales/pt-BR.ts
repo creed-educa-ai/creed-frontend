@@ -270,4 +270,24 @@ export const ptBR = {
     ouSaibaMais: 'OU SAIBA MAIS',
     saibaMais: 'O que é o método CREED?',
   },
+  onboardQuestionario: {
+    titulo: 'FORMULÁRIO',
+    start: 'Vamos começar?',
+    subtitulo: 'você tem um questionário disponível',
+    mensagem:
+      'Suas respostas ajudam a mapear o panorama da sua organização.\n É rápido e você pode pausar quando quiser, seu progresso ficará salvo',
+    tempo: '~15 minutos',
+    secao: '4 seções',
+    avancar: 'Avançar',
+    menuPainel: 'Painel',
+    menuFormulario: 'Formulário',
+    menuInformacoes: 'Informações',
+    menuSair: 'Sair',
+  },
+  onboardQuestionarioInfo: {
+    titulo: 'Atualizar Informações',
+    mensagem: 'Você gostaria de revisar alguns de seus dados pessoais?',
+    yes: 'Sim',
+    no: 'Não',
+  },
 };
