@@ -270,6 +270,50 @@ export const en: typeof ptBR = {
     ouSaibaMais: 'OR LEARN MORE',
     saibaMais: 'What is the CREED method?',
   },
+  formulario: {
+    titulo: 'Form',
+    secao: 'Section',
+    pergunta: 'Question',
+    de: 'of',
+    quantitativa:
+      'Evaluate each statement according to your real experience:\n 1 = Strongly disagree  and 5 = Strongly agree',
+    dissertativa:
+      'Answer briefly and objectively, with a maximum of 200 words.',
+    objetiva: 'Choose the alternative that best describes your experience.',
+    textbox: 'Type your answer here...',
+    pergunta1:
+      'I have or have had experience as a founder or partner in a business.',
+    pergunta2:
+      'I work or have worked as an intrapreneur, proposing and leading innovative initiatives within organizations.',
+    pergunta3:
+      'I participate or have actively participated in the development of new products, services or business models.',
+    pergunta4:
+      'I value and promote cultural diversity in the practices of my institutional context.',
+    pergunta5:
+      'Which of the following best describes your role in relation to multiculturalism in education?',
+    pergunta5o1:
+      'I recognize the importance of cultural diversity, but I am still developing inclusive practices',
+    pergunta5o2:
+      'I regularly integrate diverse cultural perspectives into my educational activities',
+    pergunta5o3:
+      'I actively promote intercultural dialogue and value different worldviews in my context',
+    pergunta5o4:
+      'I lead initiatives that transform the institution to be truly multicultural and inclusive',
+    pergunta5o5:
+      'I work to eliminate cultural barriers and promote equity among different groups in education',
+    pergunta6:
+      'Describe an experience where you promoted cultural diversity or inclusion in an educational setting, explaining how this impacted those involved and what insights you gained.',
+    avancar: 'Next',
+    voltar: 'Back',
+    restante: '~15 minutes remaining',
+    finalizado: 'Form finished!',
+    obrigado:
+      'Thank you for your participation! Your responses have been successfully submitted.',
+    menuPainel: 'Dashboard',
+    menuFormulario: 'Form',
+    menuInformacoes: 'Information',
+    menuSair: 'Log out',
+  },
   onboardQuestionario: {
     titulo: 'FORM',
     start: 'Shall we get started?',

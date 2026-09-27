@@ -13,6 +13,7 @@ import { AguardeConfirmacaoView } from '@/features/aguarde-confirmacao/AguardeCo
 import { LoginView } from '@/features/authentication/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 import { OnboardQuestionarioView } from '@/features/onboarding-questionario/OnboardQuestionarioView';
+import { FormView } from '@/features/form/FormView';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
       { path: '/demograficos-3', element: <Demograficos3Etapa /> },
       { path: '/respondentes', element: <RespondentesView /> },
       { path: '/onboard-quest', element: <OnboardQuestionarioView /> },
+      { path: '/form', element: <FormView /> },
     ],
   },
   { path: '/sobre', element: <SobreView /> },
