@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface QuestionProps {
@@ -35,9 +35,13 @@ export function Questions({
   onProximo,
   onVoltar,
 }: QuestionProps) {
-  const [texto, setTexto] = useState('');
-  const { t } = useTranslation(['formulario']);
   const [selecionado, setSelecionado] = useState(valor);
+  const { t } = useTranslation(['formulario']);
+
+  useEffect(() => {
+    setSelecionado(valor);
+  }, [valor]);
+
   const handleChange = (novoValor: string) => {
     setSelecionado(novoValor);
     onMudar?.(novoValor);
@@ -60,6 +64,7 @@ export function Questions({
           </button>
         ))}
       </div>
+
       <div className="w-full space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-1 sm:flex-row sm:items-start sm:justify-between">
           <p className="text-2xl font-bold text-heading">
@@ -70,11 +75,14 @@ export function Questions({
             {totalPerguntas}
           </p>
         </header>
+
         <Progress value={progresso} />
+
         <div className="bg-brand flex flex-col items-start justify-start gap-4 rounded-xl p-8 text-primary-foreground">
           <h2 className="text-xl font-bold">{titulo}</h2>
           <p className="text-xs">{subtitulo}</p>
         </div>
+
         {/* perguntas objetivas */}
         {tipo === 'objetiva' && (
           <RadioGroup value={selecionado} onValueChange={handleChange}>
@@ -94,21 +102,26 @@ export function Questions({
             ))}
           </RadioGroup>
         )}
+
         {/* perguntas dissertativas */}
         {tipo === 'dissertativa' && (
           <textarea
-            value={texto}
+            value={selecionado}
             onChange={(e) => {
-              setTexto(e.target.value);
+              const novoValor = e.target.value;
+              setSelecionado(novoValor);
+              onMudar?.(novoValor);
             }}
             placeholder={t('formulario:textbox')}
             className="w-full rounded-lg border border-primary p-4 text-primary focus:ring-2 focus:ring-primary focus:outline-none"
             rows={6}
           />
         )}
+
         {/* perguntas quantitativas */}
         {tipo === 'quantitativa' && (
           <RadioGroup
+            value={selecionado}
             onValueChange={handleChange}
             className="flex flex-wrap justify-center gap-2 sm:gap-3"
           >
@@ -124,6 +137,7 @@ export function Questions({
             ))}
           </RadioGroup>
         )}
+
         <footer className="flex w-full items-center justify-between rounded-2xl border border-border bg-background p-2">
           <Button
             variant="outline"
