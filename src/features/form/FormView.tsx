@@ -2,7 +2,7 @@ import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
 import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
 import { useState } from 'react';
-import { Questions } from '@/components/ui/questions';
+import { Questions } from '@/features/form/Question';
 import { useTranslation } from 'react-i18next';
 
 export function FormView() {
