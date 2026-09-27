@@ -276,7 +276,7 @@ export const en: typeof ptBR = {
     pergunta: 'Question',
     de: 'of',
     quantitativa:
-      'Evaluate each statement according to your real experience:\n 1 = Strongly disagree  ·  2 = Disagree  ·  3 = Neutral  ·  4 = Agree  ·  5 = Strongly agree',
+      'Evaluate each statement according to your real experience:\n 1 = Strongly disagree  and 5 = Strongly agree',
     dissertativa:
       'Answer briefly and objectively, with a maximum of 200 words.',
     objetiva: 'Choose the alternative that best describes your experience.',

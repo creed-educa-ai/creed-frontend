@@ -276,7 +276,7 @@ export const ptBR = {
     pergunta: 'Pergunta',
     de: 'de',
     quantitativa:
-      'Avalie cada afirmação de acordo com a sua experiência real:\n 1 = Discordo totalmente  ·  2 = Discordo  ·  3 = Neutro  ·  4 = Concordo  ·  5 = Concordo totalmente',
+      'Avalie cada afirmação de acordo com a sua experiência real:\n 1 = Discordo totalmente e 5 = Concordo totalmente',
     dissertativa:
       'Responda de forma breve e objetiva, com no máximo 200 palavras.',
     objetiva: 'Escolha a alternativa que melhor descreve a sua experiência.',
