@@ -12,6 +12,7 @@ import { BoasVindasView } from '@/features/boas-vindas/BoasVindasView';
 import { AguardeConfirmacaoView } from '@/features/aguarde-confirmacao/AguardeConfirmacaoView';
 import { LoginView } from '@/features/authentication/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
+import { OnboardQuestionarioView } from '@/features/onboarding-questionario/OnboardQuestionarioView';
 import { FormView } from '@/features/form/FormView';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
@@ -35,10 +36,11 @@ export const router = createBrowserRouter([
     // Os dados demográficos ficam atrás da mesma guarda da área logada: só
     // quem entrou e aceitou o termo chega neles (fluxo em fluxoDemograficos).
     children: [
-      { path: '/respondentes', element: <RespondentesView /> },
       { path: '/demograficos-1', element: <Demograficos1Etapa /> },
       { path: '/demograficos-2', element: <Demograficos2Etapa /> },
       { path: '/demograficos-3', element: <Demograficos3Etapa /> },
+      { path: '/respondentes', element: <RespondentesView /> },
+      { path: '/onboard-quest', element: <OnboardQuestionarioView /> },
       { path: '/form', element: <FormView /> },
     ],
   },

@@ -56,12 +56,18 @@ describe('FormView', () => {
 
   it('should go back to previous question when clicking voltar', async () => {
     renderizar();
-    const avancarButton = screen.getByRole('button', { name: /Avançar/i });
-    await userEvent.click(avancarButton);
-    await userEvent.click(avancarButton);
+
+    // Avança 2 vezes, buscando o botão a cada clique: a pergunta é
+    // recriada a cada troca, e o botão antigo sai da tela
+    for (let i = 0; i < 2; i++) {
+      const avancarButton = screen.getByRole('button', { name: /Avançar/i });
+      await userEvent.click(avancarButton);
+    }
+
     const voltarButton = screen.getByRole('button', { name: /Voltar/i });
     await userEvent.click(voltarButton);
-    expect(screen.getByText('2', { exact: true })).toBeInTheDocument();
+
+    expect(screen.getByText(/Pergunta 2 de 3/)).toBeInTheDocument();
   });
 
   it('should change section when finishing all questions in section 1', async () => {
@@ -73,6 +79,9 @@ describe('FormView', () => {
       await userEvent.click(avancarButton);
     }
 
+    // O seletor de seções mostra "Seção 2" desde o início; o título do
+    // cartão (<p>) é o que diz em qual seção a pessoa está
+    expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByText(/Pergunta 1 de 3/i)).toBeInTheDocument();
   });
 
