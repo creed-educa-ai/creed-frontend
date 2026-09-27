@@ -306,5 +306,8 @@ export const en: typeof ptBR = {
     avancar: 'Next',
     voltar: 'Back',
     restante: '~15 minutes remaining',
+    finalizado: 'Form finished!',
+    obrigado:
+      'Thank you for your participation! Your responses have been successfully submitted.',
   },
 };

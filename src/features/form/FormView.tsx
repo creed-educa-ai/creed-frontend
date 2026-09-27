@@ -66,6 +66,8 @@ export function FormView() {
     ],
   };
 
+  // Ao ler o estado undefined o programa chega ao fim do formulário
+
   const perguntaAtualData =
     perguntas[secao as keyof typeof perguntas][perguntaAtual - 1];
 
@@ -74,10 +76,10 @@ export function FormView() {
       <div className="flex min-h-svh items-center justify-center bg-background">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-heading">
-            Formulário Finalizado!
+            {t('formulario:finalizado')}
           </h1>
           <p className="mt-4 text-muted-foreground">
-            Obrigado por responder todas as perguntas.
+            {t('formulario:obrigado')}
           </p>
         </div>
       </div>
@@ -100,9 +102,9 @@ export function FormView() {
     } else if (secao < totalSecoes) {
       setSecao(secao + 1);
       setPerguntaAtual(1);
-    }
-    {
-      /* TODO: Redirecionar ou finalizar quando terminar a última pergunta da última seção */
+    } else {
+      // Última pergunta da última seção - não faz nada, perguntaAtualData fica undefined
+      setPerguntaAtual(perguntaAtual + 1);
     }
   };
 

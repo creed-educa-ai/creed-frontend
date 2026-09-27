@@ -306,5 +306,8 @@ export const ptBR = {
     avancar: 'Avançar',
     voltar: 'Voltar',
     restante: '~15 minutos restantes',
+    finalizado: 'Formulário finalizado!',
+    obrigado:
+      'Obrigado pela sua participação! Suas respostas foram enviadas com sucesso.',
   },
 };
