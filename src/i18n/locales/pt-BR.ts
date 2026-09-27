@@ -279,6 +279,10 @@ export const ptBR = {
     tempo: '~15 minutos',
     secao: '4 seções',
     avancar: 'Avançar',
+    menuPainel: 'Painel',
+    menuFormulario: 'Formulário',
+    menuInformacoes: 'Informações',
+    menuSair: 'Sair',
   },
   onboardQuestionarioInfo: {
     titulo: 'Atualizar Informações',

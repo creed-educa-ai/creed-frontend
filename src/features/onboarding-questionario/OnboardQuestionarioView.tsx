@@ -23,21 +23,36 @@ export function OnboardQuestionarioView() {
             {t('onboardQuestionario:titulo')}
           </h1>
         </div>
-        {/* navbar placeholder" */}
+        {/* navbar placeholder: os botões ainda não navegam */}
         <div className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-background p-2 sm:justify-end">
-          {/* para que seja possível navegar com estes botões, precisaremos implementar "aria-label" e "type=button" */}
-          <button className="text-brand p-2 transition-colors hover:opacity-80">
+          <button
+            type="button"
+            aria-label={t('onboardQuestionario:menuPainel')}
+            className="text-brand p-2 transition-colors hover:opacity-80"
+          >
             <LayoutDashboard size={24} />
           </button>
-          <button className="text-brand p-2 transition-colors hover:opacity-80">
+          <button
+            type="button"
+            aria-label={t('onboardQuestionario:menuFormulario')}
+            className="text-brand p-2 transition-colors hover:opacity-80"
+          >
             <ClipboardPen size={24} />
           </button>
-          <button className="text-brand p-2 transition-colors hover:opacity-80">
+          <button
+            type="button"
+            aria-label={t('onboardQuestionario:menuInformacoes')}
+            className="text-brand p-2 transition-colors hover:opacity-80"
+          >
             <Info size={24} />
           </button>
           <CreedSymbol className="size-6" />
           <img src={wordmark} alt="CREED.ai" className="w-24" />
-          <button className="text-brand p-2 transition-colors hover:opacity-80">
+          <button
+            type="button"
+            aria-label={t('onboardQuestionario:menuSair')}
+            className="text-brand p-2 transition-colors hover:opacity-80"
+          >
             <LogOut size={24} />
           </button>
         </div>

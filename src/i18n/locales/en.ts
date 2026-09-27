@@ -279,6 +279,10 @@ export const en: typeof ptBR = {
     tempo: '~15 minutes',
     secao: '4 sections',
     avancar: 'Next',
+    menuPainel: 'Dashboard',
+    menuFormulario: 'Form',
+    menuInformacoes: 'Information',
+    menuSair: 'Log out',
   },
   onboardQuestionarioInfo: {
     titulo: 'Update Information',

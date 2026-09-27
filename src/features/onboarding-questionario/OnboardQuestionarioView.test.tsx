@@ -48,14 +48,19 @@ describe('OnboardQuestionarioView', () => {
     expect(screen.getByText('4 seções')).toBeInTheDocument();
   });
 
-  it('should render icon buttons in header', () => {
+  it('should render icon buttons in header with accessible names', () => {
     renderizar();
 
-    const buttons = screen.getAllByRole('button');
-    const iconButtons = buttons.filter((button) => button.querySelector('svg'));
-
-    expect(iconButtons.length).toBeGreaterThanOrEqual(4);
+    expect(screen.getByRole('button', { name: 'Painel' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Formulário' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Informações' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
   });
+
   it('should open modal when advance button is clicked', async () => {
     renderizar();
 
