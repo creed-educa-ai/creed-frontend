@@ -39,6 +39,7 @@ export const router = createBrowserRouter([
       { path: '/demograficos-1', element: <Demograficos1Etapa /> },
       { path: '/demograficos-2', element: <Demograficos2Etapa /> },
       { path: '/demograficos-3', element: <Demograficos3Etapa /> },
+      { path: '/form', element: <FormView /> },
     ],
   },
   { path: '/sobre', element: <SobreView /> },
@@ -46,5 +47,4 @@ export const router = createBrowserRouter([
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
   { path: '/aguarde-confirmacao', element: <AguardeConfirmacaoView /> },
   { path: '/recuperar-senha', element: <AlterarSenhaView /> },
-  { path: '/form', element: <FormView /> },
 ]);
