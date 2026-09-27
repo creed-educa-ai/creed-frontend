@@ -288,7 +288,7 @@ export const en: typeof ptBR = {
     pergunta3:
       'I participate or have actively participated in the development of new products, services or business models.',
     pergunta4:
-      'I work or have worked as a mentor, evaluator or advisor in entrepreneurial initiatives.',
+      'I value and promote cultural diversity in the practices of my institutional context.',
     pergunta5:
       'Which of the following best describes your role in relation to multiculturalism in education?',
     pergunta5o1:
