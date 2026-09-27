@@ -96,12 +96,17 @@ describe('FormView', () => {
     expect(screen.getByText(/Question 1 of 3/)).toBeInTheDocument();
   });
 
-  it('should render icon buttons in header', () => {
+  it('should render icon buttons in header with accessible names', () => {
     renderizar();
 
-    const buttons = screen.getAllByRole('button');
-    // Header tem 4 botões de ícone + 2 de navegação
-    expect(buttons.length).toBeGreaterThanOrEqual(4);
+    expect(screen.getByRole('button', { name: 'Painel' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Formulário' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Informações' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
   });
 
   it('should render CREED.ai wordmark', () => {

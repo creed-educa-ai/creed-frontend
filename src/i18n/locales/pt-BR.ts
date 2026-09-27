@@ -309,5 +309,9 @@ export const ptBR = {
     finalizado: 'Formulário finalizado!',
     obrigado:
       'Obrigado pela sua participação! Suas respostas foram enviadas com sucesso.',
+    menuPainel: 'Painel',
+    menuFormulario: 'Formulário',
+    menuInformacoes: 'Informações',
+    menuSair: 'Sair',
   },
 };

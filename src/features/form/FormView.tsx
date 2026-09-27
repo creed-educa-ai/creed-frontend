@@ -128,19 +128,36 @@ export function FormView() {
           </h1>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border p-2 shadow-sm sm:justify-end">
-          <button className="text-brand p-2 transition-colors hover:opacity-80">
+        <div className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-background p-2 sm:justify-end">
+          {/* para que seja possível navegar com estes botões, precisaremos implementar "aria-label" e "type=button" */}
+          <button
+            type="button"
+            aria-label={t('formulario:menuPainel')}
+            className="text-brand p-2 transition-colors hover:opacity-80"
+          >
             <LayoutDashboard size={24} />
           </button>
-          <button className="text-brand p-2 transition-colors hover:opacity-80">
+          <button
+            type="button"
+            aria-label={t('formulario:menuFormulario')}
+            className="text-brand p-2 transition-colors hover:opacity-80"
+          >
             <ClipboardPen size={24} />
           </button>
-          <button className="text-brand p-2 transition-colors hover:opacity-80">
+          <button
+            type="button"
+            aria-label={t('formulario:menuInformacoes')}
+            className="text-brand p-2 transition-colors hover:opacity-80"
+          >
             <Info size={24} />
           </button>
           <CreedSymbol className="size-6" />
           <img src={wordmark} alt="CREED.ai" className="w-24" />
-          <button className="text-brand p-2 transition-colors hover:opacity-80">
+          <button
+            type="button"
+            aria-label={t('formulario:menuSair')}
+            className="text-brand p-2 transition-colors hover:opacity-80"
+          >
             <LogOut size={24} />
           </button>
         </div>

@@ -309,5 +309,9 @@ export const en: typeof ptBR = {
     finalizado: 'Form finished!',
     obrigado:
       'Thank you for your participation! Your responses have been successfully submitted.',
+    menuPainel: 'Dashboard',
+    menuFormulario: 'Form',
+    menuInformacoes: 'Information',
+    menuSair: 'Log out',
   },
 };
