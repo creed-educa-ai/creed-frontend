@@ -270,7 +270,7 @@ export const ptBR = {
     ouSaibaMais: 'OU SAIBA MAIS',
     saibaMais: 'O que é o método CREED?',
   },
-  Onboard_Quest: {
+  onboardQuestionario: {
     titulo: 'FORMULÁRIO',
     start: 'Vamos começar?',
     subtitulo: 'você tem um questionário disponível',
@@ -280,7 +280,7 @@ export const ptBR = {
     secao: '4 seções',
     avancar: 'Avançar',
   },
-  info: {
+  onboardQuestionarioInfo: {
     titulo: 'Atualizar Informações',
     mensagem: 'Você gostaria de revisar alguns de seus dados pessoais?',
     yes: 'Sim',

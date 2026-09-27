@@ -7,8 +7,8 @@ import { ModalInfo } from '@/features/onboarding-questionario/ModalInfo';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export function OnboardQuestView() {
-  const { t } = useTranslation(['Onboard_Quest']);
+export function OnboardQuestionarioView() {
+  const { t } = useTranslation(['onboardQuestionario']);
   const [infoOpen, setInfoOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -20,7 +20,7 @@ export function OnboardQuestView() {
             João Silva
           </p>
           <h1 className="text-center text-3xl font-bold text-primary-foreground sm:text-left">
-            {t('Onboard_Quest:titulo')}
+            {t('onboardQuestionario:titulo')}
           </h1>
         </div>
         {/* navbar placeholder" */}
@@ -47,17 +47,19 @@ export function OnboardQuestView() {
           <div className="w-full rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="bg-brand flex flex-col items-start justify-start gap-4 rounded-xl p-8 text-primary-foreground">
               <h2 className="text-xl font-bold text-balance">
-                {t('Onboard_Quest:start')}
+                {t('onboardQuestionario:start')}
               </h2>
-              <p className="text-balance">{t('Onboard_Quest:subtitulo')}</p>
+              <p className="text-balance">
+                {t('onboardQuestionario:subtitulo')}
+              </p>
             </div>
             <div className="p-4 pt-6">
               <p className="text-sm leading-relaxed text-card-foreground">
-                {t('Onboard_Quest:mensagem')}
+                {t('onboardQuestionario:mensagem')}
               </p>
               <div className="flex gap-4 pt-4">
-                <p>{t('Onboard_Quest:tempo')}</p>
-                <p>{t('Onboard_Quest:secao')}</p>
+                <p>{t('onboardQuestionario:tempo')}</p>
+                <p>{t('onboardQuestionario:secao')}</p>
               </div>
             </div>
             <div className="flex w-full items-center justify-end rounded-2xl border border-border bg-background p-2">
@@ -67,7 +69,7 @@ export function OnboardQuestView() {
                   setInfoOpen(true);
                 }}
               >
-                {t('Onboard_Quest:avancar')}
+                {t('onboardQuestionario:avancar')}
               </Button>
             </div>
           </div>

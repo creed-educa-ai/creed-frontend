@@ -2,10 +2,10 @@ import { describe, expect, it, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { OnboardQuestView } from './OnboardQuestionarioView';
+import { OnboardQuestionarioView } from './OnboardQuestionarioView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
-describe('OnboardQuestView', () => {
+describe('OnboardQuestionarioView', () => {
   beforeEach(async () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
@@ -13,7 +13,7 @@ describe('OnboardQuestView', () => {
   function renderizar() {
     return render(
       <MemoryRouter>
-        <OnboardQuestView />
+        <OnboardQuestionarioView />
       </MemoryRouter>,
     );
   }

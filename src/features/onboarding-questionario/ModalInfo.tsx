@@ -20,18 +20,18 @@ export function ModalInfo({
   onReview,
   onStart,
 }: ModalInfoProps) {
-  const { t } = useTranslation(['info']);
+  const { t } = useTranslation(['onboardQuestionarioInfo']);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-background">
         <DialogHeader>
-          <DialogTitle>{t('info:titulo')}</DialogTitle>
+          <DialogTitle>{t('onboardQuestionarioInfo:titulo')}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <p className="font-bold">{t('info:mensagem')}</p>
+            <p className="font-bold">{t('onboardQuestionarioInfo:mensagem')}</p>
           </div>
           <div className="flex justify-end gap-2">
             <Button
@@ -40,7 +40,7 @@ export function ModalInfo({
                 onReview();
               }}
             >
-              {t('info:yes')}
+              {t('onboardQuestionarioInfo:yes')}
             </Button>
             {/* botão "não" deve navegar ao questionário em si quando for adicionado*/}
             <Button
@@ -49,7 +49,7 @@ export function ModalInfo({
                 onStart();
               }}
             >
-              {t('info:no')}
+              {t('onboardQuestionarioInfo:no')}
             </Button>
           </div>
         </div>

@@ -270,7 +270,7 @@ export const en: typeof ptBR = {
     ouSaibaMais: 'OR LEARN MORE',
     saibaMais: 'What is the CREED method?',
   },
-  Onboard_Quest: {
+  onboardQuestionario: {
     titulo: 'FORM',
     start: 'Shall we get started?',
     subtitulo: 'you have a questionnaire available',
@@ -280,7 +280,7 @@ export const en: typeof ptBR = {
     secao: '4 sections',
     avancar: 'Next',
   },
-  info: {
+  onboardQuestionarioInfo: {
     titulo: 'Update Information',
     mensagem: 'Would you like to review some of your personal data?',
     yes: 'Yes',
