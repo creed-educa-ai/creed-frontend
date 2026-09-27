@@ -270,4 +270,41 @@ export const ptBR = {
     ouSaibaMais: 'OU SAIBA MAIS',
     saibaMais: 'O que é o método CREED?',
   },
+  formulario: {
+    titulo: 'Formulário',
+    secao: 'Seção',
+    pergunta: 'Pergunta',
+    de: 'de',
+    quantitativa:
+      'Avalie cada afirmação de acordo com a sua experiência real:\n 1 = Discordo totalmente  ·  2 = Discordo  ·  3 = Neutro  ·  4 = Concordo  ·  5 = Concordo totalmente',
+    dissertativa:
+      'Responda de forma breve e objetiva, com no máximo 200 palavras.',
+    objetiva: 'Escolha a alternativa que melhor descreve a sua experiência.',
+    textbox: 'Digite sua resposta aqui...',
+    pergunta1:
+      'Tenho ou já tive experiência como fundador(a) ou sócio(a) de um negócio.',
+    pergunta2:
+      'Atuo ou já atuei como intraempreendedor(a), propondo e liderando iniciativas inovadoras dentro de organizações.',
+    pergunta3:
+      'Participo ou já participei ativamente do desenvolvimento de novos produtos, serviços ou modelos de negócio.',
+    pergunta4:
+      'Valorizo e promovo a diversidade cultural nas práticas do meu contexto institucional.',
+    pergunta5:
+      'Qual das seguintes opções melhor descreve sua atuação em relação ao multiculturalismo na educação?',
+    pergunta5o1:
+      'Reconheço a importância da diversidade cultural, mas ainda estou desenvolvendo práticas inclusivas',
+    pergunta5o2:
+      'Integro perspectivas culturais diversas regularmente em minhas atividades educacionais',
+    pergunta5o3:
+      'Promovo ativamente diálogos interculturais e valorizo diferentes visões de mundo em meu contexto',
+    pergunta5o4:
+      'Lidero iniciativas que transformam a instituição para ser verdadeiramente multicultural e inclusiva',
+    pergunta5o5:
+      'Trabalho para eliminar barreiras culturais e promover equidade entre diferentes grupos na educação',
+    pergunta6:
+      'Descreva uma experiência em que você promoveu a diversidade cultural ou inclusão em um contexto educacional, explicando como isso impactou os envolvidos e que aprendizados você obteve.',
+    avancar: 'Avançar',
+    voltar: 'Voltar',
+    restante: '~15 minutos restantes',
+  },
 };

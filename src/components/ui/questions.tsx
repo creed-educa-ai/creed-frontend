@@ -2,8 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface QuestionProps {
+  secao: number;
+  totalSecoes: number;
   perguntaAtual: number;
   totalPerguntas: number;
   progresso: number;
@@ -16,6 +19,8 @@ interface QuestionProps {
 }
 
 export function Questions({
+  secao,
+  totalSecoes,
   perguntaAtual,
   totalPerguntas,
   progresso,
@@ -27,19 +32,38 @@ export function Questions({
   onVoltar,
 }: QuestionProps) {
   const [texto, setTexto] = useState('');
+  const { t } = useTranslation(['formulario']);
   return (
     <div className="mx-auto my-auto flex w-full max-w-xl flex-col items-center justify-center gap-6 py-6">
+      {/* Seletor de seções */}
+      <div className="flex gap-2 overflow-x-auto">
+        {Array.from({ length: totalSecoes }).map((_, i) => (
+          <button
+            key={i + 1}
+            className={`rounded-lg px-4 py-2 whitespace-nowrap ${
+              secao === i + 1
+                ? 'bg-brand text-primary-foreground'
+                : 'bg-muted text-muted-foreground'
+            }`}
+          >
+            {t('formulario:secao')} {i + 1}
+          </button>
+        ))}
+      </div>
       <div className="w-full space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
         <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-1 sm:flex-row sm:items-start sm:justify-between">
-          <p className="text-2xl font-bold text-heading">Seção 1</p>
+          <p className="text-2xl font-bold text-heading">
+            {t('formulario:secao')} {secao}
+          </p>
           <p className="text-xl font-bold text-heading">
-            Pergunta {perguntaAtual} de {totalPerguntas}
+            {t('formulario:pergunta')} {perguntaAtual} {t('formulario:de')}{' '}
+            {totalPerguntas}
           </p>
         </header>
         <Progress value={progresso} />
         <div className="bg-brand flex flex-col items-start justify-start gap-4 rounded-xl p-8 text-primary-foreground">
           <h2 className="text-xl font-bold">{titulo}</h2>
-          <p>{subtitulo}</p>
+          <p className="text-xs">{subtitulo}</p>
         </div>
         {/* perguntas objetivas */}
         {tipo === 'objetiva' && (
@@ -67,52 +91,45 @@ export function Questions({
             onChange={(e) => {
               setTexto(e.target.value);
             }}
-            placeholder="Digite sua resposta aqui..."
+            placeholder={t('formulario:textbox')}
             className="w-full rounded-lg border border-primary p-4 text-primary focus:ring-2 focus:ring-primary focus:outline-none"
             rows={6}
           />
         )}
         {/* perguntas quantitativas */}
         {tipo === 'quantitativa' && (
-          <RadioGroup className="flex justify-center gap-2">
+          <RadioGroup className="flex flex-wrap justify-center gap-2 sm:gap-3">
             {respostas.map((resposta, index) => (
-              <div
+              <RadioGroupItem
                 key={`op${String(index)}`}
-                className="flex cursor-pointer items-center space-x-2 rounded-lg border border-primary px-4 py-3 hover:bg-primary/5"
+                variant="caixa"
+                value={resposta}
+                id={`op${String(index)}`}
               >
-                <RadioGroupItem
-                  variant="caixa"
-                  value={resposta}
-                  id={`op${String(index)}`}
-                />
-                <label
-                  htmlFor={`op${String(index)}`}
-                  className="flex-1 cursor-pointer text-primary"
-                >
-                  {resposta}
-                </label>
-              </div>
+                <span className="text-lg font-bold">{resposta}</span>
+              </RadioGroupItem>
             ))}
           </RadioGroup>
         )}
         <footer className="flex w-full items-center justify-between rounded-2xl border border-border bg-background p-2">
           <Button
-            variant={'outline'}
+            variant="outline"
             className="text-brand"
             onClick={() => {
               onVoltar();
             }}
+            disabled={perguntaAtual === 1 && secao === 1}
           >
-            Voltar
+            {t('formulario:voltar')}
           </Button>
-          <p>~tempo restante</p>
+          <p>{t('formulario:restante')}</p>
           <Button
             className="bg-brand font-bold text-primary-foreground"
             onClick={() => {
               onProximo();
             }}
           >
-            Avançar
+            {t('formulario:avancar')}
           </Button>
         </footer>
       </div>
