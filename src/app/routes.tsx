@@ -4,6 +4,7 @@ import { CadastroView } from '@/features/cadastro/CadastroView';
 import { AlterarSenhaView } from '@/features/autenticacao/AlterarSenhaView';
 import { LoginView } from '@/features/login/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
+import { RevisaoRespostasView } from '@/features/questionario/RevisaoRespostasView';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
@@ -19,7 +20,15 @@ export const router = createBrowserRouter([
   ...(loginHabilitado ? [{ path: '/login', element: <LoginView /> }] : []),
   {
     element: <ProtectedRoute enabled={loginHabilitado} />,
-    children: [{ path: '/respondentes', element: <RespondentesView /> }],
+    children: [
+      { path: '/respondentes', element: <RespondentesView /> },
+      {
+        path: '/questionario/revisao',
+        element: (
+          <RevisaoRespostasView questions={[]} onSubmit={() => undefined} />
+        ),
+      },
+    ],
   },
   { path: '/cadastro', element: <CadastroView /> },
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
