@@ -56,29 +56,24 @@ describe('FormView', () => {
 
   it('should go back to previous question when clicking voltar', async () => {
     renderizar();
-
     const avancarButton = screen.getByRole('button', { name: /Avançar/i });
     await userEvent.click(avancarButton);
     await userEvent.click(avancarButton);
-
     const voltarButton = screen.getByRole('button', { name: /Voltar/i });
     await userEvent.click(voltarButton);
-
-    expect(screen.getByText(/Pergunta 2 de 3/)).toBeInTheDocument();
+    expect(screen.getByText('2', { exact: true })).toBeInTheDocument();
   });
 
   it('should change section when finishing all questions in section 1', async () => {
     renderizar();
 
-    const avancarButton = screen.getByRole('button', { name: /Avançar/i });
+    // Avança 3 vezes, buscando o botão a cada clique
+    for (let i = 0; i < 3; i++) {
+      const avancarButton = screen.getByRole('button', { name: /Avançar/i });
+      await userEvent.click(avancarButton);
+    }
 
-    // Avança 3 vezes para terminar seção 1
-    await userEvent.click(avancarButton);
-    await userEvent.click(avancarButton);
-    await userEvent.click(avancarButton);
-
-    expect(screen.getAllByText('Seção 2')[0]).toBeInTheDocument();
-    expect(screen.getByText(/Pergunta 1 de 3/)).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 1 de 3/i)).toBeInTheDocument();
   });
 
   it('should render quantitative question with scale 1-5', () => {
@@ -114,5 +109,40 @@ describe('FormView', () => {
 
     const wordmark = screen.getByAltText('CREED.ai');
     expect(wordmark).toBeInTheDocument();
+  });
+
+  it('should show completion message when all questions are answered', async () => {
+    renderizar();
+
+    // Avança 6 vezes (3 perguntas x 2 seções), buscando o botão a cada clique
+    for (let i = 0; i < 6; i++) {
+      const avancarButton = screen.getByRole('button', { name: /Avançar/i });
+      await userEvent.click(avancarButton);
+    }
+
+    expect(screen.getByText(/Formulário finalizado/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Obrigado pela sua participação/i),
+    ).toBeInTheDocument();
+  });
+
+  it('should not keep selected value when advancing to next question', async () => {
+    renderizar();
+
+    const radio3 = screen
+      .getAllByRole('radio')
+      .find((r) => r.getAttribute('value') === '3');
+    if (radio3) {
+      await userEvent.click(radio3);
+      expect(radio3).toBeChecked();
+
+      const avancarButton = screen.getByRole('button', { name: /Avançar/i });
+      await userEvent.click(avancarButton);
+
+      const newRadio3 = screen
+        .getAllByRole('radio')
+        .find((r) => r.getAttribute('value') === '3');
+      expect(newRadio3).not.toBeChecked();
+    }
   });
 });

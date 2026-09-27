@@ -79,8 +79,10 @@ export function Questions({
         <Progress value={progresso} />
 
         <div className="bg-brand flex flex-col items-start justify-start gap-4 rounded-xl p-8 text-primary-foreground">
-          <h2 className="text-xl font-bold">{titulo}</h2>
-          <p className="text-xs">{subtitulo}</p>
+          <div className="bg-brand flex flex-col items-start justify-start gap-4 rounded-xl p-8 text-primary-foreground">
+            <h2 className="text-xl font-bold">{titulo}</h2>
+            <p className="text-xs whitespace-pre-line">{subtitulo}</p>
+          </div>
         </div>
 
         {/* perguntas objetivas */}
