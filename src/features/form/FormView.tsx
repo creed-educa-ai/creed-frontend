@@ -4,6 +4,9 @@ import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
 import { useState } from 'react';
 import { Questions } from '@/features/form/Question';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import type { ReviewQuestion } from '@/features/questionario/RevisaoRespostasView';
 
 export function FormView() {
   const [secao, setSecao] = useState(1);
@@ -13,6 +16,7 @@ export function FormView() {
   const perguntasPerSecao = 3;
   const progresso = (perguntaAtual / perguntasPerSecao) * 100;
   const { t } = useTranslation(['formulario']);
+  const navigate = useNavigate();
 
   {
     /* TODO: Todas as perguntas são placeholders hardcodadas e serão importadas do backend quando possível */
@@ -66,6 +70,25 @@ export function FormView() {
     ],
   };
 
+  const perguntasParaRevisao: ReviewQuestion[] = [
+    ...perguntas[1].map((pergunta, index) => ({
+      id: `1-${String(index + 1)}`,
+      text: pergunta.titulo,
+      type: pergunta.tipo,
+      options: pergunta.respostas,
+      required: true,
+      answer: respostas[`1-${String(index + 1)}`] ?? null,
+    })),
+    ...perguntas[2].map((pergunta, index) => ({
+      id: `2-${String(index + 1)}`,
+      text: pergunta.titulo,
+      type: pergunta.tipo,
+      options: pergunta.respostas,
+      required: true,
+      answer: respostas[`2-${String(index + 1)}`] ?? null,
+    })),
+  ];
+
   // Ao ler o estado undefined o programa chega ao fim do formulário
 
   const perguntaAtualData =
@@ -81,6 +104,17 @@ export function FormView() {
           <p className="mt-4 text-muted-foreground">
             {t('formulario:obrigado')}
           </p>
+          <Button
+            type="button"
+            className="mt-6"
+            onClick={() => {
+              navigate('/questionario/revisao', {
+                state: { questions: perguntasParaRevisao },
+              });
+            }}
+          >
+            {t('formulario:revisarRespostas')}
+          </Button>
         </div>
       </div>
     );

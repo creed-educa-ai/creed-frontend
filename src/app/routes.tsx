@@ -14,6 +14,7 @@ import { LoginView } from '@/features/authentication/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 import { OnboardQuestionarioView } from '@/features/onboarding-questionario/OnboardQuestionarioView';
 import { FormView } from '@/features/form/FormView';
+import { RevisaoRespostasRoute } from '@/features/questionario/RevisaoRespostasRoute';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
       { path: '/respondentes', element: <RespondentesView /> },
       { path: '/onboard-quest', element: <OnboardQuestionarioView /> },
       { path: '/form', element: <FormView /> },
+      {
+        path: '/questionario/revisao',
+        element: <RevisaoRespostasRoute />,
+      },
     ],
   },
   { path: '/sobre', element: <SobreView /> },

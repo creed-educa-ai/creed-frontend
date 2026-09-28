@@ -1,9 +1,26 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { FormView } from './FormView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+
+function ReviewRouteProbe() {
+  const location = useLocation();
+  const state = location.state as {
+    questions?: { text: string; answer: string | null }[];
+  } | null;
+  const questions = state?.questions ?? [];
+
+  return (
+    <div>
+      <h1>Revisão</h1>
+      <p>{`Quantidade: ${String(questions.length)}`}</p>
+      <p>{questions[0]?.text}</p>
+      <p>{questions[0]?.answer}</p>
+    </div>
+  );
+}
 
 describe('FormView', () => {
   beforeEach(async () => {
@@ -12,8 +29,11 @@ describe('FormView', () => {
 
   function renderizar() {
     return render(
-      <MemoryRouter>
-        <FormView />
+      <MemoryRouter initialEntries={['/form']}>
+        <Routes>
+          <Route path="/form" element={<FormView />} />
+          <Route path="/questionario/revisao" element={<ReviewRouteProbe />} />
+        </Routes>
       </MemoryRouter>,
     );
   }
@@ -133,6 +153,28 @@ describe('FormView', () => {
     expect(
       screen.getByText(/Obrigado pela sua participação/i),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Revisar respostas' }),
+    ).toBeInTheDocument();
+  });
+
+  it('should pass collected answers to the review route', async () => {
+    renderizar();
+    await userEvent.click(screen.getByRole('radio', { name: '4' }));
+
+    for (let i = 0; i < 6; i++) {
+      await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    }
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Revisar respostas' }),
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Revisão' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Quantidade: 6')).toBeInTheDocument();
+    expect(screen.getByText('4')).toBeInTheDocument();
   });
 
   it('should not keep selected value when advancing to next question', async () => {

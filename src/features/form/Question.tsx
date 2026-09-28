@@ -1,8 +1,77 @@
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+export type QuestionType = 'objetiva' | 'dissertativa' | 'quantitativa';
+
+interface QuestionAnswerEditorProps {
+  tipo: QuestionType;
+  opcoes: string[];
+  valor: string;
+  placeholder: string;
+  onMudar: (value: string) => void;
+}
+
+export function QuestionAnswerEditor({
+  tipo,
+  opcoes,
+  valor,
+  placeholder,
+  onMudar,
+}: QuestionAnswerEditorProps) {
+  if (tipo === 'dissertativa') {
+    return (
+      <textarea
+        value={valor}
+        onChange={(event) => {
+          onMudar(event.currentTarget.value);
+        }}
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-primary p-4 text-primary focus:ring-2 focus:ring-primary focus:outline-none"
+        rows={6}
+      />
+    );
+  }
+
+  return (
+    <RadioGroup
+      value={valor}
+      onValueChange={onMudar}
+      className={
+        tipo === 'quantitativa'
+          ? 'flex flex-wrap justify-center gap-2 sm:gap-3'
+          : undefined
+      }
+    >
+      {opcoes.map((opcao, index) =>
+        tipo === 'quantitativa' ? (
+          <RadioGroupItem
+            key={`op${String(index)}`}
+            variant="caixa"
+            value={opcao}
+            id={`op${String(index)}`}
+          >
+            <span className="text-lg font-bold">{opcao}</span>
+          </RadioGroupItem>
+        ) : (
+          <div
+            key={`op${String(index)}`}
+            className="flex cursor-pointer items-center space-x-2 rounded-lg border border-primary px-4 py-3 hover:bg-primary/5"
+          >
+            <RadioGroupItem value={opcao} id={`op${String(index)}`} />
+            <label
+              htmlFor={`op${String(index)}`}
+              className="flex-1 cursor-pointer text-primary"
+            >
+              {opcao}
+            </label>
+          </div>
+        ),
+      )}
+    </RadioGroup>
+  );
+}
 
 interface QuestionProps {
   secao: number;
@@ -12,10 +81,10 @@ interface QuestionProps {
   progresso: number;
   titulo: string;
   subtitulo: string;
-  tipo: 'objetiva' | 'dissertativa' | 'quantitativa';
+  tipo: QuestionType;
   respostas?: string[];
   valor?: string;
-  onMudar?: (valor: string) => void;
+  onMudar: (valor: string) => void;
   onProximo: () => void;
   onVoltar: () => void;
 }
@@ -35,17 +104,7 @@ export function Questions({
   onProximo,
   onVoltar,
 }: QuestionProps) {
-  const [selecionado, setSelecionado] = useState(valor);
   const { t } = useTranslation(['formulario']);
-
-  useEffect(() => {
-    setSelecionado(valor);
-  }, [valor]);
-
-  const handleChange = (novoValor: string) => {
-    setSelecionado(novoValor);
-    onMudar?.(novoValor);
-  };
 
   return (
     <div className="mx-auto my-auto flex w-full max-w-xl flex-col items-center justify-center gap-6 py-6">
@@ -83,60 +142,13 @@ export function Questions({
           <p className="text-xs whitespace-pre-line">{subtitulo}</p>
         </div>
 
-        {/* perguntas objetivas */}
-        {tipo === 'objetiva' && (
-          <RadioGroup value={selecionado} onValueChange={handleChange}>
-            {respostas.map((resposta, index) => (
-              <div
-                key={`op${String(index)}`}
-                className="flex cursor-pointer items-center space-x-2 rounded-lg border border-primary px-4 py-3 hover:bg-primary/5"
-              >
-                <RadioGroupItem value={resposta} id={`op${String(index)}`} />
-                <label
-                  htmlFor={`op${String(index)}`}
-                  className="flex-1 cursor-pointer text-primary"
-                >
-                  {resposta}
-                </label>
-              </div>
-            ))}
-          </RadioGroup>
-        )}
-
-        {/* perguntas dissertativas */}
-        {tipo === 'dissertativa' && (
-          <textarea
-            value={selecionado}
-            onChange={(e) => {
-              const novoValor = e.target.value;
-              setSelecionado(novoValor);
-              onMudar?.(novoValor);
-            }}
-            placeholder={t('formulario:textbox')}
-            className="w-full rounded-lg border border-primary p-4 text-primary focus:ring-2 focus:ring-primary focus:outline-none"
-            rows={6}
-          />
-        )}
-
-        {/* perguntas quantitativas */}
-        {tipo === 'quantitativa' && (
-          <RadioGroup
-            value={selecionado}
-            onValueChange={handleChange}
-            className="flex flex-wrap justify-center gap-2 sm:gap-3"
-          >
-            {respostas.map((resposta, index) => (
-              <RadioGroupItem
-                key={`op${String(index)}`}
-                variant="caixa"
-                value={resposta}
-                id={`op${String(index)}`}
-              >
-                <span className="text-lg font-bold">{resposta}</span>
-              </RadioGroupItem>
-            ))}
-          </RadioGroup>
-        )}
+        <QuestionAnswerEditor
+          tipo={tipo}
+          opcoes={respostas}
+          valor={valor}
+          placeholder={t('formulario:textbox')}
+          onMudar={onMudar}
+        />
 
         <footer className="flex w-full items-center justify-between rounded-2xl border border-border bg-background p-2">
           <Button

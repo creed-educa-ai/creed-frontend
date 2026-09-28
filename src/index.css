@@ -283,3 +283,30 @@
   inherits: false;
   initial-value: 135deg;
 }
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  body {
+    background: white;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    min-height: 0;
+    padding: 0;
+  }
+
+  table {
+    font-size: 10pt;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+}
