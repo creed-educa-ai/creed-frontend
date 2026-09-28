@@ -1,12 +1,14 @@
 // Store Redux configurado com RTK (ADR-003, secao 2).
 import { configureStore } from '@reduxjs/toolkit';
+import authenticationReducer from '@/features/authentication/authenticationSlice';
 import respondentesReducer from '@/features/respondentes/respondentesSlice';
-import authReducer from '@/features/login/loginSlice';
+import respondentesDemograficosReducer from '@/features/respondentes/respondentesDemograficosSlice';
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
+    authentication: authenticationReducer,
     respondentes: respondentesReducer,
+    respondentesDemograficos: respondentesDemograficosReducer,
   },
 });
 

@@ -15,6 +15,10 @@ export const en: typeof ptBR = {
       cancelar: 'Cancel',
       salvar: 'Save',
     },
+    navegacao: {
+      voltar: 'Back',
+      irParaBoasVindas: 'Go to the welcome page',
+    },
     idioma: {
       rotulo: 'Language',
       'pt-BR': 'Portuguese',
@@ -30,6 +34,127 @@ export const en: typeof ptBR = {
     idade_zero: '{{count}} years old',
     idade_one: '{{count}} year old',
     idade_other: '{{count}} years old',
+
+    escolher: 'Choose',
+    semResultado: 'No option found',
+    avancar: 'Continue',
+    pular: 'Skip',
+
+    demograficos1: {
+      titulo: "Let's get started! What's your name?",
+      descricaoNome: 'This is the name shown to other users',
+      nomeObrigatorio: 'Enter your name to continue.',
+    },
+
+    demograficos2: {
+      clear: 'Clear {{field}}',
+      remove: 'Remove {{option}}',
+      invalidOption: 'Choose a valid option.',
+      options: {
+        gender: {
+          feminino: 'Female',
+          masculino: 'Male',
+          nao_binario: 'Non-binary',
+          prefiro_nao_informar: 'Prefer not to disclose',
+        },
+        ageRange: {
+          '18_25': '18–25 years',
+          '26_35': '26–35 years',
+          '36_45': '36–45 years',
+          '46_55': '46–55 years',
+          '56_65': '56–65 years',
+          '65_mais': '65+ years',
+          prefiro_nao_informar: 'Prefer not to disclose',
+        },
+        ethnicity: {
+          africana_afrodescendente: 'African or Afro-descendant',
+          indigena_amerindia: 'Indigenous / Amerindian',
+          europeia: 'European (e.g. Portuguese, Italian, Spanish, German)',
+          asiatica: 'Asian (e.g. Japanese, Chinese, Korean, Indian)',
+          arabe_medio_oriente: 'Arab or Middle Eastern',
+          latino_americana: 'Latin American (except Brazil)',
+          romani_cigana: 'Romani / Gypsy',
+          multipla_hibrida: 'Multiple / Mixed',
+          prefiro_nao_responder: 'Prefer not to answer',
+        },
+        religion: {
+          crista: 'Christian (any denomination)',
+          judaica: 'Jewish',
+          islamica: 'Islamic',
+          matriz_africana:
+            'African-derived religions (e.g. Candomblé, Umbanda)',
+          espiritismo: 'Spiritism / Spirituality',
+          budismo: 'Buddhism',
+          sem_religiao: 'No religion / Non-practicing',
+          outra: 'Other',
+          prefiro_nao_responder: 'Prefer not to answer',
+        },
+        nationality: {
+          brasileira: 'Brazilian',
+          portuguesa: 'Portuguese',
+          outra: 'Other',
+        },
+        brazilState: {
+          AC: 'Acre',
+          AL: 'Alagoas',
+          AP: 'Amapá',
+          AM: 'Amazonas',
+          BA: 'Bahia',
+          CE: 'Ceará',
+          DF: 'Distrito Federal',
+          ES: 'Espírito Santo',
+          GO: 'Goiás',
+          MA: 'Maranhão',
+          MT: 'Mato Grosso',
+          MS: 'Mato Grosso do Sul',
+          MG: 'Minas Gerais',
+          PA: 'Pará',
+          PB: 'Paraíba',
+          PR: 'Paraná',
+          PE: 'Pernambuco',
+          PI: 'Piauí',
+          RJ: 'Rio de Janeiro',
+          RN: 'Rio Grande do Norte',
+          RS: 'Rio Grande do Sul',
+          RO: 'Rondônia',
+          RR: 'Roraima',
+          SC: 'Santa Catarina',
+          SP: 'São Paulo',
+          SE: 'Sergipe',
+          TO: 'Tocantins',
+        },
+        portugalRegion: {
+          norte: 'North',
+          centro: 'Centre',
+          area_metropolitana_lisboa: 'Lisbon Metropolitan Area',
+          alentejo: 'Alentejo',
+          algarve: 'Algarve',
+          acores: 'Azores',
+          madeira: 'Madeira',
+        },
+      },
+      titulo: 'Tell us more about you',
+      subtitulo: 'All answers are optional!',
+    },
+    campos: {
+      nome: 'Name',
+      nomePlaceholder: 'Your full name',
+      genero: 'Gender (optional)',
+      faixaEtaria: 'Age range (optional)',
+      origemEtnica: 'Ethnic background (optional)',
+      religiao: 'Religion (optional)',
+      nacionalidade: 'Nationality (optional)',
+      nacionalidadeOutra: 'Which nationality?',
+      estado: 'State',
+      regiao: 'Region',
+    },
+    demograficos3: {
+      titulo: 'Briefly share your perspective',
+      subtitulo: 'Open question - optional',
+      pergunta:
+        'How did your family upbringing influence, or not, your entrepreneurial or innovative path? Briefly explain (optional)',
+      placeholder: 'Your answer',
+    },
   },
   questionarioRevisao: {
     titulo: 'Review and submit your answers',
@@ -77,6 +202,14 @@ export const en: typeof ptBR = {
     faleConosco: 'Contact us',
     tagline:
       'Competency assessment that shows your team clearly, with no spreadsheets and no guesswork.',
+  },
+  sobre: {
+    titulo: 'About',
+    subtitulo: 'More information about Creed.ai',
+    // TODO placeholder: texto institucional definitivo ainda não definido com a cliente.
+    texto:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+    voltar: 'Back',
   },
   cadastro: {
     titulo: 'Create your account',
@@ -138,9 +271,98 @@ export const en: typeof ptBR = {
     erros: {
       emailInvalido: 'Enter a valid email.',
       loginInvalido: 'Unable to sign in with these credentials.',
+      servicoIndisponivel:
+        'Sign-in is unavailable right now. Please try again.',
       senhaCurta: 'Password must be at least 8 characters long.',
       confirmacaoObrigatoria: 'Confirm the new password.',
       senhasDivergentes: 'Passwords do not match.',
     },
+  },
+
+  termo: {
+    titulo: 'INFORMED, CLARIFIED AND FREE CONSENT FORM',
+    corpo:
+      'Investigação: Culturally Responsive Entrepreneurship Education (CREED) \nInstituição: Universidade Aberta (UAb) — Portugal \nInvestigadora responsável: Naira Libermann · 2406837@estudante.uab.pt \nOrientador: Doutor Manuel Jacinto de Ascensão Jardim · jacinto.jardim@uab.pt \nOBJETIVO: Compreender o impacto das abordagens multiculturais na educação empreendedora. \nPARTICIPAÇÃO: Instrumento de autorrelato com 49 itens Likert em 7 dimensões + 4 questões abertas (~15 min). \nCONFIDENCIALIDADE: Dados tratados de forma estritamente confidencial, analisados de forma agregada e anonimizados. \nVOLUNTARIEDADE: Participação inteiramente voluntária e gratuita. Pode retirar o consentimento a qualquer momento. \nBASE LEGAL: RGPD (UE) 2016/679 · Lei n.º 58/2019 (Portugal) · LGPD Lei nº 13.709/2018 (Brasil)',
+    aceitar: 'Accept',
+    recusar: 'Decline',
+  },
+  contato: {
+    titulo: 'Contact us',
+    email: 'Email',
+    telefone: 'Phone',
+  },
+
+  aguardeConfirmacao: {
+    titulo: 'Await confirmation',
+    mensagem:
+      'Your data has been submitted and is awaiting approval. After confirmation, try logging in again.',
+    voltar: 'Back',
+    ouSaibaMais: 'OR LEARN MORE',
+    saibaMais: 'What is the CREED method?',
+  },
+  formulario: {
+    titulo: 'Form',
+    secao: 'Section',
+    pergunta: 'Question',
+    de: 'of',
+    quantitativa:
+      'Evaluate each statement according to your real experience:\n 1 = Strongly disagree  and 5 = Strongly agree',
+    dissertativa:
+      'Answer briefly and objectively, with a maximum of 200 words.',
+    objetiva: 'Choose the alternative that best describes your experience.',
+    textbox: 'Type your answer here...',
+    pergunta1:
+      'I have or have had experience as a founder or partner in a business.',
+    pergunta2:
+      'I work or have worked as an intrapreneur, proposing and leading innovative initiatives within organizations.',
+    pergunta3:
+      'I participate or have actively participated in the development of new products, services or business models.',
+    pergunta4:
+      'I value and promote cultural diversity in the practices of my institutional context.',
+    pergunta5:
+      'Which of the following best describes your role in relation to multiculturalism in education?',
+    pergunta5o1:
+      'I recognize the importance of cultural diversity, but I am still developing inclusive practices',
+    pergunta5o2:
+      'I regularly integrate diverse cultural perspectives into my educational activities',
+    pergunta5o3:
+      'I actively promote intercultural dialogue and value different worldviews in my context',
+    pergunta5o4:
+      'I lead initiatives that transform the institution to be truly multicultural and inclusive',
+    pergunta5o5:
+      'I work to eliminate cultural barriers and promote equity among different groups in education',
+    pergunta6:
+      'Describe an experience where you promoted cultural diversity or inclusion in an educational setting, explaining how this impacted those involved and what insights you gained.',
+    avancar: 'Next',
+    voltar: 'Back',
+    restante: '~15 minutes remaining',
+    finalizado: 'Form finished!',
+    obrigado:
+      'Thank you for participating! Review your answers before submitting.',
+    revisarRespostas: 'Review answers',
+    menuPainel: 'Dashboard',
+    menuFormulario: 'Form',
+    menuInformacoes: 'Information',
+    menuSair: 'Log out',
+  },
+  onboardQuestionario: {
+    titulo: 'FORM',
+    start: 'Shall we get started?',
+    subtitulo: 'you have a questionnaire available',
+    mensagem:
+      "Your answers help us map your organization's landscape.\n It's quick and you can pause whenever you want, your progress will be saved",
+    tempo: '~15 minutes',
+    secao: '4 sections',
+    avancar: 'Next',
+    menuPainel: 'Dashboard',
+    menuFormulario: 'Form',
+    menuInformacoes: 'Information',
+    menuSair: 'Log out',
+  },
+  onboardQuestionarioInfo: {
+    titulo: 'Update Information',
+    mensagem: 'Would you like to review some of your personal data?',
+    yes: 'Yes',
+    no: 'No',
   },
 };

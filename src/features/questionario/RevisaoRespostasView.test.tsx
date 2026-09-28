@@ -10,14 +10,16 @@ const MOCK_QUESTIONS: ReviewQuestion[] = [
   {
     id: 'mock-scale',
     text: 'Mock: avalie a colaboração',
-    type: 'escala',
+    type: 'quantitativa',
+    options: ['1', '2', '3', '4', '5'],
     required: true,
-    answer: 3,
+    answer: '3',
   },
   {
     id: 'mock-essay',
     text: 'Mock: descreva uma situação',
     type: 'dissertativa',
+    options: [],
     required: true,
     answer: null,
   },
@@ -156,7 +158,10 @@ describe('RevisaoRespostasView', () => {
     fireEvent.click(confirmButton);
 
     expect(onSubmit).toHaveBeenCalledOnce();
-    expect(onSubmit).toHaveBeenCalledWith([3, 'Resposta mockada preenchida.']);
+    expect(onSubmit).toHaveBeenCalledWith([
+      '3',
+      'Resposta mockada preenchida.',
+    ]);
     expect(screen.getByText('Respostas enviadas.')).toBeInTheDocument();
   });
 

@@ -31,15 +31,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  RespostaQuestionarioEditor,
-  type QuestionAnswer,
-  type QuestionAnswerType,
-} from '@/features/questionario/RespostaQuestionarioEditor';
+  QuestionAnswerEditor,
+  type QuestionType,
+} from '@/features/form/Question';
+
+export type QuestionAnswer = string | null;
 
 export interface ReviewQuestion {
   id: string;
   text: string;
-  type: QuestionAnswerType;
+  type: QuestionType;
+  options: string[];
   required: boolean;
   answer: QuestionAnswer;
 }
@@ -53,7 +55,7 @@ export function RevisaoRespostasView({
   questions,
   onSubmit,
 }: RevisaoRespostasViewProps) {
-  const { t } = useTranslation(['questionarioRevisao']);
+  const { t } = useTranslation(['questionarioRevisao', 'formulario']);
   const [answers, setAnswers] = useState<QuestionAnswer[]>(() =>
     questions.map(({ answer }) => answer),
   );
@@ -72,11 +74,11 @@ export function RevisaoRespostasView({
   const canSubmit =
     questions.length > 0 && unansweredRequired.length === 0 && !submitted;
 
-  function answerLabel(answer: QuestionAnswer) {
+  function answerLabel(question: ReviewQuestion, answer: QuestionAnswer) {
     if (answer === null || answer === '') {
       return t('questionarioRevisao:semResposta');
     }
-    if (typeof answer === 'number') {
+    if (question.type === 'quantitativa') {
       return t('questionarioRevisao:respostaEscala', { valor: answer });
     }
     return answer;
@@ -105,13 +107,6 @@ export function RevisaoRespostasView({
     setSubmitted(true);
     setConfirmOpen(false);
   }
-
-  const editorLabels = {
-    select: t('questionarioRevisao:selecioneResposta'),
-    min: t('questionarioRevisao:escalaMinima'),
-    max: t('questionarioRevisao:escalaMaxima'),
-    essayPlaceholder: t('questionarioRevisao:respostaDissertativaPlaceholder'),
-  };
 
   return (
     <main className="min-h-svh overflow-x-hidden bg-background px-3 py-6 sm:px-6 sm:py-8">
@@ -164,8 +159,8 @@ export function RevisaoRespostasView({
             )}
 
             <div className="hidden overflow-hidden rounded-lg border bg-card shadow-sm md:block">
-              <Table className="table-fixed border-collapse text-left">
-                <TableHeader className="bg-muted/60">
+              <Table className="table-fixed">
+                <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="w-[55%] px-5">
                       {t('questionarioRevisao:pergunta')}
@@ -205,7 +200,7 @@ export function RevisaoRespostasView({
                               : 'text-muted-foreground'
                           }
                         >
-                          {answerLabel(answers[index] ?? null)}
+                          {answerLabel(question, answers[index] ?? null)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -258,7 +253,7 @@ export function RevisaoRespostasView({
                     <p
                       className={`mt-2 text-sm break-words ${missing ? 'text-destructive' : 'text-muted-foreground'}`}
                     >
-                      {answerLabel(answers[index] ?? null)}
+                      {answerLabel(question, answers[index] ?? null)}
                     </p>
                     <Button
                       type="button"
@@ -318,11 +313,12 @@ export function RevisaoRespostasView({
                 </DialogTitle>
                 <DialogDescription>{activeQuestion.text}</DialogDescription>
               </DialogHeader>
-              <RespostaQuestionarioEditor
-                type={activeQuestion.type}
-                value={draftAnswer}
-                onChange={setDraftAnswer}
-                labels={editorLabels}
+              <QuestionAnswerEditor
+                tipo={activeQuestion.type}
+                opcoes={activeQuestion.options}
+                valor={draftAnswer ?? ''}
+                placeholder={t('formulario:textbox')}
+                onMudar={setDraftAnswer}
               />
               <DialogFooter>
                 <Button
