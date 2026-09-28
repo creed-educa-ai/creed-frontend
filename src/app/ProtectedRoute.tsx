@@ -37,7 +37,7 @@ export function ProtectedRoute({ enabled = true }: ProtectedRouteProps) {
         // Depois do aceite vêm sempre os dados demográficos (fluxoDemograficos):
         // o termo só aparece no primeiro acesso, e é nele que o onboarding começa.
         // Quem já aceitou antes não passa por aqui e vai direto ao destino.
-        // replace: a rota por trás do termo (em geral /respondentes) sai do
+        // replace: a rota por trás do termo (em geral /onboard-quest) sai do
         // histórico, e a seta de voltar da etapa 1 não cai numa tela que a
         // pessoa nunca viu.
         onAccept={() => {

@@ -3,12 +3,13 @@ import userEvent from '@testing-library/user-event';
 import {
   RevisaoRespostasView,
   type ReviewQuestion,
-} from '@/features/questionario/RevisaoRespostasView';
+} from '@/features/responses/RevisaoRespostasView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
 const MOCK_QUESTIONS: ReviewQuestion[] = [
   {
     id: 'mock-scale',
+    section: 1,
     text: 'Mock: avalie a colaboração',
     type: 'quantitativa',
     options: ['1', '2', '3', '4', '5'],
@@ -17,6 +18,7 @@ const MOCK_QUESTIONS: ReviewQuestion[] = [
   },
   {
     id: 'mock-essay',
+    section: 2,
     text: 'Mock: descreva uma situação',
     type: 'dissertativa',
     options: [],
@@ -83,11 +85,42 @@ describe('RevisaoRespostasView', () => {
     expect(
       screen.getByRole('button', { name: 'Enviar respostas' }),
     ).toBeDisabled();
-    expect(screen.getByRole('list')).toHaveClass('md:hidden');
+    // Uma lista de cards por seção, todas dentro do bloco que só aparece no
+    // mobile (lista → seção → bloco).
+    const listas = screen.getAllByRole('list');
+    expect(listas).toHaveLength(2);
+    for (const lista of listas) {
+      expect(lista.parentElement?.parentElement).toHaveClass('md:hidden');
+    }
     expect(screen.getByRole('table').parentElement?.parentElement).toHaveClass(
       'hidden',
       'md:block',
     );
+  });
+
+  it('separa as perguntas por seção na tabela e nos cards mobile', () => {
+    renderizar();
+
+    // Tabela: um cabeçalho de seção por grupo.
+    const tabela = screen.getByRole('table');
+    expect(
+      within(tabela).getByRole('columnheader', { name: 'Seção 1' }),
+    ).toBeInTheDocument();
+    expect(
+      within(tabela).getByRole('columnheader', { name: 'Seção 2' }),
+    ).toBeInTheDocument();
+
+    // Cards: cada seção é um título, e a numeração das perguntas continua
+    // corrida entre as seções.
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Seção 1' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Seção 2' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button', { name: 'Revisar pergunta 2' }),
+    ).toHaveLength(2);
   });
 
   it('salva a edição de escala e cancelar descarta a edição dissertativa', async () => {

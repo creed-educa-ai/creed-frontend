@@ -45,13 +45,17 @@ function AlertDialogOverlay({
 function AlertDialogContent({
   className,
   size = 'default',
+  onOverlayClick,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
   size?: 'default' | 'sm';
+  // O Radix ignora o clique fora do AlertDialog e não avisa ninguém: esta
+  // prop é o jeito de reagir a ele (ex.: destacar um botão).
+  onOverlayClick?: () => void;
 }) {
   return (
     <AlertDialogPortal>
-      <AlertDialogOverlay />
+      <AlertDialogOverlay onClick={onOverlayClick} />
       <AlertDialogPrimitive.Content
         data-slot="alert-dialog-content"
         data-size={size}

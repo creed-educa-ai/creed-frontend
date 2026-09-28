@@ -1,5 +1,4 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { RespondentesView } from '@/features/respondentes/RespondentesView';
 import {
   Demograficos1Etapa,
   Demograficos2Etapa,
@@ -12,9 +11,10 @@ import { BoasVindasView } from '@/features/boas-vindas/BoasVindasView';
 import { AguardeConfirmacaoView } from '@/features/aguarde-confirmacao/AguardeConfirmacaoView';
 import { LoginView } from '@/features/authentication/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
-import { OnboardQuestionarioView } from '@/features/onboarding-questionario/OnboardQuestionarioView';
-import { FormView } from '@/features/form/FormView';
-import { RevisaoRespostasRoute } from '@/features/questionario/RevisaoRespostasRoute';
+import { OnboardQuestionarioView } from '@/features/responses/OnboardQuestionarioView';
+import { FormView } from '@/features/responses/FormView';
+import { RevisaoRespostasRoute } from '@/features/responses/RevisaoRespostasRoute';
+import { SubmissionConfirmationView } from '@/features/responses/SubmissionConfirmationView';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
@@ -29,7 +29,7 @@ export const router = createBrowserRouter([
     element: loginHabilitado ? (
       <LoginView />
     ) : (
-      <Navigate to="/respondentes" replace />
+      <Navigate to="/onboard-quest" replace />
     ),
   },
   {
@@ -40,12 +40,15 @@ export const router = createBrowserRouter([
       { path: '/demograficos-1', element: <Demograficos1Etapa /> },
       { path: '/demograficos-2', element: <Demograficos2Etapa /> },
       { path: '/demograficos-3', element: <Demograficos3Etapa /> },
-      { path: '/respondentes', element: <RespondentesView /> },
       { path: '/onboard-quest', element: <OnboardQuestionarioView /> },
       { path: '/form', element: <FormView /> },
       {
         path: '/questionario/revisao',
         element: <RevisaoRespostasRoute />,
+      },
+      {
+        path: '/questionario/enviado',
+        element: <SubmissionConfirmationView />,
       },
     ],
   },

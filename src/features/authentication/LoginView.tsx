@@ -40,7 +40,7 @@ export function LoginView() {
       ).unwrap();
       const origem = (location.state as { from?: { pathname?: string } } | null)
         ?.from?.pathname;
-      navigate(origem ?? '/respondentes', { replace: true });
+      navigate(origem ?? '/onboard-quest', { replace: true });
     } catch {
       // O erro permanece no estado Redux para a mensagem traduzida da tela.
     }

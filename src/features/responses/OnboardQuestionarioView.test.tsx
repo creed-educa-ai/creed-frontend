@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { OnboardQuestionarioView } from './OnboardQuestionarioView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
@@ -30,15 +30,15 @@ describe('OnboardQuestionarioView', () => {
 
     expect(screen.getByText('Vamos começar?')).toBeInTheDocument();
     expect(
-      screen.getByText('você tem um questionário disponível'),
+      screen.getByText('Você tem um questionário disponível'),
     ).toBeInTheDocument();
     expect(screen.getByText(/Suas respostas ajudam/)).toBeInTheDocument();
   });
 
-  it('should render advance button', () => {
+  it('should render start button', () => {
     renderizar();
 
-    expect(screen.getByRole('button', { name: 'Avançar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Iniciar' })).toBeInTheDocument();
   });
 
   it('should render time and sections information', () => {
@@ -61,13 +61,31 @@ describe('OnboardQuestionarioView', () => {
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
   });
 
-  it('should open modal when advance button is clicked', async () => {
+  it('should open modal when start button is clicked', async () => {
     renderizar();
 
-    const advanceButton = screen.getByRole('button', { name: 'Avançar' });
-    await userEvent.click(advanceButton);
+    const startButton = screen.getByRole('button', { name: 'Iniciar' });
+    await userEvent.click(startButton);
 
     expect(screen.getByText('Atualizar Informações')).toBeInTheDocument();
+  });
+
+  it('should go to the questionnaire when "Iniciar questionário" is clicked', async () => {
+    render(
+      <MemoryRouter initialEntries={['/onboard-quest']}>
+        <Routes>
+          <Route path="/onboard-quest" element={<OnboardQuestionarioView />} />
+          <Route path="/form" element={<p>questionário</p>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Iniciar' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Iniciar questionário' }),
+    );
+
+    expect(await screen.findByText('questionário')).toBeInTheDocument();
   });
 
   it('should translate all texts when changing language', async () => {
@@ -76,7 +94,7 @@ describe('OnboardQuestionarioView', () => {
 
     expect(screen.getByText('FORM')).toBeInTheDocument();
     expect(screen.getByText('Shall we get started?')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start' })).toBeInTheDocument();
   });
 
   it('should render CREED.ai wordmark', () => {

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
 import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
-import { ModalInfo } from '@/features/onboarding-questionario/ModalInfo';
+import { ModalInfo } from '@/features/responses/ModalInfo';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,7 +14,7 @@ export function OnboardQuestionarioView() {
 
   return (
     <div className="bg-brand flex min-h-svh flex-col overflow-hidden">
-      <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-10 sm:flex-row sm:items-start sm:justify-between">
+      <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-bold text-primary-foreground">
             João Silva
@@ -57,10 +57,10 @@ export function OnboardQuestionarioView() {
           </button>
         </div>
       </header>
-      <div className="flex flex-1 flex-col overflow-hidden p-6 lg:p-12">
+      <div className="flex flex-1 flex-col overflow-hidden p-6 lg:p-8">
         <div className="mx-auto my-auto flex w-full max-w-xl flex-col items-center justify-center gap-6 py-6">
           <div className="w-full rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="bg-brand flex flex-col items-start justify-start gap-4 rounded-xl p-8 text-primary-foreground">
+            <div className="flex flex-col items-start justify-start gap-1 rounded-xl bg-primary p-8 text-primary-foreground">
               <h2 className="text-xl font-bold text-balance">
                 {t('onboardQuestionario:start')}
               </h2>
@@ -72,19 +72,18 @@ export function OnboardQuestionarioView() {
               <p className="text-sm leading-relaxed text-card-foreground">
                 {t('onboardQuestionario:mensagem')}
               </p>
-              <div className="flex gap-4 pt-4">
+            </div>
+            <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-2xl border border-border bg-background p-2 pl-4">
+              <div className="flex gap-4 text-sm text-foreground">
                 <p>{t('onboardQuestionario:tempo')}</p>
                 <p>{t('onboardQuestionario:secao')}</p>
               </div>
-            </div>
-            <div className="flex w-full items-center justify-end rounded-2xl border border-border bg-background p-2">
               <Button
-                className="bg-brand text-primary-foreground"
                 onClick={() => {
                   setInfoOpen(true);
                 }}
               >
-                {t('onboardQuestionario:avancar')}
+                {t('onboardQuestionario:iniciar')}
               </Button>
             </div>
           </div>
@@ -97,7 +96,7 @@ export function OnboardQuestionarioView() {
           navigate('/demograficos-1');
         }}
         onStart={() => {
-          /* TODO */
+          navigate('/form');
         }}
       />
     </div>

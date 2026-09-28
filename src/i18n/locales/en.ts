@@ -300,13 +300,19 @@ export const en: typeof ptBR = {
     ouSaibaMais: 'OR LEARN MORE',
     saibaMais: 'What is the CREED method?',
   },
+  respostasEnviadas: {
+    titulo: 'Thank you for responding',
+    mensagem: 'Your answers have been submitted.',
+    voltar: 'Back',
+  },
   formulario: {
     titulo: 'Form',
     secao: 'Section',
     pergunta: 'Question',
     de: 'of',
-    quantitativa:
-      'Evaluate each statement according to your real experience:\n 1 = Strongly disagree  and 5 = Strongly agree',
+    quantitativa: 'Evaluate each statement according to your real experience.',
+    escalaMinima: 'Strongly disagree',
+    escalaMaxima: 'Strongly agree',
     dissertativa:
       'Answer briefly and objectively, with a maximum of 200 words.',
     objetiva: 'Choose the alternative that best describes your experience.',
@@ -353,7 +359,7 @@ export const en: typeof ptBR = {
       "Your answers help us map your organization's landscape.\n It's quick and you can pause whenever you want, your progress will be saved",
     tempo: '~15 minutes',
     secao: '4 sections',
-    avancar: 'Next',
+    iniciar: 'Start',
     menuPainel: 'Dashboard',
     menuFormulario: 'Form',
     menuInformacoes: 'Information',
@@ -361,8 +367,8 @@ export const en: typeof ptBR = {
   },
   onboardQuestionarioInfo: {
     titulo: 'Update Information',
-    mensagem: 'Would you like to review some of your personal data?',
-    yes: 'Yes',
-    no: 'No',
+    mensagem: 'Would you like to review your personal data?',
+    revisarDados: 'Review data',
+    iniciarQuestionario: 'Start questionnaire',
   },
 };

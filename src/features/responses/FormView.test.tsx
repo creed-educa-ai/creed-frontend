@@ -51,6 +51,34 @@ describe('FormView', () => {
     expect(screen.getByText(/Pergunta 1 de 3/)).toBeInTheDocument();
   });
 
+  it('should render the 1 to 5 scale legend under the options', () => {
+    renderizar();
+
+    expect(screen.getByText('Discordo totalmente')).toBeInTheDocument();
+    expect(screen.getByText('Concordo totalmente')).toBeInTheDocument();
+  });
+
+  it('should start the progress at zero and move only when answering', async () => {
+    renderizar();
+
+    const barra = screen.getByRole('progressbar');
+    expect(barra).toHaveAttribute('aria-valuenow', '0');
+
+    // Avançar sem responder não conta como progresso.
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    expect(screen.getByRole('progressbar')).toHaveAttribute(
+      'aria-valuenow',
+      '0',
+    );
+
+    // Responder conta: 1 de 3 perguntas da seção.
+    await userEvent.click(screen.getByRole('radio', { name: '4' }));
+    const valor = Number(
+      screen.getByRole('progressbar').getAttribute('aria-valuenow'),
+    );
+    expect(valor).toBeCloseTo(100 / 3);
+  });
+
   it('should render progress bar', () => {
     renderizar();
 
@@ -103,6 +131,14 @@ describe('FormView', () => {
     // cartão (<p>) é o que diz em qual seção a pessoa está
     expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByText(/Pergunta 1 de 3/i)).toBeInTheDocument();
+    // A aba marcada como atual acompanha a troca de seção.
+    expect(screen.getByRole('button', { name: 'Seção 2' })).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
+    expect(screen.getByRole('button', { name: 'Seção 1' })).not.toHaveAttribute(
+      'aria-current',
+    );
   });
 
   it('should render quantitative question with scale 1-5', () => {

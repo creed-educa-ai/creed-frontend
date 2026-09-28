@@ -2,11 +2,11 @@ import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
 import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
 import { useState } from 'react';
-import { Questions } from '@/features/form/Question';
+import { Questions } from '@/features/responses/Question';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import type { ReviewQuestion } from '@/features/questionario/RevisaoRespostasView';
+import type { ReviewQuestion } from '@/features/responses/RevisaoRespostasView';
 
 export function FormView() {
   const [secao, setSecao] = useState(1);
@@ -14,7 +14,17 @@ export function FormView() {
   const [respostas, setRespostas] = useState<Record<string, string>>({});
   const totalSecoes = 2;
   const perguntasPerSecao = 3;
-  const progresso = (perguntaAtual / perguntasPerSecao) * 100;
+  // Progresso da seção = perguntas já respondidas ÷ total da seção.
+  // Contar pela posição (pergunta 1 de 3 = 33%) marcava como feita a
+  // pergunta que a pessoa ainda estava lendo.
+  let respondidasNaSecao = 0;
+  for (let pergunta = 1; pergunta <= perguntasPerSecao; pergunta++) {
+    const resposta = respostas[`${String(secao)}-${String(pergunta)}`] ?? '';
+    if (resposta.trim() !== '') {
+      respondidasNaSecao++;
+    }
+  }
+  const progresso = (respondidasNaSecao / perguntasPerSecao) * 100;
   const { t } = useTranslation(['formulario']);
   const navigate = useNavigate();
 
@@ -73,6 +83,7 @@ export function FormView() {
   const perguntasParaRevisao: ReviewQuestion[] = [
     ...perguntas[1].map((pergunta, index) => ({
       id: `1-${String(index + 1)}`,
+      section: 1,
       text: pergunta.titulo,
       type: pergunta.tipo,
       options: pergunta.respostas,
@@ -81,6 +92,7 @@ export function FormView() {
     })),
     ...perguntas[2].map((pergunta, index) => ({
       id: `2-${String(index + 1)}`,
+      section: 2,
       text: pergunta.titulo,
       type: pergunta.tipo,
       options: pergunta.respostas,
@@ -93,32 +105,6 @@ export function FormView() {
 
   const perguntaAtualData =
     perguntas[secao as keyof typeof perguntas][perguntaAtual - 1];
-
-  if (!perguntaAtualData) {
-    return (
-      <div className="flex min-h-svh items-center justify-center bg-background">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-heading">
-            {t('formulario:finalizado')}
-          </h1>
-          <p className="mt-4 text-muted-foreground">
-            {t('formulario:obrigado')}
-          </p>
-          <Button
-            type="button"
-            className="mt-6"
-            onClick={() => {
-              navigate('/questionario/revisao', {
-                state: { questions: perguntasParaRevisao },
-              });
-            }}
-          >
-            {t('formulario:revisarRespostas')}
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   const chaveResposta = `${String(secao)}-${String(perguntaAtual)}`;
   const valorAtual = respostas[chaveResposta] ?? '';
@@ -154,7 +140,7 @@ export function FormView() {
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
       {/* #region header */}
-      <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-10 sm:flex-row sm:items-start sm:justify-between">
+      <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-sm font-bold text-heading">João Silva</p>
           <h1 className="text-center text-3xl font-bold text-heading sm:text-left">
@@ -198,23 +184,49 @@ export function FormView() {
       </header>
       {/* #endregion */}
 
-      <div className="flex flex-1 flex-col overflow-hidden p-6 lg:p-12">
-        <Questions
-          key={chaveResposta}
-          secao={secao}
-          totalSecoes={totalSecoes}
-          perguntaAtual={perguntaAtual}
-          totalPerguntas={perguntasPerSecao}
-          progresso={progresso}
-          titulo={perguntaAtualData.titulo}
-          subtitulo={perguntaAtualData.subtitulo}
-          tipo={perguntaAtualData.tipo}
-          respostas={perguntaAtualData.respostas}
-          valor={valorAtual}
-          onMudar={handleRespostaChange}
-          onProximo={handleProximo}
-          onVoltar={handleVoltar}
-        />
+      <div className="flex flex-1 flex-col overflow-hidden p-6 lg:p-8">
+        {perguntaAtualData ? (
+          <Questions
+            secao={secao}
+            totalSecoes={totalSecoes}
+            perguntaAtual={perguntaAtual}
+            totalPerguntas={perguntasPerSecao}
+            progresso={progresso}
+            titulo={perguntaAtualData.titulo}
+            subtitulo={perguntaAtualData.subtitulo}
+            tipo={perguntaAtualData.tipo}
+            respostas={perguntaAtualData.respostas}
+            valor={valorAtual}
+            onMudar={handleRespostaChange}
+            onProximo={handleProximo}
+            onVoltar={handleVoltar}
+          />
+        ) : (
+          // Fim do questionário: mesmo card do onboarding — título e
+          // agradecimento no bloco roxo, a ação na faixa de baixo.
+          <div className="mx-auto my-auto flex w-full max-w-xl flex-col items-center justify-center">
+            <div className="flex w-full flex-col gap-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex flex-col items-start justify-start gap-1 rounded-xl bg-primary p-8 text-primary-foreground">
+                <h2 className="text-xl font-bold text-balance">
+                  {t('formulario:finalizado')}
+                </h2>
+                <p className="text-balance">{t('formulario:obrigado')}</p>
+              </div>
+              <div className="flex w-full items-center justify-end rounded-2xl border border-border bg-background p-2">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    navigate('/questionario/revisao', {
+                      state: { questions: perguntasParaRevisao },
+                    });
+                  }}
+                >
+                  {t('formulario:revisarRespostas')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

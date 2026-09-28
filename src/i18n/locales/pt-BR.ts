@@ -301,13 +301,19 @@ export const ptBR = {
     ouSaibaMais: 'OU SAIBA MAIS',
     saibaMais: 'O que é o método CREED?',
   },
+  respostasEnviadas: {
+    titulo: 'Obrigado por responder',
+    mensagem: 'Suas respostas foram enviadas.',
+    voltar: 'Voltar',
+  },
   formulario: {
     titulo: 'Formulário',
     secao: 'Seção',
     pergunta: 'Pergunta',
     de: 'de',
-    quantitativa:
-      'Avalie cada afirmação de acordo com a sua experiência real:\n 1 = Discordo totalmente e 5 = Concordo totalmente',
+    quantitativa: 'Avalie cada afirmação de acordo com a sua experiência real.',
+    escalaMinima: 'Discordo totalmente',
+    escalaMaxima: 'Concordo totalmente',
     dissertativa:
       'Responda de forma breve e objetiva, com no máximo 200 palavras.',
     objetiva: 'Escolha a alternativa que melhor descreve a sua experiência.',
@@ -349,12 +355,12 @@ export const ptBR = {
   onboardQuestionario: {
     titulo: 'FORMULÁRIO',
     start: 'Vamos começar?',
-    subtitulo: 'você tem um questionário disponível',
+    subtitulo: 'Você tem um questionário disponível',
     mensagem:
       'Suas respostas ajudam a mapear o panorama da sua organização.\n É rápido e você pode pausar quando quiser, seu progresso ficará salvo',
     tempo: '~15 minutos',
     secao: '4 seções',
-    avancar: 'Avançar',
+    iniciar: 'Iniciar',
     menuPainel: 'Painel',
     menuFormulario: 'Formulário',
     menuInformacoes: 'Informações',
@@ -362,8 +368,8 @@ export const ptBR = {
   },
   onboardQuestionarioInfo: {
     titulo: 'Atualizar Informações',
-    mensagem: 'Você gostaria de revisar alguns de seus dados pessoais?',
-    yes: 'Sim',
-    no: 'Não',
+    mensagem: 'Você gostaria de revisar seus dados pessoais?',
+    revisarDados: 'Revisar dados',
+    iniciarQuestionario: 'Iniciar questionário',
   },
 };

@@ -4,16 +4,12 @@ import { Demograficos2View } from '@/features/respondentes/Demograficos2View';
 import { Demograficos3View } from '@/features/respondentes/Demograficos3View';
 
 // Ligação das três telas de dados demográficos:
-// termo aceito → etapa 1 → etapa 2 → etapa 3 → área logada.
+// termo aceito → etapa 1 → etapa 2 → etapa 3 → onboarding do questionário.
 //
 // As telas não navegam sozinhas; recebem `onContinue`/`onSkip` como ponto de
 // conexão (ver DEMOGRAPHICS.md). Este arquivo só preenche esses pontos com a
 // próxima rota. Nada é enviado à API: os dados ficam no rascunho do Redux,
 // porque a tabela `respondentes` ainda não existe no backend.
-//
-// O fim do fluxo é provisório: hoje a etapa 3 entrega na área logada
-// (/respondentes). Quando o questionário entrar (CREED-21), o destino passa
-// a ser ele.
 
 export function Demograficos1Etapa() {
   const navigate = useNavigate();
@@ -37,7 +33,7 @@ export function Demograficos2Etapa() {
 export function Demograficos3Etapa() {
   const navigate = useNavigate();
   const concluir = () => {
-    navigate('/respondentes');
+    navigate('/onboard-quest');
   };
   return <Demograficos3View onContinue={concluir} onSkip={concluir} />;
 }

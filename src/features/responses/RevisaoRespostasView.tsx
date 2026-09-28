@@ -33,12 +33,14 @@ import {
 import {
   QuestionAnswerEditor,
   type QuestionType,
-} from '@/features/form/Question';
+} from '@/features/responses/Question';
 
 export type QuestionAnswer = string | null;
 
 export interface ReviewQuestion {
   id: string;
+  // Número da seção do questionário; a revisão agrupa as perguntas por ele.
+  section: number;
   text: string;
   type: QuestionType;
   options: string[];
@@ -73,6 +75,22 @@ export function RevisaoRespostasView({
   );
   const canSubmit =
     questions.length > 0 && unansweredRequired.length === 0 && !submitted;
+
+  // Agrupa as perguntas por seção, na ordem em que aparecem. Cada item guarda
+  // a posição original (`index`): é ela que liga a pergunta à sua resposta em
+  // `answers` e que numera o "Revisar pergunta N".
+  const secoes: {
+    numero: number;
+    itens: { question: ReviewQuestion; index: number }[];
+  }[] = [];
+  questions.forEach((question, index) => {
+    let secao = secoes.find(({ numero }) => numero === question.section);
+    if (!secao) {
+      secao = { numero: question.section, itens: [] };
+      secoes.push(secao);
+    }
+    secao.itens.push({ question, index });
+  });
 
   function answerLabel(question: ReviewQuestion, answer: QuestionAnswer) {
     if (answer === null || answer === '') {
@@ -168,46 +186,112 @@ export function RevisaoRespostasView({
                     <TableHead className="w-[30%]">
                       {t('questionarioRevisao:resposta')}
                     </TableHead>
-                    <TableHead className="w-[15%] text-right">
+                    <TableHead className="w-[15%]">
                       {t('questionarioRevisao:acoes')}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {questions.map((question, index) => {
-                    const missing =
-                      question.required &&
-                      (answers[index] === null || answers[index] === '');
-                    return (
-                      <TableRow key={question.id}>
-                        <TableCell className="px-5">
-                          <span
-                            className="block truncate"
-                            title={question.text}
-                          >
-                            {question.text}
-                          </span>
-                          {missing && (
-                            <span className="mt-1 block text-xs font-medium text-destructive">
-                              {t('questionarioRevisao:respostaObrigatoria')}
+                {secoes.map((secao) => (
+                  <TableBody key={secao.numero}>
+                    <TableRow className="bg-accent hover:bg-accent">
+                      <TableHead
+                        colSpan={3}
+                        scope="colgroup"
+                        className="h-auto px-5 py-1.5 text-sm text-accent-foreground"
+                      >
+                        {t('formulario:secao')} {secao.numero}
+                      </TableHead>
+                    </TableRow>
+                    {secao.itens.map(({ question, index }) => {
+                      const missing =
+                        question.required &&
+                        (answers[index] === null || answers[index] === '');
+                      return (
+                        <TableRow key={question.id}>
+                          <TableCell className="px-5">
+                            <span className="block break-words">
+                              {question.text}
                             </span>
-                          )}
-                        </TableCell>
-                        <TableCell
-                          className={
-                            missing
-                              ? 'text-destructive'
-                              : 'text-muted-foreground'
-                          }
+                            {missing && (
+                              <span className="mt-1 block text-xs font-medium text-destructive">
+                                {t('questionarioRevisao:respostaObrigatoria')}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell
+                            className={
+                              missing
+                                ? 'text-destructive'
+                                : 'text-muted-foreground'
+                            }
+                          >
+                            {answerLabel(question, answers[index] ?? null)}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="no-print h-7 rounded-full px-3 text-xs"
+                              aria-label={t(
+                                'questionarioRevisao:revisarPergunta',
+                                {
+                                  numero: index + 1,
+                                },
+                              )}
+                              onClick={() => {
+                                openQuestion(question, index);
+                              }}
+                            >
+                              {t('questionarioRevisao:revisar')}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                ))}
+              </Table>
+            </div>
+
+            <div className="grid gap-6 md:hidden">
+              {secoes.map((secao) => (
+                <section key={secao.numero} className="grid gap-3">
+                  <h2 className="rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-foreground">
+                    {t('formulario:secao')} {secao.numero}
+                  </h2>
+                  <ul className="grid gap-3">
+                    {secao.itens.map(({ question, index }) => {
+                      const missing =
+                        question.required &&
+                        (answers[index] === null || answers[index] === '');
+                      return (
+                        <li
+                          key={question.id}
+                          className={`min-w-0 rounded-lg border bg-card p-4 shadow-sm ${
+                            missing ? 'border-destructive/60' : 'border-border'
+                          }`}
                         >
-                          {answerLabel(question, answers[index] ?? null)}
-                        </TableCell>
-                        <TableCell className="text-right">
+                          <div className="flex min-w-0 items-start justify-between gap-3">
+                            <p className="min-w-0 flex-1 text-sm leading-5 font-medium text-foreground">
+                              {question.text}
+                            </p>
+                            {missing && (
+                              <span className="shrink-0 text-xs font-medium text-destructive">
+                                {t('questionarioRevisao:obrigatoria')}
+                              </span>
+                            )}
+                          </div>
+                          <p
+                            className={`mt-2 text-sm break-words ${missing ? 'text-destructive' : 'text-muted-foreground'}`}
+                          >
+                            {answerLabel(question, answers[index] ?? null)}
+                          </p>
                           <Button
                             type="button"
-                            variant="secondary"
+                            variant="outline"
                             size="sm"
-                            className="no-print h-7 rounded-full px-3 text-xs"
+                            className="no-print mt-3 h-8"
                             aria-label={t(
                               'questionarioRevisao:revisarPergunta',
                               {
@@ -220,59 +304,13 @@ export function RevisaoRespostasView({
                           >
                             {t('questionarioRevisao:revisar')}
                           </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              ))}
             </div>
-
-            <ul className="grid gap-3 md:hidden">
-              {questions.map((question, index) => {
-                const missing =
-                  question.required &&
-                  (answers[index] === null || answers[index] === '');
-                return (
-                  <li
-                    key={question.id}
-                    className={`min-w-0 rounded-lg border bg-card p-4 shadow-sm ${
-                      missing ? 'border-destructive/60' : 'border-border'
-                    }`}
-                  >
-                    <div className="flex min-w-0 items-start justify-between gap-3">
-                      <p className="min-w-0 flex-1 text-sm leading-5 font-medium text-foreground">
-                        {question.text}
-                      </p>
-                      {missing && (
-                        <span className="shrink-0 text-xs font-medium text-destructive">
-                          {t('questionarioRevisao:obrigatoria')}
-                        </span>
-                      )}
-                    </div>
-                    <p
-                      className={`mt-2 text-sm break-words ${missing ? 'text-destructive' : 'text-muted-foreground'}`}
-                    >
-                      {answerLabel(question, answers[index] ?? null)}
-                    </p>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      className="no-print mt-3 h-8"
-                      aria-label={t('questionarioRevisao:revisarPergunta', {
-                        numero: index + 1,
-                      })}
-                      onClick={() => {
-                        openQuestion(question, index);
-                      }}
-                    >
-                      {t('questionarioRevisao:revisar')}
-                    </Button>
-                  </li>
-                );
-              })}
-            </ul>
 
             <div className="mt-5 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
               <p aria-live="polite" className="text-sm text-muted-foreground">
