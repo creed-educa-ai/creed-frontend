@@ -2,7 +2,8 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Printer } from 'lucide-react';
 import CreedSymbol from '@/components/logos/logo';
-import wordmark from '@/components/logos/wordmark-dark.svg';
+import wordmarkEscura from '@/components/logos/wordmark-dark.svg';
+import wordmarkClara from '@/components/logos/wordmark-light.svg';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -34,6 +35,7 @@ import {
   QuestionAnswerEditor,
   type QuestionType,
 } from '@/features/responses/Question';
+import { cn } from '@/lib/utils';
 
 export type QuestionAnswer = string | null;
 
@@ -129,206 +131,248 @@ export function RevisaoRespostasView({
   return (
     <main className="min-h-svh overflow-x-hidden bg-background px-3 py-6 sm:px-6 sm:py-8">
       <div className="mx-auto max-w-5xl">
-        <header className="mb-7 flex items-center justify-center gap-3 print:mb-5">
-          <CreedSymbol aria-hidden="true" className="h-10 w-8 text-heading" />
-          <img src={wordmark} alt="CREED.ai" className="w-28" />
-        </header>
-
-        <div className="mb-4 flex items-center gap-3">
-          <h1 className="flex min-h-10 flex-1 items-center rounded-lg bg-primary px-4 py-2 text-base font-semibold text-primary-foreground sm:min-h-11 sm:text-lg">
-            {t('questionarioRevisao:titulo')}
-          </h1>
-          <Button
-            type="button"
-            variant="outline"
-            className="no-print h-10 shrink-0 gap-2 px-3 sm:h-11 sm:px-4"
-            aria-label={t('questionarioRevisao:gerarPdf')}
-            onClick={() => {
-              window.print();
-            }}
-          >
-            <Printer aria-hidden="true" />
-            <span className="hidden sm:inline">
-              {t('questionarioRevisao:gerarPdf')}
-            </span>
-            <span className="sm:hidden">PDF</span>
-          </Button>
-        </div>
-
-        <p className="mb-4 text-sm text-muted-foreground">
-          {t('questionarioRevisao:descricao')}
-        </p>
-
-        {questions.length === 0 ? (
-          <p className="rounded-lg border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
-            {t('questionarioRevisao:semPerguntas')}
-          </p>
-        ) : (
-          <>
-            {unansweredRequired.length > 0 && (
-              <p
-                className="mb-4 rounded-md border border-warning/50 bg-warning/10 px-3 py-2 text-sm text-foreground"
-                role="status"
-              >
-                {t('questionarioRevisao:obrigatoriasPendentes', {
-                  count: unansweredRequired.length,
-                })}
+        {/* Mesmo card do onboarding e das perguntas: bloco roxo com o título
+            em cima, conteúdo no meio e faixa de ações embaixo. */}
+        {/* Entra de baixo com fade, como o formulário do login (authLayout). */}
+        <div className="flex w-full animate-in flex-col gap-6 rounded-2xl border border-border bg-card p-5 shadow-sm duration-500 ease-out fade-in slide-in-from-bottom-8 motion-reduce:animate-none sm:p-8">
+          {/* Na impressão o navegador tira o fundo roxo: o texto volta a ser
+              roxo sobre branco para não sumir no PDF.
+              A marca fica aqui dentro, à direita, como num papel timbrado:
+              é a tela de entrega do questionário (e o cabeçalho do PDF). */}
+          <div className="flex items-center justify-between gap-4 rounded-xl bg-primary p-8 text-primary-foreground print:bg-transparent print:p-0 print:text-heading">
+            <div className="flex flex-col gap-1">
+              <h1 className="text-xl font-bold text-balance">
+                {t('questionarioRevisao:titulo')}
+              </h1>
+              <p className="text-balance">
+                {t('questionarioRevisao:descricao')}
               </p>
+            </div>
+            {/* O símbolo usa a cor do texto: branco aqui, roxo no PDF. O nome
+                é imagem, então troca de arquivo: clara na tela, escura na
+                impressão. No celular, só o símbolo, para caber com o título. */}
+            {/* Versão empilhada: símbolo em cima, nome embaixo. Mesma
+                proporção das telas "Sobre" e "Obrigado" (símbolo com cerca
+                de 3x a altura do nome). */}
+            <div className="flex shrink-0 flex-col items-center gap-1.5">
+              <CreedSymbol aria-hidden="true" className="size-14" />
+              <span className="hidden sm:block print:hidden">
+                <img src={wordmarkClara} alt="CREED.ai" className="h-5" />
+              </span>
+              <span className="hidden print:block">
+                <img src={wordmarkEscura} alt="CREED.ai" className="h-5" />
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            {questions.length === 0 ? (
+              <p className="rounded-lg border border-border px-4 py-8 text-center text-sm text-muted-foreground">
+                {t('questionarioRevisao:semPerguntas')}
+              </p>
+            ) : (
+              <>
+                {unansweredRequired.length > 0 && (
+                  <p
+                    className="rounded-md border border-warning/50 bg-warning/10 px-3 py-2 text-sm text-foreground"
+                    role="status"
+                  >
+                    {t('questionarioRevisao:obrigatoriasPendentes', {
+                      count: unansweredRequired.length,
+                    })}
+                  </p>
+                )}
+
+                <div className="hidden overflow-hidden rounded-xl border border-border md:block">
+                  <Table className="table-fixed">
+                    {/* Cabeçalho sem fundo, só texto e a linha de baixo: o fundo
+                    colorido fica para as faixas de seção. */}
+                    <TableHeader className="bg-card text-base text-heading">
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="w-[55%] px-5 text-heading">
+                          {t('questionarioRevisao:pergunta')}
+                        </TableHead>
+                        <TableHead className="w-[30%] text-heading">
+                          {t('questionarioRevisao:resposta')}
+                        </TableHead>
+                        <TableHead className="w-[15%] text-heading">
+                          {t('questionarioRevisao:acoes')}
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    {secoes.map((secao) => (
+                      <TableBody key={secao.numero}>
+                        <TableRow className="bg-accent hover:bg-accent">
+                          <TableHead
+                            colSpan={3}
+                            scope="colgroup"
+                            className="h-auto px-5 py-1.5 text-sm text-accent-foreground"
+                          >
+                            {t('formulario:secao')} {secao.numero}
+                          </TableHead>
+                        </TableRow>
+                        {secao.itens.map(({ question, index }) => {
+                          const missing =
+                            question.required &&
+                            (answers[index] === null || answers[index] === '');
+                          return (
+                            // Sem hover: a linha não é clicável, só o "Revisar".
+                            <TableRow
+                              key={question.id}
+                              className="hover:bg-transparent"
+                            >
+                              <TableCell className="px-5">
+                                <span className="block break-words">
+                                  {question.text}
+                                </span>
+                                {missing && (
+                                  <span className="mt-1 block text-xs font-medium text-destructive">
+                                    {t(
+                                      'questionarioRevisao:respostaObrigatoria',
+                                    )}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell
+                                className={
+                                  missing
+                                    ? 'text-destructive'
+                                    : 'text-muted-foreground'
+                                }
+                              >
+                                {answerLabel(question, answers[index] ?? null)}
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="no-print h-7 rounded-full px-3 text-xs"
+                                  aria-label={t(
+                                    'questionarioRevisao:revisarPergunta',
+                                    {
+                                      numero: index + 1,
+                                    },
+                                  )}
+                                  onClick={() => {
+                                    openQuestion(question, index);
+                                  }}
+                                >
+                                  {t('questionarioRevisao:revisar')}
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    ))}
+                  </Table>
+                </div>
+
+                <div className="grid gap-6 md:hidden">
+                  {secoes.map((secao) => (
+                    <section key={secao.numero} className="grid gap-3">
+                      <h2 className="rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-foreground">
+                        {t('formulario:secao')} {secao.numero}
+                      </h2>
+                      <ul className="grid gap-3">
+                        {secao.itens.map(({ question, index }) => {
+                          const missing =
+                            question.required &&
+                            (answers[index] === null || answers[index] === '');
+                          return (
+                            <li
+                              key={question.id}
+                              className={cn(
+                                'min-w-0 rounded-lg border bg-card p-4',
+                                missing
+                                  ? 'border-destructive'
+                                  : 'border-border',
+                              )}
+                            >
+                              <div className="flex min-w-0 items-start justify-between gap-3">
+                                <p className="min-w-0 flex-1 text-sm leading-5 font-medium text-foreground">
+                                  {question.text}
+                                </p>
+                                {missing && (
+                                  <span className="shrink-0 text-xs font-medium text-destructive">
+                                    {t('questionarioRevisao:obrigatoria')}
+                                  </span>
+                                )}
+                              </div>
+                              <p
+                                className={cn(
+                                  'mt-2 text-sm break-words',
+                                  missing
+                                    ? 'text-destructive'
+                                    : 'text-muted-foreground',
+                                )}
+                              >
+                                {answerLabel(question, answers[index] ?? null)}
+                              </p>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="no-print mt-3 h-8"
+                                aria-label={t(
+                                  'questionarioRevisao:revisarPergunta',
+                                  {
+                                    numero: index + 1,
+                                  },
+                                )}
+                                onClick={() => {
+                                  openQuestion(question, index);
+                                }}
+                              >
+                                {t('questionarioRevisao:revisar')}
+                              </Button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
+              </>
             )}
 
-            <div className="hidden overflow-hidden rounded-lg border bg-card shadow-sm md:block">
-              <Table className="table-fixed">
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="w-[55%] px-5">
-                      {t('questionarioRevisao:pergunta')}
-                    </TableHead>
-                    <TableHead className="w-[30%]">
-                      {t('questionarioRevisao:resposta')}
-                    </TableHead>
-                    <TableHead className="w-[15%]">
-                      {t('questionarioRevisao:acoes')}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                {secoes.map((secao) => (
-                  <TableBody key={secao.numero}>
-                    <TableRow className="bg-accent hover:bg-accent">
-                      <TableHead
-                        colSpan={3}
-                        scope="colgroup"
-                        className="h-auto px-5 py-1.5 text-sm text-accent-foreground"
-                      >
-                        {t('formulario:secao')} {secao.numero}
-                      </TableHead>
-                    </TableRow>
-                    {secao.itens.map(({ question, index }) => {
-                      const missing =
-                        question.required &&
-                        (answers[index] === null || answers[index] === '');
-                      return (
-                        <TableRow key={question.id}>
-                          <TableCell className="px-5">
-                            <span className="block break-words">
-                              {question.text}
-                            </span>
-                            {missing && (
-                              <span className="mt-1 block text-xs font-medium text-destructive">
-                                {t('questionarioRevisao:respostaObrigatoria')}
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell
-                            className={
-                              missing
-                                ? 'text-destructive'
-                                : 'text-muted-foreground'
-                            }
-                          >
-                            {answerLabel(question, answers[index] ?? null)}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="no-print h-7 rounded-full px-3 text-xs"
-                              aria-label={t(
-                                'questionarioRevisao:revisarPergunta',
-                                {
-                                  numero: index + 1,
-                                },
-                              )}
-                              onClick={() => {
-                                openQuestion(question, index);
-                              }}
-                            >
-                              {t('questionarioRevisao:revisar')}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                ))}
-              </Table>
-            </div>
-
-            <div className="grid gap-6 md:hidden">
-              {secoes.map((secao) => (
-                <section key={secao.numero} className="grid gap-3">
-                  <h2 className="rounded-md bg-accent px-3 py-1.5 text-sm font-semibold text-accent-foreground">
-                    {t('formulario:secao')} {secao.numero}
-                  </h2>
-                  <ul className="grid gap-3">
-                    {secao.itens.map(({ question, index }) => {
-                      const missing =
-                        question.required &&
-                        (answers[index] === null || answers[index] === '');
-                      return (
-                        <li
-                          key={question.id}
-                          className={`min-w-0 rounded-lg border bg-card p-4 shadow-sm ${
-                            missing ? 'border-destructive/60' : 'border-border'
-                          }`}
-                        >
-                          <div className="flex min-w-0 items-start justify-between gap-3">
-                            <p className="min-w-0 flex-1 text-sm leading-5 font-medium text-foreground">
-                              {question.text}
-                            </p>
-                            {missing && (
-                              <span className="shrink-0 text-xs font-medium text-destructive">
-                                {t('questionarioRevisao:obrigatoria')}
-                              </span>
-                            )}
-                          </div>
-                          <p
-                            className={`mt-2 text-sm break-words ${missing ? 'text-destructive' : 'text-muted-foreground'}`}
-                          >
-                            {answerLabel(question, answers[index] ?? null)}
-                          </p>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="no-print mt-3 h-8"
-                            aria-label={t(
-                              'questionarioRevisao:revisarPergunta',
-                              {
-                                numero: index + 1,
-                              },
-                            )}
-                            onClick={() => {
-                              openQuestion(question, index);
-                            }}
-                          >
-                            {t('questionarioRevisao:revisar')}
-                          </Button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </section>
-              ))}
-            </div>
-
-            <div className="mt-5 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
+            {/* Faixa de ações, como a do questionário: PDF no lugar do
+              "Voltar" e envio no lugar do "Avançar". */}
+            <div className="no-print flex w-full flex-wrap items-center justify-between gap-2 rounded-2xl border border-border bg-background p-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                aria-label={t('questionarioRevisao:gerarPdf')}
+                onClick={() => {
+                  window.print();
+                }}
+              >
+                <Printer aria-hidden="true" />
+                <span className="hidden sm:inline">
+                  {t('questionarioRevisao:gerarPdf')}
+                </span>
+                <span className="sm:hidden">PDF</span>
+              </Button>
               <p aria-live="polite" className="text-sm text-muted-foreground">
                 {submitted ? t('questionarioRevisao:enviado') : ''}
               </p>
-              <Button
-                type="button"
-                className="no-print sm:min-w-40"
-                disabled={!canSubmit}
-                onClick={() => {
-                  setConfirmOpen(true);
-                }}
-              >
-                {t('questionarioRevisao:enviar')}
-              </Button>
+              {questions.length > 0 && (
+                <Button
+                  type="button"
+                  className="font-bold"
+                  disabled={!canSubmit}
+                  onClick={() => {
+                    setConfirmOpen(true);
+                  }}
+                >
+                  {t('questionarioRevisao:enviar')}
+                </Button>
+              )}
             </div>
-          </>
-        )}
+          </div>
+        </div>
       </div>
 
       <Dialog

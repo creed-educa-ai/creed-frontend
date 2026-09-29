@@ -38,6 +38,24 @@ describe('FormView', () => {
     );
   }
 
+  // Responde a pergunta que está na tela (qualquer tipo) e clica em Avançar.
+  async function responderEAvancar(quantidade = 1) {
+    for (let i = 0; i < quantidade; i++) {
+      const escala = screen.queryByRole('radio', { name: '3' });
+      const campo = screen.queryByRole('textbox');
+      if (escala) {
+        await userEvent.click(escala);
+      } else if (campo) {
+        await userEvent.type(campo, 'Minha resposta');
+      } else {
+        const [primeiraAlternativa] = screen.getAllByRole('radio');
+        if (!primeiraAlternativa) throw new Error('alternativa não encontrada');
+        await userEvent.click(primeiraAlternativa);
+      }
+      await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    }
+  }
+
   it('should render header with title and user name', () => {
     renderizar();
 
@@ -58,25 +76,100 @@ describe('FormView', () => {
     expect(screen.getByText('Concordo totalmente')).toBeInTheDocument();
   });
 
-  it('should start the progress at zero and move only when answering', async () => {
+  it('should move the progress only when advancing an answered question', async () => {
     renderizar();
 
-    const barra = screen.getByRole('progressbar');
-    expect(barra).toHaveAttribute('aria-valuenow', '0');
+    function valorDaBarra() {
+      return Number(
+        screen.getByRole('progressbar').getAttribute('aria-valuenow'),
+      );
+    }
 
-    // Avançar sem responder não conta como progresso.
-    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
-    expect(screen.getByRole('progressbar')).toHaveAttribute(
-      'aria-valuenow',
-      '0',
-    );
+    expect(valorDaBarra()).toBe(0);
 
-    // Responder conta: 1 de 3 perguntas da seção.
+    // Marcar uma opção ainda não conta.
     await userEvent.click(screen.getByRole('radio', { name: '4' }));
-    const valor = Number(
-      screen.getByRole('progressbar').getAttribute('aria-valuenow'),
-    );
-    expect(valor).toBeCloseTo(100 / 3);
+    expect(valorDaBarra()).toBe(0);
+
+    // Avançar com a resposta marcada conta: 1 de 3 da seção.
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    expect(valorDaBarra()).toBeCloseTo(100 / 3);
+
+    // Avançar sem responder não conta.
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    expect(valorDaBarra()).toBeCloseTo(100 / 3);
+
+    // Voltar à pergunta pulada e responder também só conta ao avançar.
+    await userEvent.click(screen.getByRole('button', { name: /Voltar/i }));
+    await userEvent.click(screen.getByRole('radio', { name: '2' }));
+    expect(valorDaBarra()).toBeCloseTo(100 / 3);
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    expect(valorDaBarra()).toBeCloseTo(200 / 3);
+  });
+
+  it('should slide the question in from the side of the button clicked', async () => {
+    renderizar();
+
+    function blocoDaPergunta() {
+      return screen
+        .getByRole('heading', { level: 2 })
+        .closest('[data-direcao]');
+    }
+
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    expect(blocoDaPergunta()).toHaveAttribute('data-direcao', 'avancar');
+    expect(blocoDaPergunta()).toHaveClass('slide-in-from-right-4');
+
+    await userEvent.click(screen.getByRole('button', { name: /Voltar/i }));
+    expect(blocoDaPergunta()).toHaveAttribute('data-direcao', 'voltar');
+    expect(blocoDaPergunta()).toHaveClass('slide-in-from-left-4');
+  });
+
+  it('should keep the 1 to 5 buttons in place between scale questions', async () => {
+    renderizar();
+
+    // Perguntas 1 e 2 são de escala: o botão "1" tem que ser o mesmo
+    // elemento (não recriado, então não anima), só sem a seleção.
+    const botaoAntes = screen.getByRole('radio', { name: '1' });
+    await userEvent.click(botaoAntes);
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+
+    const botaoDepois = screen.getByRole('radio', { name: '1' });
+    expect(botaoDepois).toBe(botaoAntes);
+    expect(botaoDepois).not.toBeChecked();
+  });
+
+  it('should go to the first question of a section by clicking its tab', async () => {
+    renderizar();
+
+    // Seção 2 ainda não foi vista: a aba fica bloqueada.
+    expect(screen.getByRole('button', { name: 'Seção 2' })).toBeDisabled();
+
+    await responderEAvancar(4);
+    expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 2 de 3/)).toBeInTheDocument();
+
+    // Volta pela aba: cai na primeira pergunta da seção 1.
+    await userEvent.click(screen.getByRole('button', { name: 'Seção 1' }));
+    expect(screen.getByText('Seção 1', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 1 de 3/)).toBeInTheDocument();
+
+    // A seção 2 continua liberada: dá para ir e vir.
+    const abaSecao2 = screen.getByRole('button', { name: 'Seção 2' });
+    expect(abaSecao2).toBeEnabled();
+    await userEvent.click(abaSecao2);
+    expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 1 de 3/)).toBeInTheDocument();
+  });
+
+  it('should go back to a section from the completion screen', async () => {
+    renderizar();
+
+    await responderEAvancar(6);
+    await userEvent.click(screen.getByRole('button', { name: 'Seção 1' }));
+
+    expect(screen.getByText('Seção 1', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 1 de 3/)).toBeInTheDocument();
   });
 
   it('should render progress bar', () => {
@@ -121,11 +214,7 @@ describe('FormView', () => {
   it('should change section when finishing all questions in section 1', async () => {
     renderizar();
 
-    // Avança 3 vezes, buscando o botão a cada clique
-    for (let i = 0; i < 3; i++) {
-      const avancarButton = screen.getByRole('button', { name: /Avançar/i });
-      await userEvent.click(avancarButton);
-    }
+    await responderEAvancar(3);
 
     // O seletor de seções mostra "Seção 2" desde o início; o título do
     // cartão (<p>) é o que diz em qual seção a pessoa está
@@ -179,31 +268,104 @@ describe('FormView', () => {
   it('should show completion message when all questions are answered', async () => {
     renderizar();
 
-    // Avança 6 vezes (3 perguntas x 2 seções), buscando o botão a cada clique
-    for (let i = 0; i < 6; i++) {
-      const avancarButton = screen.getByRole('button', { name: /Avançar/i });
-      await userEvent.click(avancarButton);
-    }
+    await responderEAvancar(6);
 
-    expect(screen.getByText(/Formulário finalizado/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Obrigado pela sua participação/i),
+      screen.getByRole('heading', { name: 'Todas as perguntas respondidas' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Revisar respostas' }),
+      screen.getByText('Revise suas respostas antes de enviar.'),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Revisar e enviar' }),
+    ).toBeInTheDocument();
+    // Tudo concluído: barra cheia e nenhuma aba marcada como a atual.
+    expect(screen.getByRole('progressbar')).toHaveAttribute(
+      'aria-valuenow',
+      '100',
+    );
+    expect(screen.getByText('6 de 6 respondidas')).toBeInTheDocument();
+    for (const aba of screen.getAllByRole('button', { name: /^Seção/ })) {
+      expect(aba).not.toHaveAttribute('aria-current');
+    }
+  });
+
+  it('should not leave the section with unanswered questions', async () => {
+    renderizar();
+
+    // Responde a 1, pula a 2, responde a 3 e tenta sair da seção.
+    await responderEAvancar();
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    await responderEAvancar();
+
+    // Continua na seção 1, na pergunta que faltou, com o aviso.
+    expect(screen.getByText('Seção 1', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 2 de 3/)).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Responda todas as perguntas da seção para avançar.',
+    );
+
+    // Respondeu a que faltava: o aviso some.
+    await userEvent.click(screen.getByRole('radio', { name: '3' }));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    // Agora dá para sair.
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
+  });
+
+  it('should only mark a tab as done when its section is complete', async () => {
+    renderizar();
+
+    await responderEAvancar(3);
+    // Seção 1 completa: a aba ganha o check (um svg dentro do botão).
+    const abaSecao1 = screen.getByRole('button', { name: 'Seção 1' });
+    expect(abaSecao1.querySelector('svg')).not.toBeNull();
+    // Seção 2 é a atual e está incompleta: sem check.
+    const abaSecao2 = screen.getByRole('button', { name: 'Seção 2' });
+    expect(abaSecao2.querySelector('svg')).toBeNull();
+
+    // Voltar para a seção 1 pela aba não tira o check dela.
+    await userEvent.click(abaSecao1);
+    expect(
+      screen.getByRole('button', { name: 'Seção 1' }).querySelector('svg'),
+    ).not.toBeNull();
+  });
+
+  it('should not mark the section as done before advancing the last question', async () => {
+    renderizar();
+
+    await responderEAvancar(2);
+    // Na última pergunta: responde, mas ainda não avança.
+    await userEvent.click(screen.getByRole('radio', { name: '3' }));
+    expect(
+      screen.getByRole('button', { name: 'Seção 1' }).querySelector('svg'),
+    ).toBeNull();
+
+    // Avançou: agora sim a seção está concluída.
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    expect(
+      screen.getByRole('button', { name: 'Seção 1' }).querySelector('svg'),
+    ).not.toBeNull();
+  });
+
+  it('should show the section percentage next to the section name', async () => {
+    renderizar();
+
+    expect(screen.getByText('0%')).toBeInTheDocument();
+    await responderEAvancar();
+    expect(screen.getByText('33%')).toBeInTheDocument();
   });
 
   it('should pass collected answers to the review route', async () => {
     renderizar();
     await userEvent.click(screen.getByRole('radio', { name: '4' }));
-
-    for (let i = 0; i < 6; i++) {
-      await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
-    }
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+    await responderEAvancar(5);
 
     await userEvent.click(
-      screen.getByRole('button', { name: 'Revisar respostas' }),
+      screen.getByRole('button', { name: 'Revisar e enviar' }),
     );
 
     expect(
