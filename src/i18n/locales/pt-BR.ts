@@ -318,31 +318,11 @@ export const ptBR = {
       'Responda de forma breve e objetiva, com no máximo 200 palavras.',
     objetiva: 'Escolha a alternativa que melhor descreve a sua experiência.',
     textbox: 'Digite sua resposta aqui...',
-    pergunta1:
-      'Tenho ou já tive experiência como fundador(a) ou sócio(a) de um negócio.',
-    pergunta2:
-      'Atuo ou já atuei como intraempreendedor(a), propondo e liderando iniciativas inovadoras dentro de organizações.',
-    pergunta3:
-      'Participo ou já participei ativamente do desenvolvimento de novos produtos, serviços ou modelos de negócio.',
-    pergunta4:
-      'Valorizo e promovo a diversidade cultural nas práticas do meu contexto institucional.',
-    pergunta5:
-      'Qual das seguintes opções melhor descreve sua atuação em relação ao multiculturalismo na educação?',
-    pergunta5o1:
-      'Reconheço a importância da diversidade cultural, mas ainda estou desenvolvendo práticas inclusivas',
-    pergunta5o2:
-      'Integro perspectivas culturais diversas regularmente em minhas atividades educacionais',
-    pergunta5o3:
-      'Promovo ativamente diálogos interculturais e valorizo diferentes visões de mundo em meu contexto',
-    pergunta5o4:
-      'Lidero iniciativas que transformam a instituição para ser verdadeiramente multicultural e inclusiva',
-    pergunta5o5:
-      'Trabalho para eliminar barreiras culturais e promover equidade entre diferentes grupos na educação',
-    pergunta6:
-      'Descreva uma experiência em que você promoveu a diversidade cultural ou inclusão em um contexto educacional, explicando como isso impactou os envolvidos e que aprendizados você obteve.',
     avancar: 'Avançar',
     voltar: 'Voltar',
-    responderTudoAviso: 'Responda todas as perguntas da seção para avançar.',
+    responderTudoAviso:
+      'Responda as perguntas obrigatórias da seção para avançar.',
+    semPerguntas: 'Este questionário ainda não tem perguntas.',
     concluido: 'Concluído',
     perguntasRespondidas: '{{respondidas}} de {{total}} respondidas',
     concluidoTitulo: 'Todas as perguntas respondidas',
@@ -364,6 +344,9 @@ export const ptBR = {
     titulo: 'FORMULÁRIO',
     start: 'Vamos começar?',
     subtitulo: 'Você tem um questionário disponível',
+    // TODO: "seu progresso ficará salvo" não é verdade hoje. As respostas só
+    // vão para o back no envio, e recarregar a página perde o que foi digitado
+    // (🟡 Premissa P-034, CREED-48). Trocar o texto ou salvar o progresso.
     mensagem:
       'Suas respostas ajudam a mapear o panorama da sua organização.\n É rápido e você pode pausar quando quiser, seu progresso ficará salvo',
     tempo: '~15 minutos',
