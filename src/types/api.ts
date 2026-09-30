@@ -44,7 +44,7 @@ export interface UserSessionResponse {
   id: string;
   email: string;
   role: string | null;
-  vinculo_id: string | null;
+  link_id: string | null;
   organization_id: string | null;
   organization_name: string | null;
 }

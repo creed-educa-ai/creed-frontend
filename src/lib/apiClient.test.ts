@@ -7,7 +7,7 @@ const fakeUser = {
   id: 'usr_1',
   email: 'ana@creed.ai',
   role: 'admin',
-  vinculo_id: null,
+  link_id: null,
   organization_id: null,
   organization_name: null,
 };
