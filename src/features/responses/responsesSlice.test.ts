@@ -5,6 +5,7 @@ import reducer, {
   clearSubmissionError,
   DEMO_FORM_ID,
   loadQuestionnaire,
+  paraAnswerCreate,
   selectQuestionnaireSections,
   submitResponses,
 } from '@/features/responses/responsesSlice';
@@ -68,6 +69,37 @@ function criarStore() {
   return configureStore({ reducer: { responses: reducer } });
 }
 
+// Store com as perguntas já no estado, como se o carregamento tivesse
+// terminado, mas sem passar pelo thunk (que soma as de demonstração).
+function criarStoreCom(questions: QuestionResponse[]) {
+  const store = criarStore();
+  store.dispatch(
+    loadQuestionnaire.fulfilled({ form, questions }, 'teste', DEMO_FORM_ID),
+  );
+  return store;
+}
+
+// Objetiva com alternativas de rótulo "Rótulo <valor>".
+function objetiva(
+  id: string,
+  order_index: number,
+  valores: string[],
+): QuestionResponse {
+  return question({
+    id,
+    order_index,
+    type: 'objective',
+    options: valores.map((value, index) => ({
+      id: `${id}-opcao-${value}`,
+      question_id: id,
+      label: `Rótulo ${value}`,
+      value,
+      order_index: index,
+      created_at: '2026-09-30T18:38:18Z',
+    })),
+  });
+}
+
 // O seletor espera o RootState da aplicação; aqui só o pedaço que ele lê.
 function secoes(store: ReturnType<typeof criarStore>) {
   return selectQuestionnaireSections(
@@ -119,7 +151,12 @@ describe('responsesSlice', () => {
     const state = store.getState().responses;
     expect(state.status).toBe('ready');
     expect(state.form).toEqual(form);
-    expect(state.questions).toHaveLength(1);
+    // As do back e, depois delas, as duas de demonstração (até a CREED-37).
+    expect(state.questions.map(({ id }) => id)).toEqual([
+      'q1',
+      'demo-escala',
+      'demo-objetiva',
+    ]);
   });
 
   it('formulário sem pergunta fica ready, com lista vazia', async () => {
@@ -164,16 +201,14 @@ describe('responsesSlice', () => {
   });
 
   describe('selectQuestionnaireSections', () => {
-    async function storeCom(questions: QuestionResponse[]) {
-      vi.spyOn(responsesApi, 'getForm').mockResolvedValue(form);
-      vi.spyOn(responsesApi, 'listQuestions').mockResolvedValue(questions);
-      const store = criarStore();
-      await store.dispatch(loadQuestionnaire(DEMO_FORM_ID));
-      return store;
+    // Põe as perguntas direto no estado, sem as de demonstração: aqui o que
+    // se testa é só a regra do seletor.
+    function storeCom(questions: QuestionResponse[]) {
+      return criarStoreCom(questions);
     }
 
-    it('ordena as seções por profile, assessment e closing, numeradas de 1', async () => {
-      const store = await storeCom([
+    it('ordena as seções por profile, assessment e closing, numeradas de 1', () => {
+      const store = storeCom([
         question({ id: 'c', section: 'closing', order_index: 2 }),
         question({ id: 'p', section: 'profile', order_index: 0 }),
         question({ id: 'a', section: 'assessment', order_index: 1 }),
@@ -188,8 +223,8 @@ describe('responsesSlice', () => {
       ]);
     });
 
-    it('pula seção sem pergunta, sem deixar buraco na numeração', async () => {
-      const store = await storeCom([
+    it('pula seção sem pergunta, sem deixar buraco na numeração', () => {
+      const store = storeCom([
         question({ id: 'p', section: 'profile' }),
         question({ id: 'c', section: 'closing', order_index: 1 }),
       ]);
@@ -202,20 +237,20 @@ describe('responsesSlice', () => {
       ]);
     });
 
-    it('ordena as perguntas da seção por order_index', async () => {
-      const store = await storeCom([
+    it('ordena as perguntas da seção por order_index', () => {
+      const store = storeCom([
         question({ id: 'segunda', order_index: 5 }),
         question({ id: 'primeira', order_index: 1 }),
       ]);
 
-      expect(secoes(store)[0]?.questions.map(({ id }) => id)).toEqual([
+      expect(secoes(store)[0]?.perguntas.map(({ id }) => id)).toEqual([
         'primeira',
         'segunda',
       ]);
     });
 
-    it('esconde as perguntas objetivas', async () => {
-      const store = await storeCom([
+    it('esconde a objetiva sem alternativas (P-037)', () => {
+      const store = storeCom([
         question({ id: 'descritiva', order_index: 0 }),
         question({ id: 'objetiva', order_index: 1, type: 'objective' }),
         question({
@@ -223,31 +258,81 @@ describe('responsesSlice', () => {
           section: 'closing',
           order_index: 2,
           type: 'objective',
+          options: [],
         }),
       ]);
 
       const resultado = secoes(store);
       expect(resultado).toHaveLength(1);
-      expect(resultado[0]?.questions.map(({ id }) => id)).toEqual([
+      expect(resultado[0]?.perguntas.map(({ id }) => id)).toEqual([
         'descritiva',
       ]);
     });
 
-    it('devolve a mesma lista enquanto as perguntas não mudam', async () => {
-      const store = await storeCom([question({ id: 'q1' })]);
+    it('converte cada tipo do back para o tipo da tela', () => {
+      const store = storeCom([
+        question({ id: 'texto', order_index: 0 }),
+        objetiva('escala', 1, ['1', '2', '3', '4', '5']),
+        objetiva('lista', 2, ['a', 'b', 'c']),
+        // Cinco alternativas, mas não são 1 a 5: é lista (P-040).
+        objetiva('quase', 3, ['0', '1', '2', '3', '4']),
+      ]);
+
+      expect(
+        secoes(store)[0]?.perguntas.map(({ id, tipo }) => [id, tipo]),
+      ).toEqual([
+        ['texto', 'dissertativa'],
+        ['escala', 'quantitativa'],
+        ['lista', 'objetiva'],
+        ['quase', 'objetiva'],
+      ]);
+    });
+
+    it('entrega texto, obrigatoriedade e os rótulos das alternativas em ordem', () => {
+      // Alternativas fora de ordem no back: a tela recebe pela order_index.
+      const embaralhada = objetiva('lista', 0, ['a', 'b', 'c']);
+      embaralhada.options = [...(embaralhada.options ?? [])].reverse();
+      const store = storeCom([{ ...embaralhada, required: false }]);
+
+      expect(secoes(store)[0]?.perguntas[0]).toEqual({
+        id: 'lista',
+        texto: 'Pergunta lista',
+        tipo: 'objetiva',
+        opcoes: ['Rótulo a', 'Rótulo b', 'Rótulo c'],
+        obrigatoria: false,
+      });
+    });
+
+    it('devolve a mesma lista enquanto as perguntas não mudam', () => {
+      const store = storeCom([question({ id: 'q1' })]);
 
       expect(secoes(store)).toBe(secoes(store));
     });
   });
 
   describe('submitResponses', () => {
-    const respostas = [
-      { question_id: 'q1', value: 'Primeira' },
-      { question_id: 'q2', value: 'Segunda' },
-      // Opcional em branco e sem resposta: não vão para o back (P-038).
-      { question_id: 'q3', value: '   ' },
-      { question_id: 'q4', value: null },
+    // As perguntas que a tela carregou: o envio consulta o tipo de cada uma.
+    const perguntasCarregadas = [
+      question({ id: 'q1', order_index: 0 }),
+      question({ id: 'q2', order_index: 1 }),
+      question({ id: 'q3', order_index: 2, required: false }),
+      question({ id: 'q4', order_index: 3, required: false }),
+      objetiva('q5', 4, ['1', '2', '3', '4', '5']),
     ];
+
+    const respostas = [
+      { question_id: 'q1', answer: 'Primeira' },
+      { question_id: 'q2', answer: 'Segunda' },
+      // Opcional em branco e sem resposta: não vão para o back (P-038).
+      { question_id: 'q3', answer: '   ' },
+      { question_id: 'q4', answer: null },
+      // Objetiva respondida: o back ainda recusa, então não vai (CREED-37).
+      { question_id: 'q5', answer: 'Rótulo 3' },
+    ];
+
+    function criarStore() {
+      return criarStoreCom(perguntasCarregadas);
+    }
 
     function enviar(store: ReturnType<typeof criarStore>) {
       return store.dispatch(
@@ -394,6 +479,31 @@ describe('responsesSlice', () => {
       expect(submission.error).toBeNull();
       expect(submission.formResponseId).toBe(FORM_RESPONSE_ID);
       expect(submission.savedQuestionIds).toEqual(['q1', 'q2']);
+    });
+  });
+  describe('paraAnswerCreate', () => {
+    it('descritiva vai em value', () => {
+      expect(paraAnswerCreate(question({ id: 'q1' }), 'Meu texto')).toEqual({
+        question_id: 'q1',
+        value: 'Meu texto',
+      });
+    });
+
+    it('objetiva vai em option_id, achado pelo rótulo (P-039)', () => {
+      const escala = objetiva('q5', 0, ['1', '2', '3', '4', '5']);
+
+      expect(paraAnswerCreate(escala, 'Rótulo 4')).toEqual({
+        question_id: 'q5',
+        option_id: 'q5-opcao-4',
+      });
+    });
+
+    it('sem resposta, em branco ou alternativa desconhecida: nada a gravar', () => {
+      const escala = objetiva('q5', 0, ['1', '2', '3', '4', '5']);
+
+      expect(paraAnswerCreate(question({ id: 'q1' }), null)).toBeNull();
+      expect(paraAnswerCreate(question({ id: 'q1' }), '  ')).toBeNull();
+      expect(paraAnswerCreate(escala, 'Rótulo 9')).toBeNull();
     });
   });
 });

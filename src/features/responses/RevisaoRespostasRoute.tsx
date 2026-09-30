@@ -34,14 +34,16 @@ export function RevisaoRespostasRoute() {
       questions={questions}
       submitError={submitError}
       onSubmit={async (answers) => {
-        // `answers` segue a ordem de `questions`: o índice liga os dois.
-        // `unwrap` rejeita quando o envio falha, e a View libera o botão.
+        // `answers` segue a ordem de `questions`: o índice liga os dois. O
+        // slice decide o que vai para o back e em que forma (`value` ou
+        // `option_id`). `unwrap` rejeita quando o envio falha, e a View
+        // libera o botão.
         await dispatch(
           submitResponses({
             formId: DEMO_FORM_ID,
             answers: questions.map((question, index) => ({
               question_id: question.id,
-              value: answers[index] ?? null,
+              answer: answers[index] ?? null,
             })),
           }),
         ).unwrap();

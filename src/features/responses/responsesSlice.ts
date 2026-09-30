@@ -8,9 +8,16 @@ import {
   type PayloadAction,
 } from '@reduxjs/toolkit';
 import type { RootState } from '@/app/store';
+import type { QuestionType as TipoDaTela } from '@/features/responses/Question';
+import { questoesDeDemonstracao } from '@/features/responses/questoesDeDemonstracao';
 import { responsesApi } from '@/features/responses/responsesApi';
 import { ApiError } from '@/lib/apiClient';
-import type { FormRead, QuestionResponse, QuestionSection } from '@/types/api';
+import type {
+  AnswerCreate,
+  FormRead,
+  QuestionResponse,
+  QuestionSection,
+} from '@/types/api';
 
 // 🟡 Premissa P-035: sem rota que liste formulários, o questionário abre sempre
 // o formulário de demonstração do seed local do back.
@@ -77,6 +84,15 @@ export const loadQuestionnaire = createAsyncThunk<
   try {
     const form = await responsesApi.getForm(formId);
     const questions = await responsesApi.listQuestions(formId);
+    // DEMONSTRAÇÃO: escala e objetiva no formato do back, até a CREED-37.
+    // Só num formulário que tem pergunta: o vazio continua vazio. Apagar este
+    // `if`, e o arquivo questoesDeDemonstracao.ts, quando a CREED-37 chegar.
+    if (questions.length > 0) {
+      return {
+        form,
+        questions: [...questions, ...questoesDeDemonstracao(formId)],
+      };
+    }
     return { form, questions };
   } catch (erro) {
     return rejectWithValue(chaveDeErro(erro));
@@ -87,9 +103,26 @@ function ehConflito(erro: unknown) {
   return erro instanceof ApiError && erro.status === 409;
 }
 
+/** O que a tela respondeu numa pergunta: o texto, ou o rótulo da alternativa. */
 export interface AnswerToSubmit {
   question_id: string;
-  value: string | null;
+  answer: string | null;
+}
+
+// Monta o corpo do `POST .../answers` como o back espera: descritiva em
+// `value`, objetiva em `option_id` (P-039). A tela guarda a alternativa pelo
+// rótulo; aqui ele vira o id. Devolve null quando não há o que gravar.
+export function paraAnswerCreate(
+  question: QuestionResponse,
+  answer: string | null,
+): AnswerCreate | null {
+  // 🟡 Premissa P-038: opcional em branco não vai para o back.
+  if (answer === null || answer.trim() === '') return null;
+  if (question.type === 'descriptive') {
+    return { question_id: question.id, value: answer };
+  }
+  const option = question.options?.find(({ label }) => label === answer);
+  return option ? { question_id: question.id, option_id: option.id } : null;
 }
 
 // 🟡 Premissa P-034: é aqui, e só aqui, que o questionário grava no back. Três
@@ -118,23 +151,27 @@ export const submitResponses = createAsyncThunk<
         dispatch(responsesSlice.actions.formResponseCreated(formResponseId));
       }
 
-      for (const answer of answers) {
-        // 🟡 Premissa P-038: opcional em branco não vai para o back.
-        if (answer.value === null || answer.value.trim() === '') continue;
-        const jaGravada = getState().responses.submission.savedQuestionIds;
-        if (jaGravada.includes(answer.question_id)) continue;
+      const { questions, submission } = getState().responses;
+      for (const { question_id, answer } of answers) {
+        const question = questions.find(({ id }) => id === question_id);
+        if (!question) continue;
+        // O back ainda recusa resposta objetiva com 422 (D2 da CREED-47).
+        // Quando a CREED-37 chegar, apagar esta linha: o corpo com
+        // `option_id` já sai pronto de `paraAnswerCreate`.
+        if (question.type === 'objective') continue;
+
+        const corpo = paraAnswerCreate(question, answer);
+        if (!corpo) continue;
+        if (submission.savedQuestionIds.includes(question_id)) continue;
 
         try {
-          await responsesApi.recordAnswer(formResponseId, {
-            question_id: answer.question_id,
-            value: answer.value,
-          });
+          await responsesApi.recordAnswer(formResponseId, corpo);
         } catch (erro) {
           // 409 aqui quer dizer que a tentativa anterior gravou, mas a resposta
           // do back se perdeu no caminho: a pergunta já está lá.
           if (!ehConflito(erro)) throw erro;
         }
-        dispatch(responsesSlice.actions.answerSaved(answer.question_id));
+        dispatch(responsesSlice.actions.answerSaved(question_id));
       }
 
       try {
@@ -197,11 +234,35 @@ const responsesSlice = createSlice({
   },
 });
 
+/** A pergunta do jeito que a tela desenha. Só o seletor conhece o formato do back. */
+export interface PerguntaDaTela {
+  id: string;
+  texto: string;
+  tipo: TipoDaTela;
+  /** Rótulos das alternativas, em ordem; vazio na dissertativa. */
+  opcoes: string[];
+  obrigatoria: boolean;
+}
+
 export interface QuestionnaireSection {
   /** Número da aba na tela, começando em 1. */
   numero: number;
   section: QuestionSection;
-  questions: QuestionResponse[];
+  perguntas: PerguntaDaTela[];
+}
+
+function alternativasEmOrdem(question: QuestionResponse) {
+  return [...(question.options ?? [])].sort(
+    (a, b) => a.order_index - b.order_index,
+  );
+}
+
+// 🟡 Premissa P-040: objetiva com alternativas de valor 1 a 5, em ordem, é
+// desenhada como escala. Qualquer outra objetiva vira lista de alternativas.
+function tipoDaTela(question: QuestionResponse): TipoDaTela {
+  if (question.type === 'descriptive') return 'dissertativa';
+  const valores = alternativasEmOrdem(question).map(({ value }) => value);
+  return valores.join(',') === '1,2,3,4,5' ? 'quantitativa' : 'objetiva';
 }
 
 // As perguntas já agrupadas como a tela desenha: uma seção por aba, na ordem
@@ -210,22 +271,30 @@ export interface QuestionnaireSection {
 export const selectQuestionnaireSections = createSelector(
   (state: RootState) => state.responses.questions,
   (questions): QuestionnaireSection[] => {
-    // 🟡 Premissa P-037: a objetiva só aparece quando existirem as
-    // alternativas (CREED-37); o back ainda recusa a resposta dela.
-    const descritivas = questions.filter(
-      (question) => question.type === 'descriptive',
+    // 🟡 Premissa P-037: objetiva sem alternativas não tem como ser
+    // respondida, então não aparece.
+    const respondiveis = questions.filter(
+      (question) =>
+        question.type === 'descriptive' ||
+        alternativasEmOrdem(question).length > 0,
     );
 
     const secoes: QuestionnaireSection[] = [];
     for (const section of SECTION_ORDER) {
-      const daSecao = descritivas
+      const daSecao = respondiveis
         .filter((question) => question.section === section)
         .sort((a, b) => a.order_index - b.order_index);
       if (daSecao.length > 0) {
         secoes.push({
           numero: secoes.length + 1,
           section,
-          questions: daSecao,
+          perguntas: daSecao.map((question) => ({
+            id: question.id,
+            texto: question.text,
+            tipo: tipoDaTela(question),
+            opcoes: alternativasEmOrdem(question).map(({ label }) => label),
+            obrigatoria: question.required,
+          })),
         });
       }
     }

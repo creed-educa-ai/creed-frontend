@@ -80,6 +80,18 @@ export type Prisma =
   | 'neuroinovacao'
   | 'tomada_decisao';
 
+// 🟡 Premissa P-039: contrato PROVISÓRIO, escrito a partir da tabela
+// QuestionOption do modelo de dados. O back ainda não devolve alternativas
+// (CREED-37); quando devolver, transcrever o schema de verdade por cima.
+export interface QuestionOptionResponse {
+  id: string;
+  question_id: string;
+  label: string;
+  value: string;
+  order_index: number;
+  created_at: string;
+}
+
 export interface QuestionResponse {
   id: string;
   form_id: string;
@@ -90,6 +102,8 @@ export interface QuestionResponse {
   required: boolean;
   prisma: Prisma | null;
   created_at: string;
+  // 🟡 Premissa P-039: opcional porque o back de hoje não manda.
+  options?: QuestionOptionResponse[];
 }
 
 // Domínio responses (app/domains/responses/schemas.py)

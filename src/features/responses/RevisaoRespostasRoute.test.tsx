@@ -9,10 +9,23 @@ import type { ReviewQuestion } from '@/features/responses/RevisaoRespostasView';
 import { responsesApi } from '@/features/responses/responsesApi';
 import responsesReducer, {
   DEMO_FORM_ID,
+  loadQuestionnaire,
 } from '@/features/responses/responsesSlice';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { ApiError } from '@/lib/apiClient';
-import type { FormResponseResponse } from '@/types/api';
+import type {
+  FormRead,
+  FormResponseResponse,
+  QuestionResponse,
+} from '@/types/api';
+
+const formRead: FormRead = {
+  id: DEMO_FORM_ID,
+  name: 'Formulário',
+  organization_id: '00000000-0000-0000-0000-000000000001',
+  status: 'draft',
+  created_at: '2026-09-30T18:39:04Z',
+};
 
 const FORM_RESPONSE_ID = '3b1bb89a-471f-48b0-9025-cfda3b20d240';
 
@@ -45,10 +58,61 @@ const questions: ReviewQuestion[] = [
     required: false,
     answer: null,
   },
+  // Escala respondida: o back ainda recusa objetiva, então não vai.
+  {
+    id: 'q-escala',
+    section: 2,
+    text: 'Pergunta de escala',
+    type: 'quantitativa',
+    options: ['1', '2', '3', '4', '5'],
+    required: false,
+    answer: '4',
+  },
+];
+
+// As mesmas perguntas, como o back mandou no carregamento: é por elas que o
+// envio sabe o tipo de cada uma.
+function doBack(
+  id: string,
+  type: QuestionResponse['type'],
+  valores: string[] = [],
+): QuestionResponse {
+  return {
+    id,
+    form_id: DEMO_FORM_ID,
+    text: id,
+    order_index: 0,
+    type,
+    section: 'profile',
+    required: false,
+    prisma: null,
+    created_at: '2026-09-30T18:39:04Z',
+    options: valores.map((value, index) => ({
+      id: `${id}-${value}`,
+      question_id: id,
+      label: value,
+      value,
+      order_index: index,
+      created_at: '2026-09-30T18:39:04Z',
+    })),
+  };
+}
+
+const carregadas: QuestionResponse[] = [
+  doBack('q-perfil', 'descriptive'),
+  doBack('q-fechamento', 'descriptive'),
+  doBack('q-escala', 'objective', ['1', '2', '3', '4', '5']),
 ];
 
 function renderizar() {
   const store = configureStore({ reducer: { responses: responsesReducer } });
+  store.dispatch(
+    loadQuestionnaire.fulfilled(
+      { form: formRead, questions: carregadas },
+      'teste',
+      DEMO_FORM_ID,
+    ),
+  );
   render(
     <Provider store={store}>
       <MemoryRouter
@@ -109,7 +173,8 @@ describe('RevisaoRespostasRoute', () => {
     expect(
       await screen.findByRole('heading', { name: 'Enviado' }),
     ).toBeInTheDocument();
-    // Só a preenchida foi gravada; a opcional em branco ficou de fora.
+    // Só a descritiva preenchida foi gravada: a opcional em branco e a
+    // escala (objetiva, que o back ainda recusa) ficaram de fora.
     expect(record).toHaveBeenCalledOnce();
     expect(record).toHaveBeenCalledWith(FORM_RESPONSE_ID, {
       question_id: 'q-perfil',

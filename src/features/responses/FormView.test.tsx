@@ -53,9 +53,16 @@ const perguntas: QuestionResponse[] = [
 function ReviewRouteProbe() {
   const location = useLocation();
   const state = location.state as {
-    questions?: { text: string; answer: string | null; required: boolean }[];
+    questions?: {
+      text: string;
+      answer: string | null;
+      required: boolean;
+    }[];
   } | null;
   const questions = state?.questions ?? [];
+  const demonstracao = questions.filter(({ text }) =>
+    text.startsWith('[Demonstração'),
+  ).length;
 
   return (
     <div>
@@ -64,6 +71,7 @@ function ReviewRouteProbe() {
       <p>{questions[0]?.text}</p>
       <p>{questions[0]?.answer}</p>
       <p>{`Opcional: ${questions[5]?.required === false ? 'sim' : 'não'}`}</p>
+      <p>{`Demonstração: ${String(demonstracao)}`}</p>
     </div>
   );
 }
@@ -110,10 +118,18 @@ describe('FormView', () => {
     await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
   }
 
-  // Escreve na pergunta que está na tela e clica em Avançar.
+  // Responde a pergunta que está na tela (texto, escala ou alternativa) e
+  // clica em Avançar.
   async function responderEAvancar(quantidade = 1) {
     for (let i = 0; i < quantidade; i++) {
-      await userEvent.type(screen.getByRole('textbox'), 'Minha resposta');
+      const campo = screen.queryByRole('textbox');
+      if (campo) {
+        await userEvent.type(campo, 'Minha resposta');
+      } else {
+        const [primeiraOpcao] = screen.getAllByRole('radio');
+        if (!primeiraOpcao) throw new Error('alternativa não encontrada');
+        await userEvent.click(primeiraOpcao);
+      }
       await avancar();
     }
   }
@@ -249,7 +265,8 @@ describe('FormView', () => {
 
     await responderEAvancar(4);
     expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
-    expect(screen.getByText(/Pergunta 2 de 3/)).toBeInTheDocument();
+    // Seção 2: as 3 do back e as 2 de demonstração.
+    expect(screen.getByText(/Pergunta 2 de 5/)).toBeInTheDocument();
 
     // Volta pela aba: cai na primeira pergunta da seção 1.
     await userEvent.click(screen.getByRole('button', { name: 'Seção 1' }));
@@ -261,7 +278,7 @@ describe('FormView', () => {
     expect(abaSecao2).toBeEnabled();
     await userEvent.click(abaSecao2);
     expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
-    expect(screen.getByText(/Pergunta 1 de 3/)).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 1 de 5/)).toBeInTheDocument();
   });
 
   it('should go back to a section from the completion screen', async () => {
@@ -296,7 +313,7 @@ describe('FormView', () => {
     await responderEAvancar(3);
 
     expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
-    expect(screen.getByText(/Pergunta 1 de 3/i)).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 1 de 5/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Seção 2' })).toHaveAttribute(
       'aria-current',
       'step',
@@ -332,7 +349,8 @@ describe('FormView', () => {
   it('should show completion message when all questions are answered', async () => {
     await renderizarCarregado();
 
-    await responderEAvancar(6);
+    // As 6 do back e as 2 de demonstração.
+    await responderEAvancar(8);
 
     expect(
       screen.getByRole('heading', { name: 'Todas as perguntas respondidas' }),
@@ -344,7 +362,7 @@ describe('FormView', () => {
       'aria-valuenow',
       '100',
     );
-    expect(screen.getByText('6 de 6 respondidas')).toBeInTheDocument();
+    expect(screen.getByText('8 de 8 respondidas')).toBeInTheDocument();
     for (const aba of screen.getAllByRole('button', { name: /^Seção/ })) {
       expect(aba).not.toHaveAttribute('aria-current');
     }
@@ -381,11 +399,14 @@ describe('FormView', () => {
     // Seção 1 inteira, e na seção 2 as duas obrigatórias; a opcional fica vazia.
     await responderEAvancar(5);
     await avancar();
+    // A seção de demonstração também é opcional: passa em branco.
+    await avancar();
+    await avancar();
 
     expect(
       screen.getByRole('heading', { name: 'Você chegou ao fim das perguntas' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('5 de 6 respondidas')).toBeInTheDocument();
+    expect(screen.getByText('5 de 8 respondidas')).toBeInTheDocument();
     // A seção 2 conta como concluída: a opcional em branco não tira o check.
     expect(
       screen.getByRole('button', { name: 'Seção 2' }).querySelector('svg'),
@@ -408,8 +429,11 @@ describe('FormView', () => {
 
     expect(temCheck('Seção 3')).toBe(false);
 
-    // Chega na seção 3: ainda sem check, a pessoa está nela.
+    // Chega na seção 3 (passando em branco pelas 2 de demonstração da
+    // seção 2): ainda sem check, a pessoa está nela.
     await responderEAvancar(2);
+    await avancar();
+    await avancar();
     expect(screen.getByText('Seção 3', { selector: 'p' })).toBeInTheDocument();
     expect(temCheck('Seção 3')).toBe(false);
 
@@ -462,7 +486,8 @@ describe('FormView', () => {
     await renderizarCarregado();
     await userEvent.type(screen.getByRole('textbox'), 'Primeira resposta');
     await avancar();
-    await responderEAvancar(5);
+    // As outras 5 do back e as 2 de demonstração.
+    await responderEAvancar(7);
 
     await userEvent.click(
       screen.getByRole('button', { name: 'Revisar e enviar' }),
@@ -471,9 +496,53 @@ describe('FormView', () => {
     expect(
       screen.getByRole('heading', { name: 'Revisão' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Quantidade: 6')).toBeInTheDocument();
+    expect(screen.getByText('Quantidade: 8')).toBeInTheDocument();
     expect(screen.getByText('Texto da p1')).toBeInTheDocument();
     expect(screen.getByText('Primeira resposta')).toBeInTheDocument();
     expect(screen.getByText('Opcional: sim')).toBeInTheDocument();
+    expect(screen.getByText('Demonstração: 2')).toBeInTheDocument();
+  });
+
+  describe('seção de demonstração', () => {
+    it('entram no fim da seção Avaliação, com a escala de 1 a 5 e a objetiva', async () => {
+      await renderizarCarregado();
+
+      // Depois das 3 do perfil e das 3 reais da avaliação.
+      await responderEAvancar(6);
+      expect(
+        screen.getByText('Seção 2', { selector: 'p' }),
+      ).toBeInTheDocument();
+      expect(screen.getByText(/Pergunta 4 de 5/)).toBeInTheDocument();
+
+      // Escala de 1 a 5, com a legenda e o aviso de que não é enviada.
+      expect(screen.getByRole('radio', { name: '1' })).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: '5' })).toBeInTheDocument();
+      expect(screen.getByText('Discordo totalmente')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', {
+          level: 2,
+          name: /^\[Demonstração, não é enviada\]/,
+        }),
+      ).toBeInTheDocument();
+
+      // Objetiva: as cinco alternativas.
+      await responderEAvancar();
+      expect(screen.getAllByRole('radio')).toHaveLength(5);
+      expect(
+        screen.getByText(/multiculturalismo na educação/),
+      ).toBeInTheDocument();
+    });
+
+    it('não segura a pessoa: dá para passar em branco', async () => {
+      await renderizarCarregado();
+
+      await responderEAvancar(6);
+      await avancar();
+      await avancar();
+
+      expect(
+        screen.getByRole('button', { name: 'Revisar e enviar' }),
+      ).toBeInTheDocument();
+    });
   });
 });

@@ -16,6 +16,7 @@ import {
   DEMO_FORM_ID,
   loadQuestionnaire,
   selectQuestionnaireSections,
+  type PerguntaDaTela,
   type QuestionnaireSection,
 } from '@/features/responses/responsesSlice';
 
@@ -156,7 +157,7 @@ function FormQuestions({ secoes }: FormQuestionsProps) {
   const totalSecoes = secoes.length;
 
   function perguntasDaSecao(numeroSecao: number) {
-    return secoes[numeroSecao - 1]?.questions ?? [];
+    return secoes[numeroSecao - 1]?.perguntas ?? [];
   }
 
   function temResposta(questionId: string) {
@@ -176,21 +177,30 @@ function FormQuestions({ secoes }: FormQuestionsProps) {
   const progresso = (respondidasNaSecao / totalPerguntasNaSecao) * 100;
 
   const perguntasParaRevisao: ReviewQuestion[] = secoes.flatMap(
-    ({ numero, questions }) =>
-      questions.map((question) => ({
-        id: question.id,
+    ({ numero, perguntas }) =>
+      perguntas.map((pergunta) => ({
+        id: pergunta.id,
         section: numero,
-        text: question.text,
-        type: 'dissertativa' as const,
-        options: [],
-        required: question.required,
-        answer: respostas[question.id] ?? null,
+        text: pergunta.texto,
+        type: pergunta.tipo,
+        options: pergunta.opcoes,
+        required: pergunta.obrigatoria,
+        answer: respostas[pergunta.id] ?? null,
       })),
   );
 
   // Ao passar da última pergunta, `perguntaAtualData` fica undefined e a tela
   // mostra o fim do formulário.
   const perguntaAtualData = perguntasDaSecaoAtual[perguntaAtual - 1];
+
+  // A instrução que aparece acima de cada pergunta, conforme o tipo.
+  function subtituloDa(pergunta: PerguntaDaTela) {
+    return {
+      dissertativa: t('formulario:dissertativa'),
+      quantitativa: t('formulario:quantitativa'),
+      objetiva: t('formulario:objetiva'),
+    }[pergunta.tipo];
+  }
   const valorAtual = perguntaAtualData
     ? (respostas[perguntaAtualData.id] ?? '')
     : '';
@@ -199,7 +209,7 @@ function FormQuestions({ secoes }: FormQuestionsProps) {
   // Número da primeira obrigatória sem resposta da seção, ou null se não há.
   function primeiraSemResposta(numeroSecao: number): number | null {
     const indice = perguntasDaSecao(numeroSecao).findIndex(
-      (question) => question.required && !temResposta(question.id),
+      (pergunta) => pergunta.obrigatoria && !temResposta(pergunta.id),
     );
     return indice === -1 ? null : indice + 1;
   }
@@ -210,12 +220,12 @@ function FormQuestions({ secoes }: FormQuestionsProps) {
   // aberta. Só responder a última, sem avançar, ainda não conclui.
   const secoesConcluidas = secoes
     .filter(
-      ({ numero, questions }) =>
+      ({ numero, perguntas }) =>
         numero < secaoMaisAvancada &&
-        questions.every(
-          (question) =>
-            !question.required ||
-            (confirmadas.includes(question.id) && temResposta(question.id)),
+        perguntas.every(
+          (pergunta) =>
+            !pergunta.obrigatoria ||
+            (confirmadas.includes(pergunta.id) && temResposta(pergunta.id)),
         ),
     )
     .map(({ numero }) => numero);
@@ -324,10 +334,10 @@ function FormQuestions({ secoes }: FormQuestionsProps) {
       perguntaAtual={perguntaAtual}
       totalPerguntas={totalPerguntasNaSecao}
       progresso={progresso}
-      titulo={perguntaAtualData.text}
-      subtitulo={t('formulario:dissertativa')}
-      // 🟡 Premissa P-037: só chegam descritivas até a CREED-37.
-      tipo="dissertativa"
+      titulo={perguntaAtualData.texto}
+      subtitulo={subtituloDa(perguntaAtualData)}
+      tipo={perguntaAtualData.tipo}
+      respostas={perguntaAtualData.opcoes}
       valor={valorAtual}
       onMudar={handleRespostaChange}
       onProximo={handleProximo}
