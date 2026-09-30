@@ -179,6 +179,11 @@ export const en: typeof ptBR = {
       'After submission, your answers will be recorded for evaluation.',
     confirmarEnvio: 'Confirm submission',
     enviado: 'Answers submitted.',
+    enviando: 'Submitting…',
+    erros: {
+      jaRespondido: 'You have already answered this questionnaire.',
+      envioFalhou: "Couldn't submit. Please try again.",
+    },
     obrigatoria: 'Required',
     respostaObrigatoria: 'This question is required.',
     semResposta: 'No answer',

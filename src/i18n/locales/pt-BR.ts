@@ -179,6 +179,11 @@ export const ptBR = {
       'Depois do envio, suas respostas serão registradas para avaliação.',
     confirmarEnvio: 'Confirmar envio',
     enviado: 'Respostas enviadas.',
+    enviando: 'Enviando…',
+    erros: {
+      jaRespondido: 'Você já respondeu este questionário.',
+      envioFalhou: 'Não foi possível enviar. Tente de novo.',
+    },
     obrigatoria: 'Obrigatória',
     respostaObrigatoria: 'Esta pergunta é obrigatória.',
     semResposta: 'Sem resposta',

@@ -2,12 +2,41 @@ import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { responsesApi } from '@/features/responses/responsesApi';
 import reducer, {
+  clearSubmissionError,
   DEMO_FORM_ID,
   loadQuestionnaire,
   selectQuestionnaireSections,
+  submitResponses,
 } from '@/features/responses/responsesSlice';
 import { ApiError } from '@/lib/apiClient';
-import type { FormRead, QuestionResponse } from '@/types/api';
+import type {
+  AnswerResponse,
+  FormRead,
+  FormResponseResponse,
+  QuestionResponse,
+} from '@/types/api';
+
+const FORM_RESPONSE_ID = '3b1bb89a-471f-48b0-9025-cfda3b20d240';
+
+const formResponse: FormResponseResponse = {
+  id: FORM_RESPONSE_ID,
+  form_id: DEMO_FORM_ID,
+  vinculo_id: 'e541e500-8b88-45e7-9195-b6079023922b',
+  status: 'in_progress',
+  started_at: '2026-09-30T18:39:04Z',
+  submitted_at: null,
+};
+
+function answerResponse(questionId: string): AnswerResponse {
+  return {
+    id: `answer-${questionId}`,
+    form_response_id: FORM_RESPONSE_ID,
+    question_id: questionId,
+    option_id: null,
+    value: 'texto',
+    created_at: '2026-09-30T18:39:04Z',
+  };
+}
 
 const form: FormRead = {
   id: DEMO_FORM_ID,
@@ -59,6 +88,12 @@ describe('responsesSlice', () => {
       questions: [],
       status: 'idle',
       error: null,
+      submission: {
+        status: 'idle',
+        error: null,
+        formResponseId: null,
+        savedQuestionIds: [],
+      },
     });
   });
 
@@ -202,6 +237,163 @@ describe('responsesSlice', () => {
       const store = await storeCom([question({ id: 'q1' })]);
 
       expect(secoes(store)).toBe(secoes(store));
+    });
+  });
+
+  describe('submitResponses', () => {
+    const respostas = [
+      { question_id: 'q1', value: 'Primeira' },
+      { question_id: 'q2', value: 'Segunda' },
+      // Opcional em branco e sem resposta: não vão para o back (P-038).
+      { question_id: 'q3', value: '   ' },
+      { question_id: 'q4', value: null },
+    ];
+
+    function enviar(store: ReturnType<typeof criarStore>) {
+      return store.dispatch(
+        submitResponses({ formId: DEMO_FORM_ID, answers: respostas }),
+      );
+    }
+
+    // Os três passos do envio, com o caminho feliz como padrão.
+    function simularBack() {
+      return {
+        create: vi
+          .spyOn(responsesApi, 'createFormResponse')
+          .mockResolvedValue(formResponse),
+        record: vi
+          .spyOn(responsesApi, 'recordAnswer')
+          .mockImplementation((_id, answer) =>
+            Promise.resolve(answerResponse(answer.question_id)),
+          ),
+        submit: vi
+          .spyOn(responsesApi, 'submitFormResponse')
+          .mockResolvedValue({ ...formResponse, status: 'submitted' }),
+      };
+    }
+
+    function gravadas(record: ReturnType<typeof simularBack>['record']) {
+      return record.mock.calls.map(([, answer]) => answer.question_id);
+    }
+
+    it('abre, grava só as preenchidas e envia, nessa ordem', async () => {
+      const back = simularBack();
+      const store = criarStore();
+
+      await enviar(store);
+
+      expect(back.create).toHaveBeenCalledWith(DEMO_FORM_ID);
+      expect(back.record).toHaveBeenNthCalledWith(1, FORM_RESPONSE_ID, {
+        question_id: 'q1',
+        value: 'Primeira',
+      });
+      expect(gravadas(back.record)).toEqual(['q1', 'q2']);
+      expect(back.submit).toHaveBeenCalledWith(FORM_RESPONSE_ID);
+      // Enviado: a retomada começa do zero.
+      expect(store.getState().responses.submission).toEqual({
+        status: 'ready',
+        error: null,
+        formResponseId: null,
+        savedQuestionIds: [],
+      });
+    });
+
+    it('409 ao abrir quer dizer que a pessoa já respondeu', async () => {
+      const back = simularBack();
+      back.create.mockRejectedValue(new ApiError('já existe', 409));
+      const store = criarStore();
+
+      await enviar(store);
+
+      expect(back.record).not.toHaveBeenCalled();
+      expect(back.submit).not.toHaveBeenCalled();
+      expect(store.getState().responses.submission.error).toBe(
+        'questionarioRevisao:erros.jaRespondido',
+      );
+    });
+
+    it('falha no meio e a nova tentativa continua de onde parou', async () => {
+      const back = simularBack();
+      back.record.mockImplementation((_id, answer) =>
+        answer.question_id === 'q2'
+          ? Promise.reject(new ApiError('fora do ar', 503))
+          : Promise.resolve(answerResponse(answer.question_id)),
+      );
+      const store = criarStore();
+
+      await enviar(store);
+
+      const depoisDaFalha = store.getState().responses.submission;
+      expect(depoisDaFalha.status).toBe('error');
+      expect(depoisDaFalha.error).toBe('questionarioRevisao:erros.envioFalhou');
+      expect(depoisDaFalha.formResponseId).toBe(FORM_RESPONSE_ID);
+      expect(depoisDaFalha.savedQuestionIds).toEqual(['q1']);
+      expect(back.submit).not.toHaveBeenCalled();
+
+      // O back voltou: tenta de novo.
+      back.record.mockClear();
+      back.record.mockImplementation((_id, answer) =>
+        Promise.resolve(answerResponse(answer.question_id)),
+      );
+      await enviar(store);
+
+      // Não abriu outra resposta e não gravou a q1 de novo.
+      expect(back.create).toHaveBeenCalledOnce();
+      expect(gravadas(back.record)).toEqual(['q2']);
+      expect(back.submit).toHaveBeenCalledOnce();
+      expect(store.getState().responses.submission.status).toBe('ready');
+    });
+
+    it('409 ao gravar uma pergunta conta como já gravada', async () => {
+      const back = simularBack();
+      back.record.mockImplementation((_id, answer) =>
+        answer.question_id === 'q1'
+          ? Promise.reject(new ApiError('já respondida', 409))
+          : Promise.resolve(answerResponse(answer.question_id)),
+      );
+      const store = criarStore();
+
+      await enviar(store);
+
+      expect(gravadas(back.record)).toEqual(['q1', 'q2']);
+      expect(back.submit).toHaveBeenCalledOnce();
+      expect(store.getState().responses.submission.status).toBe('ready');
+    });
+
+    it('409 ao enviar conta como enviado', async () => {
+      const back = simularBack();
+      back.submit.mockRejectedValue(new ApiError('já submetido', 409));
+      const store = criarStore();
+
+      await enviar(store);
+
+      expect(store.getState().responses.submission.status).toBe('ready');
+    });
+
+    it('erro de rede vira envioFalhou', async () => {
+      const back = simularBack();
+      back.create.mockRejectedValue(new TypeError('Failed to fetch'));
+      const store = criarStore();
+
+      await enviar(store);
+
+      expect(store.getState().responses.submission.error).toBe(
+        'questionarioRevisao:erros.envioFalhou',
+      );
+    });
+
+    it('clearSubmissionError apaga só o erro, não o que já foi gravado', async () => {
+      const back = simularBack();
+      back.submit.mockRejectedValue(new ApiError('fora do ar', 503));
+      const store = criarStore();
+      await enviar(store);
+
+      store.dispatch(clearSubmissionError());
+
+      const submission = store.getState().responses.submission;
+      expect(submission.error).toBeNull();
+      expect(submission.formResponseId).toBe(FORM_RESPONSE_ID);
+      expect(submission.savedQuestionIds).toEqual(['q1', 'q2']);
     });
   });
 });

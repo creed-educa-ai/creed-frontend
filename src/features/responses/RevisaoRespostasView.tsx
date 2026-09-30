@@ -52,12 +52,17 @@ export interface ReviewQuestion {
 
 interface RevisaoRespostasViewProps {
   questions: ReviewQuestion[];
-  onSubmit: (answers: QuestionAnswer[]) => void;
+  // Pode devolver uma promessa: a tela espera por ela para dizer "enviado".
+  // Se ela for rejeitada, o botão volta a funcionar para tentar de novo.
+  onSubmit: (answers: QuestionAnswer[]) => void | Promise<void>;
+  /** Chave de i18n do erro do último envio, quando houver. */
+  submitError?: string | null;
 }
 
 export function RevisaoRespostasView({
   questions,
   onSubmit,
+  submitError = null,
 }: RevisaoRespostasViewProps) {
   const { t } = useTranslation(['questionarioRevisao', 'formulario']);
   const [answers, setAnswers] = useState<QuestionAnswer[]>(() =>
@@ -66,6 +71,7 @@ export function RevisaoRespostasView({
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [draftAnswer, setDraftAnswer] = useState<QuestionAnswer>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [sending, setSending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const submitLock = useRef(false);
   const activeQuestion = questions.find(
@@ -76,7 +82,10 @@ export function RevisaoRespostasView({
       question.required && (answers[index] === null || answers[index] === ''),
   );
   const canSubmit =
-    questions.length > 0 && unansweredRequired.length === 0 && !submitted;
+    questions.length > 0 &&
+    unansweredRequired.length === 0 &&
+    !sending &&
+    !submitted;
 
   // Agrupa as perguntas por seção, na ordem em que aparecem. Cada item guarda
   // a posição original (`index`): é ela que liga a pergunta à sua resposta em
@@ -120,12 +129,28 @@ export function RevisaoRespostasView({
     setActiveQuestionId(null);
   }
 
-  function confirmSubmission() {
+  // A trava (ref, e não state) segura o clique duplo antes de o React
+  // redesenhar. Ela só é solta quando o envio falha.
+  async function confirmSubmission() {
     if (!canSubmit || submitLock.current) return;
     submitLock.current = true;
-    onSubmit(answers);
-    setSubmitted(true);
     setConfirmOpen(false);
+    setSending(true);
+    try {
+      await onSubmit(answers);
+      setSubmitted(true);
+    } catch {
+      // O motivo chega por `submitError`; aqui só libera nova tentativa.
+      submitLock.current = false;
+    } finally {
+      setSending(false);
+    }
+  }
+
+  function mensagemDeEnvio() {
+    if (submitted) return t('questionarioRevisao:enviado');
+    if (sending) return t('questionarioRevisao:enviando');
+    return '';
   }
 
   return (
@@ -355,9 +380,16 @@ export function RevisaoRespostasView({
                 </span>
                 <span className="sm:hidden">PDF</span>
               </Button>
-              <p aria-live="polite" className="text-sm text-muted-foreground">
-                {submitted ? t('questionarioRevisao:enviado') : ''}
-              </p>
+              {submitError && !sending ? (
+                <p role="alert" className="text-sm text-destructive">
+                  {/* Chave de i18n vinda do slice; mesma saída do LoginView. */}
+                  {t(submitError as never)}
+                </p>
+              ) : (
+                <p aria-live="polite" className="text-sm text-muted-foreground">
+                  {mensagemDeEnvio()}
+                </p>
+              )}
               {questions.length > 0 && (
                 <Button
                   type="button"
@@ -438,7 +470,7 @@ export function RevisaoRespostasView({
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault();
-                confirmSubmission();
+                void confirmSubmission();
               }}
             >
               {t('questionarioRevisao:confirmarEnvio')}
