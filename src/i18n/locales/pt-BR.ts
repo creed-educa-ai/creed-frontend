@@ -353,6 +353,12 @@ export const ptBR = {
     menuFormulario: 'Formulário',
     menuInformacoes: 'Informações',
     menuSair: 'Sair',
+    erros: {
+      naoEncontrado: 'Questionário não encontrado.',
+      semAcesso: 'Você não tem acesso a este questionário.',
+      servicoIndisponivel:
+        'Não foi possível falar com o servidor. Tente de novo.',
+    },
   },
   onboardQuestionario: {
     titulo: 'FORMULÁRIO',

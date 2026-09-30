@@ -352,6 +352,11 @@ export const en: typeof ptBR = {
     menuFormulario: 'Form',
     menuInformacoes: 'Information',
     menuSair: 'Log out',
+    erros: {
+      naoEncontrado: 'Questionnaire not found.',
+      semAcesso: "You don't have access to this questionnaire.",
+      servicoIndisponivel: "Couldn't reach the server. Please try again.",
+    },
   },
   onboardQuestionario: {
     titulo: 'FORM',
