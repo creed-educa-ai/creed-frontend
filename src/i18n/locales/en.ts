@@ -179,6 +179,11 @@ export const en: typeof ptBR = {
       'After submission, your answers will be recorded for evaluation.',
     confirmarEnvio: 'Confirm submission',
     enviado: 'Answers submitted.',
+    enviando: 'Submitting…',
+    erros: {
+      jaRespondido: 'You have already answered this questionnaire.',
+      envioFalhou: "Couldn't submit. Please try again.",
+    },
     obrigatoria: 'Required',
     respostaObrigatoria: 'This question is required.',
     semResposta: 'No answer',
@@ -317,31 +322,11 @@ export const en: typeof ptBR = {
       'Answer briefly and objectively, with a maximum of 200 words.',
     objetiva: 'Choose the alternative that best describes your experience.',
     textbox: 'Type your answer here...',
-    pergunta1:
-      'I have or have had experience as a founder or partner in a business.',
-    pergunta2:
-      'I work or have worked as an intrapreneur, proposing and leading innovative initiatives within organizations.',
-    pergunta3:
-      'I participate or have actively participated in the development of new products, services or business models.',
-    pergunta4:
-      'I value and promote cultural diversity in the practices of my institutional context.',
-    pergunta5:
-      'Which of the following best describes your role in relation to multiculturalism in education?',
-    pergunta5o1:
-      'I recognize the importance of cultural diversity, but I am still developing inclusive practices',
-    pergunta5o2:
-      'I regularly integrate diverse cultural perspectives into my educational activities',
-    pergunta5o3:
-      'I actively promote intercultural dialogue and value different worldviews in my context',
-    pergunta5o4:
-      'I lead initiatives that transform the institution to be truly multicultural and inclusive',
-    pergunta5o5:
-      'I work to eliminate cultural barriers and promote equity among different groups in education',
-    pergunta6:
-      'Describe an experience where you promoted cultural diversity or inclusion in an educational setting, explaining how this impacted those involved and what insights you gained.',
     avancar: 'Next',
     voltar: 'Back',
-    responderTudoAviso: 'Answer every question in the section to move on.',
+    responderTudoAviso:
+      'Answer the required questions in the section to move on.',
+    semPerguntas: 'This questionnaire has no questions yet.',
     concluido: 'Completed',
     perguntasRespondidas: '{{respondidas}} of {{total}} answered',
     concluidoTitulo: 'All questions answered',
@@ -352,11 +337,17 @@ export const en: typeof ptBR = {
     menuFormulario: 'Form',
     menuInformacoes: 'Information',
     menuSair: 'Log out',
+    erros: {
+      naoEncontrado: 'Questionnaire not found.',
+      semAcesso: "You don't have access to this questionnaire.",
+      servicoIndisponivel: "Couldn't reach the server. Please try again.",
+    },
   },
   onboardQuestionario: {
     titulo: 'FORM',
     start: 'Shall we get started?',
     subtitulo: 'you have a questionnaire available',
+    // TODO: mesmo aviso do pt-BR.ts: o progresso não fica salvo (P-034).
     mensagem:
       "Your answers help us map your organization's landscape.\n It's quick and you can pause whenever you want, your progress will be saved",
     tempo: '~15 minutes',

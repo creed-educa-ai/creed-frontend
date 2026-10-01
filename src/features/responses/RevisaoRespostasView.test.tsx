@@ -195,7 +195,56 @@ describe('RevisaoRespostasView', () => {
       '3',
       'Resposta mockada preenchida.',
     ]);
-    expect(screen.getByText('Respostas enviadas.')).toBeInTheDocument();
+    // O "enviado" espera o envio terminar.
+    expect(await screen.findByText('Respostas enviadas.')).toBeInTheDocument();
+  });
+
+  it('mostra Enviando enquanto espera e libera nova tentativa quando falha', async () => {
+    const user = userEvent.setup();
+    let falhar: (erro: Error) => void = () => undefined;
+    const onSubmit = vi.fn(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          falhar = reject;
+        }),
+    );
+    const { rerender } = renderizar(onSubmit);
+
+    await user.click(obterBotaoRevisar(2));
+    const dialog = screen.getByRole('dialog');
+    await user.type(within(dialog).getByRole('textbox'), 'Texto.');
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Salvar resposta' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Enviar respostas' }));
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Confirmar envio',
+      }),
+    );
+
+    expect(screen.getByText('Enviando…')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Enviar respostas' }),
+    ).toBeDisabled();
+
+    // O envio falha, e o pai passa o motivo.
+    falhar(new Error('fora do ar'));
+    rerender(
+      <RevisaoRespostasView
+        questions={MOCK_QUESTIONS}
+        onSubmit={onSubmit}
+        submitError="questionarioRevisao:erros.envioFalhou"
+      />,
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível enviar. Tente de novo.',
+    );
+    expect(screen.queryByText('Respostas enviadas.')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Enviar respostas' }),
+    ).toBeEnabled();
   });
 
   it('aciona a impressão para salvar ou imprimir a revisão como PDF', async () => {

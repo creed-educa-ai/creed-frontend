@@ -1,8 +1,15 @@
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import {
   RevisaoRespostasView,
   type ReviewQuestion,
 } from '@/features/responses/RevisaoRespostasView';
+import {
+  clearSubmissionError,
+  DEMO_FORM_ID,
+  submitResponses,
+} from '@/features/responses/responsesSlice';
 
 interface RevisaoRouteState {
   questions?: ReviewQuestion[];
@@ -11,16 +18,37 @@ interface RevisaoRouteState {
 export function RevisaoRespostasRoute() {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const submitError = useAppSelector(
+    (state) => state.responses.submission.error,
+  );
   const state = location.state as RevisaoRouteState | null;
   const questions = Array.isArray(state?.questions) ? state.questions : [];
 
-  // TODO: enviar as respostas ao backend quando a rota existir. Por enquanto
-  // só leva à tela de confirmação. replace: a seta de voltar não reabre a
-  // revisão de um questionário já enviado.
+  useEffect(() => {
+    dispatch(clearSubmissionError());
+  }, [dispatch]);
+
   return (
     <RevisaoRespostasView
       questions={questions}
-      onSubmit={() => {
+      submitError={submitError}
+      onSubmit={async (answers) => {
+        // `answers` segue a ordem de `questions`: o índice liga os dois. O
+        // slice decide o que vai para o back e em que forma (`value` ou
+        // `option_id`). `unwrap` rejeita quando o envio falha, e a View
+        // libera o botão.
+        await dispatch(
+          submitResponses({
+            formId: DEMO_FORM_ID,
+            answers: questions.map((question, index) => ({
+              question_id: question.id,
+              answer: answers[index] ?? null,
+            })),
+          }),
+        ).unwrap();
+        // replace: a seta de voltar não reabre a revisão de um questionário
+        // já enviado.
         navigate('/questionario/enviado', { replace: true });
       }}
     />

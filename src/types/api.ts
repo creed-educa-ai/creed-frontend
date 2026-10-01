@@ -55,3 +55,86 @@ export interface SessionResponse {
   expires_in: number;
   user: UserSessionResponse;
 }
+
+// Domínio forms (app/domains/forms/schemas.py)
+export type FormStatus = 'draft' | 'published' | 'closed';
+
+export interface FormRead {
+  id: string;
+  name: string;
+  organization_id: string;
+  status: FormStatus;
+  created_at: string;
+}
+
+// Domínio questions (app/domains/questions/schemas.py)
+export type QuestionType = 'objective' | 'descriptive';
+
+// Valores provisórios no back (P-020).
+export type QuestionSection = 'profile' | 'assessment' | 'closing';
+
+export type Prisma =
+  | 'plasticidade_humana'
+  | 'empreendedorismo'
+  | 'multiculturalismo'
+  | 'neuroinovacao'
+  | 'tomada_decisao';
+
+// 🟡 Premissa P-039: contrato PROVISÓRIO, escrito a partir da tabela
+// QuestionOption do modelo de dados. O back ainda não devolve alternativas
+// (CREED-37); quando devolver, transcrever o schema de verdade por cima.
+export interface QuestionOptionResponse {
+  id: string;
+  question_id: string;
+  label: string;
+  value: string;
+  order_index: number;
+  created_at: string;
+}
+
+export interface QuestionResponse {
+  id: string;
+  form_id: string;
+  text: string;
+  order_index: number;
+  type: QuestionType;
+  section: QuestionSection;
+  required: boolean;
+  prisma: Prisma | null;
+  created_at: string;
+  // 🟡 Premissa P-039: opcional porque o back de hoje não manda.
+  options?: QuestionOptionResponse[];
+}
+
+// Domínio responses (app/domains/responses/schemas.py)
+export type FormResponseStatus = 'in_progress' | 'submitted';
+
+// O vínculo não vai no corpo: o back usa o do login.
+export interface FormResponseCreate {
+  form_id: string;
+}
+
+export interface FormResponseResponse {
+  id: string;
+  form_id: string;
+  // O back ainda não renomeou este campo para link_id (CREED-47).
+  vinculo_id: string;
+  status: FormResponseStatus;
+  started_at: string;
+  submitted_at: string | null;
+}
+
+export interface AnswerCreate {
+  question_id: string;
+  option_id?: string | null;
+  value?: string | null;
+}
+
+export interface AnswerResponse {
+  id: string;
+  form_response_id: string;
+  question_id: string;
+  option_id: string | null;
+  value: string | null;
+  created_at: string;
+}
