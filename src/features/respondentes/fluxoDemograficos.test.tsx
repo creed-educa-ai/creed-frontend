@@ -23,7 +23,7 @@ function renderizarNa(rota: string) {
           <Route path="/demograficos-1" element={<Demograficos1Etapa />} />
           <Route path="/demograficos-2" element={<Demograficos2Etapa />} />
           <Route path="/demograficos-3" element={<Demograficos3Etapa />} />
-          <Route path="/respondentes" element={<p>área logada</p>} />
+          <Route path="/onboard-quest" element={<p>onboarding</p>} />
         </Routes>
       </MemoryRouter>
     </Provider>,
@@ -35,7 +35,7 @@ describe('fluxo dos dados demográficos', () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
-  it('percorre as três etapas até a área logada', async () => {
+  it('percorre as três etapas até o onboarding do questionário', async () => {
     const user = userEvent.setup();
     renderizarNa('/demograficos-1');
 
@@ -46,7 +46,7 @@ describe('fluxo dos dados demográficos', () => {
     await user.click(await screen.findByRole('button', { name: 'Pular' }));
     await user.click(await screen.findByRole('button', { name: 'Pular' }));
 
-    expect(await screen.findByText('área logada')).toBeInTheDocument();
+    expect(await screen.findByText('onboarding')).toBeInTheDocument();
   });
 
   it('avançar na etapa 2 leva à etapa 3', async () => {

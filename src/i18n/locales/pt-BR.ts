@@ -180,6 +180,11 @@ export const ptBR = {
       'Depois do envio, suas respostas serão registradas para avaliação.',
     confirmarEnvio: 'Confirmar envio',
     enviado: 'Respostas enviadas.',
+    enviando: 'Enviando…',
+    erros: {
+      jaRespondido: 'Você já respondeu este questionário.',
+      envioFalhou: 'Não foi possível enviar. Tente de novo.',
+    },
     obrigatoria: 'Obrigatória',
     respostaObrigatoria: 'Esta pergunta é obrigatória.',
     semResposta: 'Sem resposta',
@@ -302,60 +307,57 @@ export const ptBR = {
     ouSaibaMais: 'OU SAIBA MAIS',
     saibaMais: 'O que é o método CREED?',
   },
+  respostasEnviadas: {
+    titulo: 'Obrigado por responder',
+    mensagem: 'Suas respostas foram enviadas.',
+    voltar: 'Voltar',
+  },
   formulario: {
     titulo: 'Formulário',
     secao: 'Seção',
     pergunta: 'Pergunta',
     de: 'de',
-    quantitativa:
-      'Avalie cada afirmação de acordo com a sua experiência real:\n 1 = Discordo totalmente e 5 = Concordo totalmente',
+    quantitativa: 'Avalie cada afirmação de acordo com a sua experiência real.',
+    escalaMinima: 'Discordo totalmente',
+    escalaMaxima: 'Concordo totalmente',
     dissertativa:
       'Responda de forma breve e objetiva, com no máximo 200 palavras.',
     objetiva: 'Escolha a alternativa que melhor descreve a sua experiência.',
     textbox: 'Digite sua resposta aqui...',
-    pergunta1:
-      'Tenho ou já tive experiência como fundador(a) ou sócio(a) de um negócio.',
-    pergunta2:
-      'Atuo ou já atuei como intraempreendedor(a), propondo e liderando iniciativas inovadoras dentro de organizações.',
-    pergunta3:
-      'Participo ou já participei ativamente do desenvolvimento de novos produtos, serviços ou modelos de negócio.',
-    pergunta4:
-      'Valorizo e promovo a diversidade cultural nas práticas do meu contexto institucional.',
-    pergunta5:
-      'Qual das seguintes opções melhor descreve sua atuação em relação ao multiculturalismo na educação?',
-    pergunta5o1:
-      'Reconheço a importância da diversidade cultural, mas ainda estou desenvolvendo práticas inclusivas',
-    pergunta5o2:
-      'Integro perspectivas culturais diversas regularmente em minhas atividades educacionais',
-    pergunta5o3:
-      'Promovo ativamente diálogos interculturais e valorizo diferentes visões de mundo em meu contexto',
-    pergunta5o4:
-      'Lidero iniciativas que transformam a instituição para ser verdadeiramente multicultural e inclusiva',
-    pergunta5o5:
-      'Trabalho para eliminar barreiras culturais e promover equidade entre diferentes grupos na educação',
-    pergunta6:
-      'Descreva uma experiência em que você promoveu a diversidade cultural ou inclusão em um contexto educacional, explicando como isso impactou os envolvidos e que aprendizados você obteve.',
     avancar: 'Avançar',
     voltar: 'Voltar',
-    restante: '~15 minutos restantes',
-    finalizado: 'Formulário finalizado!',
-    obrigado:
-      'Obrigado pela sua participação! Revise suas respostas antes de enviar.',
-    revisarRespostas: 'Revisar respostas',
+    responderTudoAviso:
+      'Responda as perguntas obrigatórias da seção para avançar.',
+    semPerguntas: 'Este questionário ainda não tem perguntas.',
+    concluido: 'Concluído',
+    perguntasRespondidas: '{{respondidas}} de {{total}} respondidas',
+    concluidoTitulo: 'Todas as perguntas respondidas',
+    fimDasPerguntasTitulo: 'Você chegou ao fim das perguntas',
+    concluidoMensagem: 'Revise suas respostas antes de enviar.',
+    revisarEEnviar: 'Revisar e enviar',
     menuPainel: 'Painel',
     menuFormulario: 'Formulário',
     menuInformacoes: 'Informações',
     menuSair: 'Sair',
+    erros: {
+      naoEncontrado: 'Questionário não encontrado.',
+      semAcesso: 'Você não tem acesso a este questionário.',
+      servicoIndisponivel:
+        'Não foi possível falar com o servidor. Tente de novo.',
+    },
   },
   onboardQuestionario: {
     titulo: 'FORMULÁRIO',
     start: 'Vamos começar?',
-    subtitulo: 'você tem um questionário disponível',
+    subtitulo: 'Você tem um questionário disponível',
+    // TODO: "seu progresso ficará salvo" não é verdade hoje. As respostas só
+    // vão para o back no envio, e recarregar a página perde o que foi digitado
+    // (🟡 Premissa P-034, CREED-48). Trocar o texto ou salvar o progresso.
     mensagem:
       'Suas respostas ajudam a mapear o panorama da sua organização.\n É rápido e você pode pausar quando quiser, seu progresso ficará salvo',
     tempo: '~15 minutos',
     secao: '4 seções',
-    avancar: 'Avançar',
+    iniciar: 'Iniciar',
     menuPainel: 'Painel',
     menuFormulario: 'Formulário',
     menuInformacoes: 'Informações',
@@ -363,8 +365,8 @@ export const ptBR = {
   },
   onboardQuestionarioInfo: {
     titulo: 'Atualizar Informações',
-    mensagem: 'Você gostaria de revisar alguns de seus dados pessoais?',
-    yes: 'Sim',
-    no: 'Não',
+    mensagem: 'Você gostaria de revisar seus dados pessoais?',
+    revisarDados: 'Revisar dados',
+    iniciarQuestionario: 'Iniciar questionário',
   },
 };

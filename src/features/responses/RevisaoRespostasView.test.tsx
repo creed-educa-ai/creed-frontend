@@ -3,12 +3,13 @@ import userEvent from '@testing-library/user-event';
 import {
   RevisaoRespostasView,
   type ReviewQuestion,
-} from '@/features/questionario/RevisaoRespostasView';
+} from '@/features/responses/RevisaoRespostasView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
 const MOCK_QUESTIONS: ReviewQuestion[] = [
   {
     id: 'mock-scale',
+    section: 1,
     text: 'Mock: avalie a colaboração',
     type: 'quantitativa',
     options: ['1', '2', '3', '4', '5'],
@@ -17,6 +18,7 @@ const MOCK_QUESTIONS: ReviewQuestion[] = [
   },
   {
     id: 'mock-essay',
+    section: 2,
     text: 'Mock: descreva uma situação',
     type: 'dissertativa',
     options: [],
@@ -83,11 +85,42 @@ describe('RevisaoRespostasView', () => {
     expect(
       screen.getByRole('button', { name: 'Enviar respostas' }),
     ).toBeDisabled();
-    expect(screen.getByRole('list')).toHaveClass('md:hidden');
+    // Uma lista de cards por seção, todas dentro do bloco que só aparece no
+    // mobile (lista → seção → bloco).
+    const listas = screen.getAllByRole('list');
+    expect(listas).toHaveLength(2);
+    for (const lista of listas) {
+      expect(lista.parentElement?.parentElement).toHaveClass('md:hidden');
+    }
     expect(screen.getByRole('table').parentElement?.parentElement).toHaveClass(
       'hidden',
       'md:block',
     );
+  });
+
+  it('separa as perguntas por seção na tabela e nos cards mobile', () => {
+    renderizar();
+
+    // Tabela: um cabeçalho de seção por grupo.
+    const tabela = screen.getByRole('table');
+    expect(
+      within(tabela).getByRole('columnheader', { name: 'Seção 1' }),
+    ).toBeInTheDocument();
+    expect(
+      within(tabela).getByRole('columnheader', { name: 'Seção 2' }),
+    ).toBeInTheDocument();
+
+    // Cards: cada seção é um título, e a numeração das perguntas continua
+    // corrida entre as seções.
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Seção 1' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Seção 2' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('button', { name: 'Revisar pergunta 2' }),
+    ).toHaveLength(2);
   });
 
   it('salva a edição de escala e cancelar descarta a edição dissertativa', async () => {
@@ -162,7 +195,56 @@ describe('RevisaoRespostasView', () => {
       '3',
       'Resposta mockada preenchida.',
     ]);
-    expect(screen.getByText('Respostas enviadas.')).toBeInTheDocument();
+    // O "enviado" espera o envio terminar.
+    expect(await screen.findByText('Respostas enviadas.')).toBeInTheDocument();
+  });
+
+  it('mostra Enviando enquanto espera e libera nova tentativa quando falha', async () => {
+    const user = userEvent.setup();
+    let falhar: (erro: Error) => void = () => undefined;
+    const onSubmit = vi.fn(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          falhar = reject;
+        }),
+    );
+    const { rerender } = renderizar(onSubmit);
+
+    await user.click(obterBotaoRevisar(2));
+    const dialog = screen.getByRole('dialog');
+    await user.type(within(dialog).getByRole('textbox'), 'Texto.');
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Salvar resposta' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Enviar respostas' }));
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Confirmar envio',
+      }),
+    );
+
+    expect(screen.getByText('Enviando…')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Enviar respostas' }),
+    ).toBeDisabled();
+
+    // O envio falha, e o pai passa o motivo.
+    falhar(new Error('fora do ar'));
+    rerender(
+      <RevisaoRespostasView
+        questions={MOCK_QUESTIONS}
+        onSubmit={onSubmit}
+        submitError="questionarioRevisao:erros.envioFalhou"
+      />,
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível enviar. Tente de novo.',
+    );
+    expect(screen.queryByText('Respostas enviadas.')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Enviar respostas' }),
+    ).toBeEnabled();
   });
 
   it('aciona a impressão para salvar ou imprimir a revisão como PDF', async () => {

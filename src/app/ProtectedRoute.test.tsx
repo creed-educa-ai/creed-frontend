@@ -13,7 +13,7 @@ const usuario: UserSessionResponse = {
   id: 'usuario-1',
   email: 'dev@creed.example.com',
   role: 'admin',
-  vinculo_id: null,
+  link_id: null,
   organization_id: null,
   organization_name: null,
 };
