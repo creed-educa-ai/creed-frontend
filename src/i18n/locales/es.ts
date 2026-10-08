@@ -181,6 +181,11 @@ export const es: typeof ptBR = {
       'Después del envío, tus respuestas quedarán registradas para su evaluación.',
     confirmarEnvio: 'Confirmar envío',
     enviado: 'Respuestas enviadas.',
+    enviando: 'Enviando…',
+    erros: {
+      jaRespondido: 'Ya has respondido este cuestionario.',
+      envioFalhou: 'No se pudo enviar. Inténtalo de nuevo.',
+    },
     obrigatoria: 'Obligatoria',
     respostaObrigatoria: 'Esta pregunta es obligatoria.',
     semResposta: 'Sin respuesta',
@@ -303,60 +308,54 @@ export const es: typeof ptBR = {
     ouSaibaMais: 'O CONOCE MÁS',
     saibaMais: '¿Qué es el método CREED?',
   },
+  respostasEnviadas: {
+    titulo: 'Gracias por responder',
+    mensagem: 'Tus respuestas han sido enviadas.',
+    voltar: 'Volver',
+  },
   formulario: {
     titulo: 'Formulario',
     secao: 'Sección',
     pergunta: 'Pregunta',
     de: 'de',
-    quantitativa:
-      'Evalúa cada afirmación según tu experiencia real:\n 1 = Totalmente en desacuerdo  y 5 = Totalmente de acuerdo',
+    quantitativa: 'Evalúa cada afirmación según tu experiencia real.',
+    escalaMinima: 'Totalmente en desacuerdo',
+    escalaMaxima: 'Totalmente de acuerdo',
     dissertativa:
       'Responde de forma breve y objetiva, con un máximo de 200 palabras.',
     objetiva: 'Elige la alternativa que mejor describa tu experiencia.',
     textbox: 'Escribe tu respuesta aquí...',
-    pergunta1:
-      'Tengo o he tenido experiencia como fundador o socio de un negocio.',
-    pergunta2:
-      'Trabajo o he trabajado como intraemprendedor, proponiendo y liderando iniciativas innovadoras dentro de organizaciones.',
-    pergunta3:
-      'Participo o he participado activamente en el desarrollo de nuevos productos, servicios o modelos de negocio.',
-    pergunta4:
-      'Valoro y promuevo la diversidad cultural en las prácticas de mi contexto institucional.',
-    pergunta5:
-      '¿Cuál de las siguientes opciones describe mejor tu papel en relación con el multiculturalismo en la educación?',
-    pergunta5o1:
-      'Reconozco la importancia de la diversidad cultural, pero aún estoy desarrollando prácticas inclusivas',
-    pergunta5o2:
-      'Integro regularmente perspectivas culturales diversas en mis actividades educativas',
-    pergunta5o3:
-      'Promuevo activamente el diálogo intercultural y valoro distintas visiones del mundo en mi contexto',
-    pergunta5o4:
-      'Lidero iniciativas que transforman la institución para que sea verdaderamente multicultural e inclusiva',
-    pergunta5o5:
-      'Trabajo para eliminar barreras culturales y promover la equidad entre los diferentes grupos en la educación',
-    pergunta6:
-      'Describe una experiencia en la que hayas promovido la diversidad cultural o la inclusión en un entorno educativo, explicando cómo esto impactó a los involucrados y qué aprendizajes obtuviste.',
     avancar: 'Siguiente',
     voltar: 'Volver',
-    restante: '~15 minutos restantes',
-    finalizado: '¡Formulario finalizado!',
-    obrigado:
-      '¡Gracias por participar! Revisa tus respuestas antes de enviarlas.',
-    revisarRespostas: 'Revisar respuestas',
+    responderTudoAviso:
+      'Responde las preguntas obligatorias de la sección para continuar.',
+    semPerguntas: 'Este cuestionario aún no tiene preguntas.',
+    concluido: 'Completado',
+    perguntasRespondidas: '{{respondidas}} de {{total}} respondidas',
+    concluidoTitulo: 'Todas las preguntas respondidas',
+    fimDasPerguntasTitulo: 'Has llegado al final de las preguntas',
+    concluidoMensagem: 'Revisa tus respuestas antes de enviarlas.',
+    revisarEEnviar: 'Revisar y enviar',
     menuPainel: 'Panel',
     menuFormulario: 'Formulario',
     menuInformacoes: 'Información',
     menuSair: 'Cerrar sesión',
+    erros: {
+      naoEncontrado: 'Cuestionario no encontrado.',
+      semAcesso: 'No tienes acceso a este cuestionario.',
+      servicoIndisponivel:
+        'No se pudo establecer conexión con el servidor. Inténtalo de nuevo.',
+    },
   },
   onboardQuestionario: {
     titulo: 'FORMULARIO',
     start: '¿Comenzamos?',
-    subtitulo: 'tienes un cuestionario disponible',
+    subtitulo: 'Tienes un cuestionario disponible',
     mensagem:
       'Tus respuestas nos ayudan a mapear el panorama de tu organización.\n Es rápido y puedes pausar cuando quieras, tu progreso quedará guardado',
     tempo: '~15 minutos',
     secao: '4 secciones',
-    avancar: 'Siguiente',
+    iniciar: 'Comenzar',
     menuPainel: 'Panel',
     menuFormulario: 'Formulario',
     menuInformacoes: 'Información',
@@ -364,8 +363,8 @@ export const es: typeof ptBR = {
   },
   onboardQuestionarioInfo: {
     titulo: 'Actualizar información',
-    mensagem: '¿Quieres revisar algunos de tus datos personales?',
-    yes: 'Sí',
-    no: 'No',
+    mensagem: '¿Quieres revisar tus datos personales?',
+    revisarDados: 'Revisar datos',
+    iniciarQuestionario: 'Comenzar cuestionario',
   },
 };
