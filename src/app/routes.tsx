@@ -15,6 +15,7 @@ import { OnboardQuestionarioView } from '@/features/responses/OnboardQuestionari
 import { FormView } from '@/features/responses/FormView';
 import { RevisaoRespostasRoute } from '@/features/responses/RevisaoRespostasRoute';
 import { SubmissionConfirmationView } from '@/features/responses/SubmissionConfirmationView';
+import { DashboardView } from '@/features/dashboards/DashboardView';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  { path: '/dashboard', element: <DashboardView /> },
   { path: '/sobre', element: <SobreView /> },
   { path: '/cadastro', element: <CadastroView /> },
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
