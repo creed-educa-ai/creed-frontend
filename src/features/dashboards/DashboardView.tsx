@@ -50,12 +50,19 @@ export function DashboardView() {
           </button>
         </div>
       </header>
+      {/* BOTÃO DE TOGGLE APENAS PARA TESTES*/}
+      <button className="mb-4 max-w-40 rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary/80">
+        Toggle empresa
+      </button>
       <ResultadoText
         destaqueTexto="Lorem ipsum dolor sit amet consectetur adipisicing elit."
         oportunidadeTexto="Lorem ipsum dolor sit amet consectetur adipisicing elit."
         analiseTexto={[
           'Primeiro parágrafo da análise.',
           'Segundo parágrafo da análise.',
+        ]}
+        recomendacaoTexto={[
+          'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
         ]}
       />
     </div>

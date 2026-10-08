@@ -1,17 +1,20 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
+import { PanelTopOpen } from 'lucide-react';
 
 interface ResultadoTextProps {
   destaqueTexto: string;
   oportunidadeTexto: string;
   analiseTexto: string[];
+  recomendacaoTexto: string[];
 }
 
 export function ResultadoText({
   destaqueTexto,
   oportunidadeTexto,
   analiseTexto,
+  recomendacaoTexto,
 }: ResultadoTextProps) {
   const { t } = useTranslation(['resultado']);
   const [isOpen, setIsOpen] = useState(true);
@@ -37,6 +40,11 @@ export function ResultadoText({
             }`}
           />
           <h2 className="text-xl font-bold">{t('resultado:resumo')}</h2>
+        </button>
+        {/* BOTÃO EXCLUSIVO PARA A EMPRESA*/}
+        <button className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-white hover:bg-primary/80">
+          <PanelTopOpen />
+          Ver Completo
         </button>
         <div className="h-px flex-1 bg-primary" aria-hidden="true" />
       </div>
@@ -73,7 +81,21 @@ export function ResultadoText({
                 {oportunidadeTexto}
               </p>
             </article>
+            {/* CARD DE RECOMENDAÇÃO EXCLUSIVO PARA A EMPRESA*/}
+            <article className="rounded-2xl bg-card p-5 shadow-sm">
+              <h3 className="flex items-center gap-2 text-2xl font-bold text-heading">
+                <span
+                  className="bg-brand size-2.5 rounded-full"
+                  aria-hidden="true"
+                />
+                Recomendação
+              </h3>
+              <p className="mt-2 text-sm text-card-foreground">
+                {recomendacaoTexto}
+              </p>
+            </article>
           </div>
+
           {/* COLUNA DIREITA */}
           <article className="rounded-2xl bg-card p-6 shadow-sm">
             <h3 className="text-2xl font-bold text-heading">
