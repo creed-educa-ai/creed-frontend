@@ -369,4 +369,11 @@ export const ptBR = {
     revisarDados: 'Revisar dados',
     iniciarQuestionario: 'Iniciar questionário',
   },
+  resultado: {
+    resumo: 'Resumo do Creed.ai',
+    destaque: 'Destaque',
+    oportunidade: 'Oportunidade',
+    analise: 'Análise do Creed.ai',
+    recomendacao: 'Recomendação',
+  },
 };
