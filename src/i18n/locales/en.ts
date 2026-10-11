@@ -31,6 +31,21 @@ export const en: typeof ptBR = {
     idade_one: '{{count}} year old',
     idade_other: '{{count}} years old',
   },
+  dashboardPrisma: {
+    titulo: 'Competency prism',
+    dimensao: 'Dimension',
+    periodoAtual: 'Current period',
+    periodoAnterior: 'Previous period',
+    descricaoComComparacao: '{{atual}} results compared with {{anterior}}.',
+    descricaoSemComparacao: 'Results for {{atual}}.',
+    dimensoes: {
+      neuroinovacao: 'Neuroinnovation',
+      seguranca: 'Security',
+      lideranca: 'Leadership',
+      adaptabilidade: 'Adaptability',
+      cultura: 'Culture',
+    },
+  },
   boasVindas: {
     titulo: 'Welcome!',
     apresentacao:

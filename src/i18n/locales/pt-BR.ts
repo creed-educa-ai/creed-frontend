@@ -31,6 +31,22 @@ export const ptBR = {
     idade_one: '{{count}} ano',
     idade_other: '{{count}} anos',
   },
+  dashboardPrisma: {
+    titulo: 'Prisma de competências',
+    dimensao: 'Dimensão',
+    periodoAtual: 'Período atual',
+    periodoAnterior: 'Período anterior',
+    descricaoComComparacao:
+      'Resultados de {{atual}} comparados com {{anterior}}.',
+    descricaoSemComparacao: 'Resultados do período {{atual}}.',
+    dimensoes: {
+      neuroinovacao: 'Neuroinovação',
+      seguranca: 'Segurança',
+      lideranca: 'Liderança',
+      adaptabilidade: 'Adaptabilidade',
+      cultura: 'Cultura',
+    },
+  },
   boasVindas: {
     titulo: 'Bem vindo!',
     apresentacao:
