@@ -1,13 +1,13 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
-import { PanelTopOpen } from 'lucide-react';
 
 interface ResultadoTextProps {
   destaqueTexto: string;
   oportunidadeTexto: string;
   analiseTexto: string[];
   recomendacaoTexto: string[];
+  empresa?: boolean;
 }
 
 export function ResultadoText({
@@ -15,6 +15,7 @@ export function ResultadoText({
   oportunidadeTexto,
   analiseTexto,
   recomendacaoTexto,
+  empresa = false,
 }: ResultadoTextProps) {
   const { t } = useTranslation(['resultado']);
   const [isOpen, setIsOpen] = useState(true);
@@ -22,7 +23,7 @@ export function ResultadoText({
 
   return (
     <section className="w-full">
-      {/* HEADER*/}
+      {/* HEADER */}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -41,11 +42,6 @@ export function ResultadoText({
           />
           <h2 className="text-xl font-bold">{t('resultado:resumo')}</h2>
         </button>
-        {/* BOTÃO EXCLUSIVO PARA A EMPRESA*/}
-        <button className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-white hover:bg-primary/80">
-          <PanelTopOpen />
-          Ver Completo
-        </button>
         <div className="h-px flex-1 bg-primary" aria-hidden="true" />
       </div>
 
@@ -54,7 +50,7 @@ export function ResultadoText({
           id={conteudoId}
           className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]"
         >
-          {/* COLUNA ESQUERDA*/}
+          {/* COLUNA ESQUERDA */}
           <div className="flex flex-col justify-center gap-4">
             <article className="rounded-2xl bg-card p-5 shadow-sm">
               <h3 className="flex items-center gap-2 text-2xl font-bold text-heading">
@@ -81,19 +77,24 @@ export function ResultadoText({
                 {oportunidadeTexto}
               </p>
             </article>
-            {/* CARD DE RECOMENDAÇÃO EXCLUSIVO PARA A EMPRESA*/}
-            <article className="rounded-2xl bg-card p-5 shadow-sm">
-              <h3 className="flex items-center gap-2 text-2xl font-bold text-heading">
-                <span
-                  className="bg-brand size-2.5 rounded-full"
-                  aria-hidden="true"
-                />
-                Recomendação
-              </h3>
-              <p className="mt-2 text-sm text-card-foreground">
-                {recomendacaoTexto}
-              </p>
-            </article>
+
+            {/* CARD DE RECOMENDAÇÃO EXCLUSIVO PARA A EMPRESA */}
+            {empresa && (
+              <article className="rounded-2xl bg-card p-5 shadow-sm">
+                <h3 className="flex items-center gap-2 text-2xl font-bold text-heading">
+                  <span
+                    className="bg-brand size-2.5 rounded-full"
+                    aria-hidden="true"
+                  />
+                  {t('resultado:recomendacao')}
+                </h3>
+                <div className="mt-2 flex flex-col gap-2 text-sm text-card-foreground">
+                  {recomendacaoTexto.map((paragrafo) => (
+                    <p key={paragrafo}>{paragrafo}</p>
+                  ))}
+                </div>
+              </article>
+            )}
           </div>
 
           {/* COLUNA DIREITA */}

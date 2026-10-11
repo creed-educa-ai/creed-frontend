@@ -373,5 +373,6 @@ export const ptBR = {
     destaque: 'Destaque',
     oportunidade: 'Oportunidade',
     analise: 'Análise do Creed.ai',
+    recomendacao: 'Recomendação',
   },
 };

@@ -369,5 +369,6 @@ export const en: typeof ptBR = {
     destaque: 'Highlight',
     oportunidade: 'Opportunity',
     analise: 'Creed.ai Analysis',
+    recomendacao: 'Recommendation',
   },
 };

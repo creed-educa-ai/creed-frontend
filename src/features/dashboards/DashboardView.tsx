@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
 import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
@@ -6,6 +7,7 @@ import { ResultadoText } from './ResultadoText';
 
 export function DashboardView() {
   const { t } = useTranslation(['formulario']);
+  const [empresa, setEmpresa] = useState(false);
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
@@ -50,11 +52,21 @@ export function DashboardView() {
           </button>
         </div>
       </header>
-      {/* BOTÃO DE TOGGLE APENAS PARA TESTES*/}
-      <button className="mb-4 max-w-40 rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary/80">
+
+      {/* BOTÃO DE TOGGLE APENAS PARA TESTES */}
+      <button
+        type="button"
+        aria-pressed={empresa}
+        onClick={() => {
+          setEmpresa((prev) => !prev);
+        }}
+        className="mb-4 max-w-40 rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary/80"
+      >
         Toggle empresa
       </button>
+
       <ResultadoText
+        empresa={empresa}
         destaqueTexto="Lorem ipsum dolor sit amet consectetur adipisicing elit."
         oportunidadeTexto="Lorem ipsum dolor sit amet consectetur adipisicing elit."
         analiseTexto={[
