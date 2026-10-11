@@ -9,8 +9,11 @@ function Progress({
   ...props
 }: React.ComponentProps<typeof ProgressPrimitive.Root>) {
   return (
+    // `value` também vai para o Root: é dele que saem o aria-valuenow e o
+    // estado lido pelo leitor de tela. Sem isso a barra só mudava na tela.
     <ProgressPrimitive.Root
       data-slot="progress"
+      value={value}
       className={cn(
         'relative flex h-3 w-full items-center overflow-x-hidden rounded-full border border-primary bg-card',
         className,

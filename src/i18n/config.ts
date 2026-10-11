@@ -2,9 +2,10 @@ import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import { en } from '@/i18n/locales/en';
+import { es } from '@/i18n/locales/es';
 import { ptBR } from '@/i18n/locales/pt-BR';
 
-export const IDIOMAS = ['pt-BR', 'en'] as const;
+export const IDIOMAS = ['pt-BR', 'en', 'es'] as const;
 export type Idioma = (typeof IDIOMAS)[number];
 
 export const IDIOMA_PADRAO: Idioma = 'pt-BR';
@@ -14,6 +15,7 @@ export const defaultNS = 'comum';
 export const resources = {
   'pt-BR': ptBR,
   en,
+  es,
 };
 
 // Prefixo do projeto para não colidir com o `i18nextLng` genérico de outra
