@@ -200,11 +200,11 @@ export const en: typeof ptBR = {
     descricaoComComparacao: '{{atual}} results compared with {{anterior}}.',
     descricaoSemComparacao: 'Results for {{atual}}.',
     dimensoes: {
+      plasticidade_humana: 'Human plasticity',
+      empreendedorismo: 'Entrepreneurship',
+      multiculturalismo: 'Multiculturalism',
       neuroinovacao: 'Neuroinnovation',
-      seguranca: 'Security',
-      lideranca: 'Leadership',
-      adaptabilidade: 'Adaptability',
-      cultura: 'Culture',
+      tomada_decisao: 'Decision-making',
     },
   },
   boasVindas: {

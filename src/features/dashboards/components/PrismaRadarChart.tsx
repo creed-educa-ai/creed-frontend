@@ -8,17 +8,18 @@ import {
   Tooltip,
 } from 'recharts';
 import { ChartContainer } from '@/components/ui/chart';
+import type { Prisma } from '@/types/api';
 
-export const PRISMA_DIMENSIONS = [
+export const PRISMA_DIMENSIONS: readonly Prisma[] = [
+  'plasticidade_humana',
+  'empreendedorismo',
+  'multiculturalismo',
   'neuroinovacao',
-  'seguranca',
-  'lideranca',
-  'adaptabilidade',
-  'cultura',
-] as const;
+  'tomada_decisao',
+];
 
-export type PrismaDimension = (typeof PRISMA_DIMENSIONS)[number];
-export type PrismaScores = Record<PrismaDimension, number>;
+export type PrismaDimension = Prisma;
+export type PrismaScores = Record<Prisma, number>;
 
 export interface PrismaPeriod {
   label: string;

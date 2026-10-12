@@ -202,11 +202,11 @@ export const ptBR = {
       'Resultados de {{atual}} comparados com {{anterior}}.',
     descricaoSemComparacao: 'Resultados do período {{atual}}.',
     dimensoes: {
+      plasticidade_humana: 'Plasticidade humana',
+      empreendedorismo: 'Empreendedorismo',
+      multiculturalismo: 'Multiculturalismo',
       neuroinovacao: 'Neuroinovação',
-      seguranca: 'Segurança',
-      lideranca: 'Liderança',
-      adaptabilidade: 'Adaptabilidade',
-      cultura: 'Cultura',
+      tomada_decisao: 'Tomada de decisão',
     },
   },
   boasVindas: {
