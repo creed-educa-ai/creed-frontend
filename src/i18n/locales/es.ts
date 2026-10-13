@@ -383,4 +383,11 @@ export const es: typeof ptBR = {
     revisarDados: 'Revisar datos',
     iniciarQuestionario: 'Comenzar cuestionario',
   },
+  resultado: {
+    destaque: 'Destacado',
+    oportunidade: 'Oportunidad',
+    resumoEmpresa: 'Resumen de {{empresa}}',
+    taxaConclusao: 'Tasa de finalización',
+    maisComum: 'Más común',
+  },
 };

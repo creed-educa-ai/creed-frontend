@@ -385,4 +385,11 @@ export const ptBR = {
     revisarDados: 'Revisar dados',
     iniciarQuestionario: 'Iniciar questionário',
   },
+  resultado: {
+    destaque: 'Destaque',
+    oportunidade: 'Oportunidade',
+    resumoEmpresa: 'Resumo de {{empresa}}',
+    taxaConclusao: 'Taxa de Conclusão',
+    maisComum: 'Mais comum',
+  },
 };

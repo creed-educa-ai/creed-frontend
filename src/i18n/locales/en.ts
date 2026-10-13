@@ -380,4 +380,11 @@ export const en: typeof ptBR = {
     revisarDados: 'Review data',
     iniciarQuestionario: 'Start questionnaire',
   },
+  resultado: {
+    destaque: 'Highlight',
+    oportunidade: 'Opportunity',
+    resumoEmpresa: 'Summary of {{empresa}}',
+    taxaConclusao: 'Completion Rate',
+    maisComum: 'Most common',
+  },
 };
