@@ -35,8 +35,10 @@ describe('PrismaRadarChart', () => {
     expect(screen.queryByText('Formulário anterior')).not.toBeInTheDocument();
 
     const table = screen.getByRole('table');
-    expect(within(table).getByText('Neuroinovação')).toBeInTheDocument();
-    expect(within(table).getByText('78')).toBeInTheDocument();
+    const neuroinovacao = within(table).getByRole('row', {
+      name: /Neuroinovação/,
+    });
+    expect(neuroinovacao).toHaveTextContent('78');
     expect(within(table).queryByText('62')).not.toBeInTheDocument();
   });
 
