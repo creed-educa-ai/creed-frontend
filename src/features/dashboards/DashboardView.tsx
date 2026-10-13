@@ -3,7 +3,8 @@ import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
 import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { ResultadoText } from './ResultadoText';
+import { ResultadoText } from './components/ResultadoText';
+import { ResumoCards } from './components/ResumoCards';
 
 export function DashboardView() {
   const { t } = useTranslation(['formulario']);
@@ -65,18 +66,43 @@ export function DashboardView() {
         Toggle empresa
       </button>
 
-      <ResultadoText
-        empresa={empresa}
-        destaqueTexto="Lorem ipsum dolor sit amet consectetur adipisicing elit."
-        oportunidadeTexto="Lorem ipsum dolor sit amet consectetur adipisicing elit."
-        analiseTexto={[
-          'Primeiro parágrafo da análise.',
-          'Segundo parágrafo da análise.',
-        ]}
-        recomendacaoTexto={[
-          'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-        ]}
-      />
+      <div className="px-6">
+        <ResumoCards
+          nomeEmpresa="Acme Inc."
+          concluidos={50}
+          convidados={67}
+          destaque={{
+            titulo: 'Inovação',
+            valor: 79,
+            descricao:
+              'A equipe demonstra abertura consistente a novas abordagens e experimentação em ciclos curtos.',
+          }}
+          oportunidade={{
+            titulo: 'Neuroinovação',
+            valor: 54,
+            descricao:
+              'A equipe demonstra abertura consistente a novas abordagens e experimentação em ciclos curtos.',
+          }}
+          maisComum={{
+            titulo: 'Cultura',
+            valor: 67,
+            descricao:
+              'A equipe demonstra abertura consistente a novas abordagens e experimentação em ciclos curtos.',
+          }}
+        />
+        <ResultadoText
+          empresa={empresa}
+          destaqueTexto="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+          oportunidadeTexto="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+          analiseTexto={[
+            'Primeiro parágrafo da análise.',
+            'Segundo parágrafo da análise.',
+          ]}
+          recomendacaoTexto={[
+            'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
+          ]}
+        />
+      </div>
     </div>
   );
 }

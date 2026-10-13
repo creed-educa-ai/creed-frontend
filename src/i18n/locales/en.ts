@@ -23,6 +23,7 @@ export const en: typeof ptBR = {
       rotulo: 'Language',
       'pt-BR': 'Portuguese',
       en: 'English',
+      es: 'Spanish',
     },
   },
   respondentes: {
@@ -190,6 +191,21 @@ export const en: typeof ptBR = {
     obrigatoriasPendentes_one: '{{count}} required question unanswered.',
     obrigatoriasPendentes_other: '{{count}} required questions unanswered.',
     respostaDissertativaPlaceholder: 'Write your answer',
+  },
+  dashboardPrisma: {
+    titulo: 'Competency prism',
+    dimensao: 'Dimension',
+    periodoAtual: 'Current period',
+    periodoAnterior: 'Previous period',
+    descricaoComComparacao: '{{atual}} results compared with {{anterior}}.',
+    descricaoSemComparacao: 'Results for {{atual}}.',
+    dimensoes: {
+      plasticidade_humana: 'Human plasticity',
+      empreendedorismo: 'Entrepreneurship',
+      multiculturalismo: 'Multiculturalism',
+      neuroinovacao: 'Neuroinnovation',
+      tomada_decisao: 'Decision-making',
+    },
   },
   boasVindas: {
     titulo: 'Welcome!',
@@ -370,5 +386,8 @@ export const en: typeof ptBR = {
     oportunidade: 'Opportunity',
     analise: 'Creed.ai Analysis',
     recomendacao: 'Recommendation',
+    resumoEmpresa: 'Summary of {{empresa}}',
+    taxaConclusao: 'Completion Rate',
+    maisComum: 'Most common',
   },
 };
