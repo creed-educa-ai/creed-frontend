@@ -23,6 +23,7 @@ export const en: typeof ptBR = {
       rotulo: 'Language',
       'pt-BR': 'Portuguese',
       en: 'English',
+      es: 'Spanish',
     },
   },
   respondentes: {

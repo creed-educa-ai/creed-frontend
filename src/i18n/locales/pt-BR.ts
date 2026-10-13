@@ -21,6 +21,7 @@ export const ptBR = {
       rotulo: 'Idioma',
       'pt-BR': 'Português',
       en: 'Inglês',
+      es: 'Espanhol',
     },
   },
   respondentes: {
