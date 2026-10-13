@@ -193,6 +193,22 @@ export const ptBR = {
       '{{count}} perguntas obrigatórias sem resposta.',
     respostaDissertativaPlaceholder: 'Escreva sua resposta',
   },
+  dashboardPrisma: {
+    titulo: 'Prisma de competências',
+    dimensao: 'Dimensão',
+    periodoAtual: 'Período atual',
+    periodoAnterior: 'Período anterior',
+    descricaoComComparacao:
+      'Resultados de {{atual}} comparados com {{anterior}}.',
+    descricaoSemComparacao: 'Resultados do período {{atual}}.',
+    dimensoes: {
+      plasticidade_humana: 'Plasticidade humana',
+      empreendedorismo: 'Empreendedorismo',
+      multiculturalismo: 'Multiculturalismo',
+      neuroinovacao: 'Neuroinovação',
+      tomada_decisao: 'Tomada de decisão',
+    },
+  },
   boasVindas: {
     titulo: 'Bem vindo!',
     apresentacao:

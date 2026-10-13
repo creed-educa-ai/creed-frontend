@@ -192,6 +192,21 @@ export const en: typeof ptBR = {
     obrigatoriasPendentes_other: '{{count}} required questions unanswered.',
     respostaDissertativaPlaceholder: 'Write your answer',
   },
+  dashboardPrisma: {
+    titulo: 'Competency prism',
+    dimensao: 'Dimension',
+    periodoAtual: 'Current period',
+    periodoAnterior: 'Previous period',
+    descricaoComComparacao: '{{atual}} results compared with {{anterior}}.',
+    descricaoSemComparacao: 'Results for {{atual}}.',
+    dimensoes: {
+      plasticidade_humana: 'Human plasticity',
+      empreendedorismo: 'Entrepreneurship',
+      multiculturalismo: 'Multiculturalism',
+      neuroinovacao: 'Neuroinnovation',
+      tomada_decisao: 'Decision-making',
+    },
+  },
   boasVindas: {
     titulo: 'Welcome!',
     apresentacao:

@@ -194,6 +194,22 @@ export const es: typeof ptBR = {
       '{{count}} preguntas obligatorias sin responder.',
     respostaDissertativaPlaceholder: 'Escribe tu respuesta',
   },
+  dashboardPrisma: {
+    titulo: 'Prisma de competencias',
+    dimensao: 'Dimensión',
+    periodoAtual: 'Período actual',
+    periodoAnterior: 'Período anterior',
+    descricaoComComparacao:
+      'Resultados de {{atual}} comparados con {{anterior}}.',
+    descricaoSemComparacao: 'Resultados del período {{atual}}.',
+    dimensoes: {
+      plasticidade_humana: 'Plasticidad humana',
+      empreendedorismo: 'Emprendimiento',
+      multiculturalismo: 'Multiculturalismo',
+      neuroinovacao: 'Neuroinnovación',
+      tomada_decisao: 'Toma de decisiones',
+    },
+  },
   boasVindas: {
     titulo: '¡Bienvenido!',
     apresentacao:
