@@ -368,11 +368,8 @@ export const es: typeof ptBR = {
     iniciarQuestionario: 'Comenzar cuestionario',
   },
   resultado: {
-    resumo: 'Resumen de Creed.ai',
     destaque: 'Destacado',
     oportunidade: 'Oportunidad',
-    analise: 'Análisis de Creed.ai',
-    recomendacao: 'Recomendación',
     resumoEmpresa: 'Resumen de {{empresa}}',
     taxaConclusao: 'Tasa de finalización',
     maisComum: 'Más común',
