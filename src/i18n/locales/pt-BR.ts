@@ -398,5 +398,6 @@ export const ptBR = {
     Colaboradores: 'Colaboradores',
     Funcionario: 'Funcionário',
     Baixar: 'Baixar',
+    Periodo: 'Período',
   },
 };

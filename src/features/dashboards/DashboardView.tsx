@@ -65,7 +65,7 @@ export function DashboardView() {
               <Button type="button" variant="default" className="gap-2">
                 <ChevronDown />
                 <span className="hidden sm:inline">{period}</span>
-                <span className="sm:hidden">Período</span>
+                <span className="sm:hidden">{t('dashboard:Periodo')}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>

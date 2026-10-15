@@ -393,5 +393,6 @@ export const en: typeof ptBR = {
     Colaboradores: 'Team members',
     Funcionario: 'Employee',
     Baixar: 'Download',
+    Periodo: 'Period',
   },
 };
