@@ -390,4 +390,12 @@ export const es: typeof ptBR = {
     taxaConclusao: 'Tasa de finalización',
     maisComum: 'Más común',
   },
+  dashboard: {
+    Geral: 'Visión general',
+    Gerentes: 'Gerentes',
+    Colaboradores: 'Colaboradores',
+    Funcionario: 'Empleado',
+    Baixar: 'Descargar',
+    Periodo: 'Período',
+  },
 };

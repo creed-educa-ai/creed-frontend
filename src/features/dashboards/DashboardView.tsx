@@ -1,11 +1,51 @@
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
-import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
+import {
+  Info,
+  LogOut,
+  LayoutDashboard,
+  ClipboardPen,
+  ChevronDown,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ResumoCards } from './ResumoCards';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useState } from 'react';
+
+// TODO: períodos, grupos e membros virão do backend
+const periods = ['2026/1', '2025/2', '2025/1'];
+const views = [
+  { id: 'geral', labelKey: 'dashboard:Geral' },
+  { id: 'gerentes', labelKey: 'dashboard:Gerentes' },
+  { id: 'colaboradores', labelKey: 'dashboard:Colaboradores' },
+] as const;
+const members = [
+  { id: '1', nome: 'Neymar Jr' },
+  { id: '2', nome: 'Walter White' },
+  { id: '3', nome: 'Tom Cruise' },
+];
 
 export function DashboardView() {
-  const { t } = useTranslation(['formulario']);
+  const { t } = useTranslation(['formulario', 'dashboard']);
+  const [period, setPeriod] = useState('2026/1');
+  const [view, setView] = useState('geral');
+  const [empresa, setEmpresa] = useState(false);
+
+  const selectedView = views.find((item) => item.id === view);
+  const selectedLabel =
+    members.find((member) => member.id === view)?.nome ??
+    (selectedView ? t(selectedView.labelKey) : '');
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
@@ -15,6 +55,96 @@ export function DashboardView() {
           <h1 className="text-center text-3xl font-bold text-heading sm:text-left">
             Dashboard
           </h1>
+        </div>
+
+        {/* BOTÕES DE AÇÃO */}
+        <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl bg-background p-2 sm:justify-end">
+          {/* SELECIONAR PERÍODO */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="default" className="gap-2">
+                <ChevronDown />
+                <span className="hidden sm:inline">{period}</span>
+                <span className="sm:hidden">{t('dashboard:Periodo')}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuRadioGroup value={period} onValueChange={setPeriod}>
+                {periods.map((item) => (
+                  <DropdownMenuRadioItem key={item} value={item}>
+                    {item}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* SELECIONAR VISÃO - APENAS PARA EMPRESA */}
+          {empresa && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" variant="default" className="gap-2">
+                  <ChevronDown />
+                  {selectedLabel}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {/* Grupos */}
+                <DropdownMenuRadioGroup value={view} onValueChange={setView}>
+                  {views.map((item) => (
+                    <DropdownMenuRadioItem key={item.id} value={item.id}>
+                      {t(item.labelKey)}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+
+                {/* SELETOR DE FUNCIONÁRIO */}
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    {t('dashboard:Funcionario')}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
+                    <DropdownMenuRadioGroup
+                      value={view}
+                      onValueChange={setView}
+                    >
+                      {members.map((member) => (
+                        <DropdownMenuRadioItem
+                          key={member.id}
+                          value={member.id}
+                          onSelect={() => {
+                            setView(member.id);
+                          }}
+                        >
+                          {member.nome}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {/* BAIXAR */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="default" className="gap-2">
+                <ChevronDown />
+                {t('dashboard:Baixar')}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onSelect={() => {
+                  window.print();
+                }}
+              >
+                PDF
+              </DropdownMenuItem>
+              {/* TODO: IMPLEMENTAR LOGICA DE DOWNLOAD DE CSV */}
+              <DropdownMenuItem>CSV</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-background p-2 sm:justify-end">
@@ -50,7 +180,21 @@ export function DashboardView() {
           </button>
         </div>
       </header>
-
+      {/* BOTÃO DE TOGGLE APENAS PARA TESTES */}
+      <Button
+        type="button"
+        variant="default"
+        aria-pressed={empresa}
+        className="mx-6 mb-4 self-start"
+        onClick={() => {
+          if (empresa) {
+            setView('geral');
+          }
+          setEmpresa((prev) => !prev);
+        }}
+      >
+        Toggle empresa
+      </Button>
       <div className="px-6">
         <ResumoCards
           nomeEmpresa="Acme Inc."
