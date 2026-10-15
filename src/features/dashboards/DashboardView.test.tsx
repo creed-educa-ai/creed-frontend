@@ -86,7 +86,7 @@ describe('DashboardView', () => {
     ).toBeInTheDocument();
   });
 
-  it('should collapse and expand the summary when clicking its title', async () => {
+  it('should collapse and expand the company summary when clicking its title', async () => {
     const user = userEvent.setup();
     render(<DashboardView />);
 
@@ -94,6 +94,7 @@ describe('DashboardView', () => {
       name: i18n.t('resultado:resumoEmpresa', { empresa: 'Acme Inc.' }),
     });
     expect(resumo).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('progressbar')).toBeInTheDocument();
 
     await user.click(resumo);
 
@@ -106,22 +107,85 @@ describe('DashboardView', () => {
     await user.click(resumo);
 
     expect(resumo).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Inovação' }),
     ).toBeInTheDocument();
   });
 
-  it('should translate the summary to English', async () => {
-    await i18n.changeLanguage('en');
+  it('should collapse and expand the Creed.ai summary', async () => {
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    const resumo = screen.getByRole('button', {
+      name: i18n.t('resultado:resumo'),
+    });
+    expect(resumo).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(resumo);
+
+    expect(resumo).toHaveAttribute('aria-expanded', 'false');
+    expect(
+      screen.queryByRole('heading', { name: 'Destaque' }),
+    ).not.toBeInTheDocument();
+
+    await user.click(resumo);
+
+    expect(
+      screen.getByRole('heading', { name: 'Destaque' }),
+    ).toBeInTheDocument();
+  });
+
+  it('should hide the company-only items by default', () => {
     render(<DashboardView />);
 
     expect(
-      screen.getByRole('button', { name: 'Summary of Acme Inc.' }),
+      screen.queryByRole('heading', { name: 'Recomendação' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show the company-only items after clicking the toggle', async () => {
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    await user.click(screen.getByRole('button', { name: 'Toggle empresa' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Recomendação' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Completion Rate')).toBeInTheDocument();
-    expect(screen.getByText('Highlight - 79')).toBeInTheDocument();
-    expect(screen.getByText('Opportunity - 54')).toBeInTheDocument();
-    expect(screen.getByText('Most common - 67')).toBeInTheDocument();
+  });
+
+  it('should hide the company-only items again when toggled off', async () => {
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    const toggle = screen.getByRole('button', { name: 'Toggle empresa' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(
+      screen.queryByRole('heading', { name: 'Recomendação' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should translate the summary and the company-only items to English', async () => {
+    await i18n.changeLanguage('en');
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    await user.click(screen.getByRole('button', { name: 'Toggle empresa' }));
+
+    expect(
+      screen.getByRole('button', { name: 'Creed.ai Summary' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Highlight' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Recommendation' }),
+    ).toBeInTheDocument();
   });
 });
