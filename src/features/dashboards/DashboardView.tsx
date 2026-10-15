@@ -22,15 +22,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
-import { t } from 'i18next';
 
 // TODO: períodos, grupos e membros virão do backend
 const periods = ['2026/1', '2025/2', '2025/1'];
 const views = [
-  { id: 'geral', label: t('dashboard:Geral') },
-  { id: 'gerentes', label: t('dashboard:Gerentes') },
-  { id: 'colaboradores', label: t('dashboard:Colaboradores') },
-];
+  { id: 'geral', labelKey: 'dashboard:Geral' },
+  { id: 'gerentes', labelKey: 'dashboard:Gerentes' },
+  { id: 'colaboradores', labelKey: 'dashboard:Colaboradores' },
+] as const;
 const members = [
   { id: '1', nome: 'Neymar Jr' },
   { id: '2', nome: 'Walter White' },
@@ -43,9 +42,10 @@ export function DashboardView() {
   const [view, setView] = useState('geral');
   const [empresa, setEmpresa] = useState(false);
 
+  const selectedView = views.find((item) => item.id === view);
   const selectedLabel =
     members.find((member) => member.id === view)?.nome ??
-    views.find((item) => item.id === view)?.label;
+    (selectedView ? t(selectedView.labelKey) : '');
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
@@ -93,7 +93,7 @@ export function DashboardView() {
                 <DropdownMenuRadioGroup value={view} onValueChange={setView}>
                   {views.map((item) => (
                     <DropdownMenuRadioItem key={item.id} value={item.id}>
-                      {item.label}
+                      {t(item.labelKey)}
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
