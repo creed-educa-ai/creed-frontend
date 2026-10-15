@@ -1,11 +1,31 @@
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
-import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
+import {
+  Info,
+  LogOut,
+  LayoutDashboard,
+  ClipboardPen,
+  ChevronDown,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ResumoCards } from './ResumoCards';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useState } from 'react';
 
 export function DashboardView() {
   const { t } = useTranslation(['formulario']);
+  const periods = ['2026/1', '2025/2', '2025/1'];
+  const views = ['Visão Geral', 'Gerentes', 'Colaboradores'];
+  const [period, setPeriod] = useState('2026/1');
+  const [view, setView] = useState('Visão Geral');
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
@@ -15,6 +35,74 @@ export function DashboardView() {
           <h1 className="text-center text-3xl font-bold text-heading sm:text-left">
             Dashboard
           </h1>
+        </div>
+
+        {/* BOTÕES DE AÇÃO */}
+        <div className="flex flex-wrap items-center justify-center gap-2 rounded-2xl bg-background p-2 sm:justify-end">
+          {/* SELECIONAR PERÍODO */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="default" className="gap-2">
+                <ChevronDown />
+                <span className="hidden sm:inline">{period}</span>
+                <span className="sm:hidden">Período</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuRadioGroup value={period} onValueChange={setPeriod}>
+                {periods.map((item) => (
+                  <DropdownMenuRadioItem key={item} value={item}>
+                    {item}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* SELECIONAR VISÃO - APENAS PARA EMPRESA */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="default" className="gap-2">
+                <ChevronDown />
+                {view}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuRadioGroup value={view} onValueChange={setView}>
+                {views.map((item) => (
+                  <DropdownMenuRadioItem key={item} value={item}>
+                    {item}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* BAIXAR */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="default" className="gap-2">
+                <ChevronDown />
+                Baixar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onSelect={() => {
+                  window.print();
+                }}
+              >
+                PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  window.print();
+                }}
+              >
+                CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-background p-2 sm:justify-end">
