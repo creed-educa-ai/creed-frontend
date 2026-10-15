@@ -387,4 +387,11 @@ export const en: typeof ptBR = {
     taxaConclusao: 'Completion Rate',
     maisComum: 'Most common',
   },
+  dashboard: {
+    Geral: 'Overview',
+    Gerentes: 'Managers',
+    Colaboradores: 'Team members',
+    Funcionario: 'Employee',
+    Baixar: 'Download',
+  },
 };

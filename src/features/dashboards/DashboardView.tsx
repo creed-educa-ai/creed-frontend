@@ -22,13 +22,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
+import { t } from 'i18next';
 
 // TODO: períodos, grupos e membros virão do backend
 const periods = ['2026/1', '2025/2', '2025/1'];
 const views = [
-  { id: 'geral', label: 'Visão Geral' },
-  { id: 'gerentes', label: 'Gerentes' },
-  { id: 'colaboradores', label: 'Colaboradores' },
+  { id: 'geral', label: t('dashboard:Geral') },
+  { id: 'gerentes', label: t('dashboard:Gerentes') },
+  { id: 'colaboradores', label: t('dashboard:Colaboradores') },
 ];
 const members = [
   { id: '1', nome: 'Neymar Jr' },
@@ -37,7 +38,7 @@ const members = [
 ];
 
 export function DashboardView() {
-  const { t } = useTranslation(['formulario']);
+  const { t } = useTranslation(['formulario', 'dashboard']);
   const [period, setPeriod] = useState('2026/1');
   const [view, setView] = useState('geral');
   const [empresa, setEmpresa] = useState(false);
@@ -97,9 +98,11 @@ export function DashboardView() {
                   ))}
                 </DropdownMenuRadioGroup>
 
-                {/* Funcionário específico */}
+                {/* SELETOR DE FUNCIONÁRIO */}
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>Funcionário</DropdownMenuSubTrigger>
+                  <DropdownMenuSubTrigger>
+                    {t('dashboard:Funcionario')}
+                  </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
                     <DropdownMenuRadioGroup
                       value={view}
@@ -124,7 +127,7 @@ export function DashboardView() {
             <DropdownMenuTrigger asChild>
               <Button type="button" variant="default" className="gap-2">
                 <ChevronDown />
-                Baixar
+                {t('dashboard:Baixar')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -182,7 +185,7 @@ export function DashboardView() {
         className="mx-6 mb-4 self-start"
         onClick={() => {
           if (empresa) {
-            setView('Visão Geral');
+            setView('geral');
           }
           setEmpresa((prev) => !prev);
         }}

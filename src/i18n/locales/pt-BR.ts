@@ -392,4 +392,11 @@ export const ptBR = {
     taxaConclusao: 'Taxa de Conclusão',
     maisComum: 'Mais comum',
   },
+  dashboard: {
+    Geral: 'Visão Geral',
+    Gerentes: 'Gerentes',
+    Colaboradores: 'Colaboradores',
+    Funcionario: 'Funcionário',
+    Baixar: 'Baixar',
+  },
 };
