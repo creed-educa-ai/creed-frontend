@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardView } from './DashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
@@ -163,23 +163,32 @@ describe('DashboardView', () => {
       await screen.findByRole('button', { name: 'Gerentes' }),
     ).toBeInTheDocument();
   });
-
   it('should select a specific employee from the submenu', async () => {
     const user = userEvent.setup();
     render(<DashboardView />);
+
     await user.click(screen.getByRole('button', { name: 'Toggle empresa' }));
 
-    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
-    await user.click(screen.getByRole('menuitem', { name: 'Funcionário' }));
-    await user.click(
-      await screen.findByRole('menuitemradio', { name: 'Walter White' }),
-    );
+    // Guarda a referência do botão de visão ANTES de abrir o menu
+    const viewTrigger = screen.getByRole('button', { name: 'Visão Geral' });
+    await user.click(viewTrigger);
 
-    expect(
-      await screen.findByRole('button', { name: 'Walter White' }),
-    ).toBeInTheDocument();
+    const funcionarioSub = await screen.findByRole('menuitem', {
+      name: 'Funcionário',
+    });
+    funcionarioSub.focus();
+    await user.keyboard('{Enter}'); // abre submenu por teclado
+
+    const walterOption = await screen.findByRole('menuitemradio', {
+      name: 'Walter White',
+    });
+    walterOption.focus();
+    await user.keyboard('{Enter}'); // seleciona por teclado
+
+    await waitFor(() => {
+      expect(viewTrigger).toHaveTextContent('Walter White');
+    });
   });
-
   it('should reset the view to overview when company mode is turned off and on', async () => {
     const user = userEvent.setup();
     render(<DashboardView />);

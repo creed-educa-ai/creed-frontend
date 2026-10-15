@@ -112,6 +112,9 @@ export function DashboardView() {
                         <DropdownMenuRadioItem
                           key={member.id}
                           value={member.id}
+                          onSelect={() => {
+                            setView(member.id);
+                          }}
                         >
                           {member.nome}
                         </DropdownMenuRadioItem>
