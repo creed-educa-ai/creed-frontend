@@ -16,16 +16,35 @@ import {
   DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
 
+// TODO: períodos, grupos e membros virão do backend
+const periods = ['2026/1', '2025/2', '2025/1'];
+const views = [
+  { id: 'geral', label: 'Visão Geral' },
+  { id: 'gerentes', label: 'Gerentes' },
+  { id: 'colaboradores', label: 'Colaboradores' },
+];
+const members = [
+  { id: '1', nome: 'Neymar Jr' },
+  { id: '2', nome: 'Walter White' },
+  { id: '3', nome: 'Tom Cruise' },
+];
+
 export function DashboardView() {
   const { t } = useTranslation(['formulario']);
-  const periods = ['2026/1', '2025/2', '2025/1'];
-  const views = ['Visão Geral', 'Gerentes', 'Colaboradores'];
   const [period, setPeriod] = useState('2026/1');
-  const [view, setView] = useState('Visão Geral');
+  const [view, setView] = useState('geral');
+  const [empresa, setEmpresa] = useState(false);
+
+  const selectedLabel =
+    members.find((member) => member.id === view)?.nome ??
+    views.find((item) => item.id === view)?.label;
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
@@ -60,24 +79,46 @@ export function DashboardView() {
           </DropdownMenu>
 
           {/* SELECIONAR VISÃO - APENAS PARA EMPRESA */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button type="button" variant="default" className="gap-2">
-                <ChevronDown />
-                {view}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuRadioGroup value={view} onValueChange={setView}>
-                {views.map((item) => (
-                  <DropdownMenuRadioItem key={item} value={item}>
-                    {item}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {empresa && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" variant="default" className="gap-2">
+                  <ChevronDown />
+                  {selectedLabel}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {/* Grupos */}
+                <DropdownMenuRadioGroup value={view} onValueChange={setView}>
+                  {views.map((item) => (
+                    <DropdownMenuRadioItem key={item.id} value={item.id}>
+                      {item.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
 
+                {/* Funcionário específico */}
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>Funcionário</DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
+                    <DropdownMenuRadioGroup
+                      value={view}
+                      onValueChange={setView}
+                    >
+                      {members.map((member) => (
+                        <DropdownMenuRadioItem
+                          key={member.id}
+                          value={member.id}
+                        >
+                          {member.nome}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           {/* BAIXAR */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -94,13 +135,8 @@ export function DashboardView() {
               >
                 PDF
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => {
-                  window.print();
-                }}
-              >
-                CSV
-              </DropdownMenuItem>
+              {/* TODO: IMPLEMENTAR LOGICA DE DOWNLOAD DE CSV */}
+              <DropdownMenuItem>CSV</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -138,7 +174,21 @@ export function DashboardView() {
           </button>
         </div>
       </header>
-
+      {/* BOTÃO DE TOGGLE APENAS PARA TESTES */}
+      <Button
+        type="button"
+        variant="default"
+        aria-pressed={empresa}
+        className="mx-6 mb-4 self-start"
+        onClick={() => {
+          if (empresa) {
+            setView('Visão Geral');
+          }
+          setEmpresa((prev) => !prev);
+        }}
+      >
+        Toggle empresa
+      </Button>
       <div className="px-6">
         <ResumoCards
           nomeEmpresa="Acme Inc."
