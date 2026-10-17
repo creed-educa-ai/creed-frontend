@@ -75,4 +75,19 @@ describe('PrismaRadarChart', () => {
     expect(screen.getByText('Prisma de competencias')).toBeInTheDocument();
     expect(screen.getByText('Plasticidad humana')).toBeInTheDocument();
   });
+  it('na versão compacta mostra o título dentro do card e esconde a legenda', () => {
+    render(
+      <PrismaRadarChart
+        compact
+        current={{ label: '2026', scores: SCORES_ATUAIS }}
+      />,
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Prisma de competências' }),
+    ).toBeInTheDocument();
+    // Só aparece na tabela acessível: a legenda visual não é desenhada.
+    expect(screen.getAllByText('2026')).toHaveLength(1);
+    expect(screen.getByRole('table')).toBeInTheDocument();
+  });
 });

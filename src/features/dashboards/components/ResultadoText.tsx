@@ -8,6 +8,8 @@ interface ResultadoTextProps {
   analiseTexto: string[];
   recomendacaoTexto: string[];
   empresa?: boolean;
+  // Versão do dashboard: os cards ficam um embaixo do outro.
+  compacto?: boolean;
 }
 
 export function ResultadoText({
@@ -16,10 +18,20 @@ export function ResultadoText({
   analiseTexto,
   recomendacaoTexto,
   empresa = false,
+  compacto = false,
 }: ResultadoTextProps) {
   const { t } = useTranslation(['resultado']);
   const [isOpen, setIsOpen] = useState(true);
   const conteudoId = useId();
+
+  // No modo compacto a coluna da esquerda "some" (contents) e seus cards viram
+  // itens do mesmo grid; a ordem final é definida pelas classes order-*.
+  const classeGrid = compacto ? 'grid-cols-1' : 'lg:grid-cols-[1fr_2fr]';
+  const classeColunaEsquerda = compacto
+    ? 'contents'
+    : 'flex flex-col justify-center gap-4';
+  const ordemAnalise = compacto ? 'order-first' : '';
+  const ordemRecomendacao = compacto ? 'order-2' : '';
 
   return (
     <section className="w-full">
@@ -46,12 +58,9 @@ export function ResultadoText({
       </div>
 
       {isOpen && (
-        <div
-          id={conteudoId}
-          className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]"
-        >
+        <div id={conteudoId} className={`mt-6 grid gap-4 ${classeGrid}`}>
           {/* COLUNA ESQUERDA */}
-          <div className="flex flex-col justify-center gap-4">
+          <div className={classeColunaEsquerda}>
             <article className="rounded-2xl bg-card p-5 shadow-sm">
               <h3 className="flex items-center gap-2 text-2xl font-bold text-heading">
                 <span
@@ -80,7 +89,9 @@ export function ResultadoText({
 
             {/* CARD DE RECOMENDAÇÃO EXCLUSIVO PARA A EMPRESA */}
             {empresa && (
-              <article className="rounded-2xl bg-card p-5 shadow-sm">
+              <article
+                className={`rounded-2xl bg-card p-5 shadow-sm ${ordemRecomendacao}`}
+              >
                 <h3 className="flex items-center gap-2 text-2xl font-bold text-heading">
                   <span
                     className="bg-brand size-2.5 rounded-full"
@@ -98,7 +109,9 @@ export function ResultadoText({
           </div>
 
           {/* COLUNA DIREITA */}
-          <article className="rounded-2xl bg-card p-6 shadow-sm">
+          <article
+            className={`rounded-2xl bg-card p-6 shadow-sm ${ordemAnalise}`}
+          >
             <h3 className="text-2xl font-bold text-heading">
               {t('resultado:analise')}
             </h3>

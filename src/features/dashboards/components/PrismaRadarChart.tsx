@@ -30,6 +30,8 @@ interface PrismaRadarChartProps {
   current: PrismaPeriod;
   previous?: PrismaPeriod;
   className?: string;
+  // Versão reduzida para o dashboard: card com título dentro e radar menor.
+  compact?: boolean;
 }
 
 interface TickProps {
@@ -114,6 +116,7 @@ export function PrismaRadarChart({
   current,
   previous,
   className,
+  compact = false,
 }: PrismaRadarChartProps) {
   const { t } = useTranslation(['dashboardPrisma']);
   const chartData = PRISMA_DIMENSIONS.map((dimension) => ({
@@ -129,59 +132,75 @@ export function PrismaRadarChart({
     : t('dashboardPrisma:descricaoSemComparacao', { atual: current.label });
 
   return (
-    <figure className={className}>
-      <figcaption className="mb-3">
-        <h2 className="text-lg font-semibold text-heading">
-          {t('dashboardPrisma:titulo')}
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">{label}</p>
-      </figcaption>
+    <figure className={compact ? `h-full ${className ?? ''}` : className}>
+      {/* Título e legenda: só na versão completa */}
+      {!compact && (
+        <>
+          <figcaption className="mb-3">
+            <h2 className="text-lg font-semibold text-heading">
+              {t('dashboardPrisma:titulo')}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">{label}</p>
+          </figcaption>
 
-      <div className="mb-3 flex flex-wrap gap-2">
-        <span
-          className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
-          style={{
-            borderColor: 'var(--border)',
-            backgroundColor: 'var(--accent)',
-            color: 'var(--accent-foreground)',
-          }}
-        >
-          <span
-            aria-hidden="true"
-            className="w-5 border-t-[3px]"
-            style={{ borderColor: chartConfig.current.color }}
-          />
-          {current.label}
-        </span>
-        {previous && (
-          <span
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
-            style={{
-              borderColor: 'var(--border)',
-              backgroundColor: 'var(--accent)',
-              color: 'var(--accent-foreground)',
-            }}
-          >
+          <div className="mb-3 flex flex-wrap gap-2">
             <span
-              aria-hidden="true"
-              className="w-5 border-t-2 border-dashed"
-              style={{ borderColor: chartConfig.previous.color }}
-            />
-            {previous.label}
-          </span>
-        )}
-      </div>
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
+              style={{
+                borderColor: 'var(--border)',
+                backgroundColor: 'var(--accent)',
+                color: 'var(--accent-foreground)',
+              }}
+            >
+              <span
+                aria-hidden="true"
+                className="w-5 border-t-[3px]"
+                style={{ borderColor: chartConfig.current.color }}
+              />
+              {current.label}
+            </span>
+            {previous && (
+              <span
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
+                style={{
+                  borderColor: 'var(--border)',
+                  backgroundColor: 'var(--accent)',
+                  color: 'var(--accent-foreground)',
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="w-5 border-t-2 border-dashed"
+                  style={{ borderColor: chartConfig.previous.color }}
+                />
+                {previous.label}
+              </span>
+            )}
+          </div>
+        </>
+      )}
 
       <div
-        className="rounded-lg border border-border bg-card px-2 py-3 shadow-sm sm:px-5 sm:py-4"
+        className={
+          compact
+            ? 'h-full rounded-2xl bg-card p-5 shadow-sm'
+            : 'rounded-lg border border-border bg-card px-2 py-3 shadow-sm sm:px-5 sm:py-4'
+        }
         style={{ backgroundColor: 'var(--card)' }}
       >
+        {/* Na versão compacta o título fica dentro do card, como no Figma */}
+        {compact && (
+          <h3 className="text-xl font-bold text-heading">
+            {t('dashboardPrisma:titulo')}
+          </h3>
+        )}
+
         <ChartContainer
           id="prisma-radar"
           config={chartConfig}
           className="text-xs"
           style={{
-            height: 'clamp(350px, 55vw, 430px)',
+            height: compact ? '240px' : 'clamp(350px, 55vw, 430px)',
             color: 'var(--foreground)',
           }}
           aria-label={label}
