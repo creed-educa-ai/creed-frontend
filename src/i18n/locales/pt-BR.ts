@@ -394,6 +394,9 @@ export const ptBR = {
     resumoEmpresa: 'Resumo de {{empresa}}',
     taxaConclusao: 'Taxa de Conclusão',
     maisComum: 'Mais comum',
+    metricas: 'Métricas',
+    dadosVisaoGeral: 'Dados de Visão Geral',
+    evolucao: 'Evolução',
   },
   dashboard: {
     Geral: 'Visão Geral',

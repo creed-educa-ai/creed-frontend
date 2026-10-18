@@ -389,6 +389,9 @@ export const en: typeof ptBR = {
     resumoEmpresa: 'Summary of {{empresa}}',
     taxaConclusao: 'Completion Rate',
     maisComum: 'Most common',
+    metricas: 'Metrics',
+    dadosVisaoGeral: 'Overview Data',
+    evolucao: 'Evolution',
   },
   dashboard: {
     Geral: 'Overview',

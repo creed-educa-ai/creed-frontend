@@ -4,6 +4,14 @@ import userEvent from '@testing-library/user-event';
 import { DashboardView } from './DashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
+// O resumo em cards só aparece no fluxo empresa (toggle ligado).
+async function renderComoEmpresa() {
+  const user = userEvent.setup();
+  render(<DashboardView />);
+  await user.click(screen.getByRole('button', { name: 'Toggle empresa' }));
+  return user;
+}
+
 describe('DashboardView', () => {
   beforeEach(async () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
@@ -37,8 +45,19 @@ describe('DashboardView', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render the summary title with the company name', () => {
+  it('should hide the company summary cards by default', () => {
     render(<DashboardView />);
+
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', {
+        name: i18n.t('resultado:resumoEmpresa', { empresa: 'Acme Inc.' }),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render the summary title with the company name', async () => {
+    await renderComoEmpresa();
 
     expect(
       screen.getByRole('button', {
@@ -47,8 +66,8 @@ describe('DashboardView', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render the completion rate card', () => {
-    render(<DashboardView />);
+  it('should render the completion rate card', async () => {
+    await renderComoEmpresa();
 
     expect(
       screen.getByText(i18n.t('resultado:taxaConclusao')),
@@ -61,8 +80,8 @@ describe('DashboardView', () => {
     );
   });
 
-  it('should render the highlight, opportunity and most common cards', () => {
-    render(<DashboardView />);
+  it('should render the highlight, opportunity and most common cards', async () => {
+    await renderComoEmpresa();
 
     expect(
       screen.getByText(`${i18n.t('resultado:destaque')} - 79`),
@@ -87,8 +106,7 @@ describe('DashboardView', () => {
   });
 
   it('should collapse and expand the company summary when clicking its title', async () => {
-    const user = userEvent.setup();
-    render(<DashboardView />);
+    const user = await renderComoEmpresa();
 
     const resumo = screen.getByRole('button', {
       name: i18n.t('resultado:resumoEmpresa', { empresa: 'Acme Inc.' }),
@@ -109,6 +127,49 @@ describe('DashboardView', () => {
     expect(resumo).toHaveAttribute('aria-expanded', 'true');
     expect(
       screen.getByRole('heading', { name: 'Inovação' }),
+    ).toBeInTheDocument();
+  });
+
+  it('should render the overview data section with both prisma charts and the metrics cards', () => {
+    render(<DashboardView />);
+
+    expect(
+      screen.getByRole('button', {
+        name: i18n.t('resultado:dadosVisaoGeral'),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: i18n.t('resultado:metricas') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: i18n.t('resultado:evolucao') }),
+    ).toBeInTheDocument();
+    // Cada radar traz uma tabela acessível com os valores.
+    expect(screen.getAllByRole('table')).toHaveLength(2);
+  });
+
+  it('should collapse and expand the overview data section', async () => {
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    const secao = screen.getByRole('button', {
+      name: i18n.t('resultado:dadosVisaoGeral'),
+    });
+    expect(secao).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(secao);
+
+    expect(secao).toHaveAttribute('aria-expanded', 'false');
+    expect(
+      screen.queryByRole('heading', { name: i18n.t('resultado:metricas') }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryAllByRole('table')).toHaveLength(0);
+
+    await user.click(secao);
+
+    expect(secao).toHaveAttribute('aria-expanded', 'true');
+    expect(
+      screen.getByRole('heading', { name: i18n.t('resultado:metricas') }),
     ).toBeInTheDocument();
   });
 
@@ -144,10 +205,7 @@ describe('DashboardView', () => {
   });
 
   it('should show the company-only items after clicking the toggle', async () => {
-    const user = userEvent.setup();
-    render(<DashboardView />);
-
-    await user.click(screen.getByRole('button', { name: 'Toggle empresa' }));
+    await renderComoEmpresa();
 
     expect(
       screen.getByRole('heading', { name: 'Recomendação' }),
@@ -169,20 +227,21 @@ describe('DashboardView', () => {
     expect(
       screen.queryByRole('heading', { name: 'Recomendação' }),
     ).not.toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
   it('should translate the summary and the company-only items to English', async () => {
     await i18n.changeLanguage('en');
-    const user = userEvent.setup();
-    render(<DashboardView />);
-
-    await user.click(screen.getByRole('button', { name: 'Toggle empresa' }));
+    await renderComoEmpresa();
 
     expect(
       screen.getByRole('button', { name: 'Creed.ai Summary' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Highlight' }),
+      screen.getByRole('button', { name: 'Summary of Acme Inc.' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Overview Data' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Recommendation' }),

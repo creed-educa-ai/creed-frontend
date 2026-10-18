@@ -392,6 +392,9 @@ export const es: typeof ptBR = {
     resumoEmpresa: 'Resumen de {{empresa}}',
     taxaConclusao: 'Tasa de Finalización',
     maisComum: 'Más común',
+    metricas: 'Métricas',
+    dadosVisaoGeral: 'Datos de Visión General',
+    evolucao: 'Evolución',
   },
   dashboard: {
     Geral: 'Visión general',
