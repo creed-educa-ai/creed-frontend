@@ -393,4 +393,12 @@ export const en: typeof ptBR = {
     dadosVisaoGeral: 'Overview Data',
     evolucao: 'Evolution',
   },
+  dashboard: {
+    Geral: 'Overview',
+    Gerentes: 'Managers',
+    Colaboradores: 'Team members',
+    Funcionario: 'Employee',
+    Baixar: 'Download',
+    Periodo: 'Period',
+  },
 };

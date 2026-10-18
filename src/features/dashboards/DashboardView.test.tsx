@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardView } from './DashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
@@ -245,6 +245,152 @@ describe('DashboardView', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Recommendation' }),
+    ).toBeInTheDocument();
+  });
+  it('should hide the view selector by default', () => {
+    render(<DashboardView />);
+
+    expect(
+      screen.queryByRole('button', { name: 'Visão Geral' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show the view selector only when company mode is on', async () => {
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    const toggle = screen.getByRole('button', { name: 'Toggle empresa' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByRole('button', { name: 'Visão Geral' }),
+    ).toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(
+      screen.queryByRole('button', { name: 'Visão Geral' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should change the view label when selecting a group', async () => {
+    const user = userEvent.setup();
+    render(<DashboardView />);
+    await user.click(screen.getByRole('button', { name: 'Toggle empresa' }));
+
+    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Gerentes' }));
+
+    expect(
+      await screen.findByRole('button', { name: 'Gerentes' }),
+    ).toBeInTheDocument();
+  });
+  it('should select a specific employee from the submenu', async () => {
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    await user.click(screen.getByRole('button', { name: 'Toggle empresa' }));
+
+    // Guarda a referência do botão de visão ANTES de abrir o menu
+    const viewTrigger = screen.getByRole('button', { name: 'Visão Geral' });
+    await user.click(viewTrigger);
+
+    const funcionarioSub = await screen.findByRole('menuitem', {
+      name: 'Funcionário',
+    });
+    funcionarioSub.focus();
+    await user.keyboard('{Enter}'); // abre submenu por teclado
+
+    const walterOption = await screen.findByRole('menuitemradio', {
+      name: 'Walter White',
+    });
+    walterOption.focus();
+    await user.keyboard('{Enter}'); // seleciona por teclado
+
+    await waitFor(() => {
+      expect(viewTrigger).toHaveTextContent('Walter White');
+    });
+  });
+  it('should reset the view to overview when company mode is turned off and on', async () => {
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    const toggle = screen.getByRole('button', { name: 'Toggle empresa' });
+    await user.click(toggle);
+    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Gerentes' }));
+
+    await user.click(toggle);
+    await user.click(toggle);
+
+    expect(
+      await screen.findByRole('button', { name: 'Visão Geral' }),
+    ).toBeInTheDocument();
+  });
+
+  it('should change the period when selecting another option', async () => {
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    // No jsdom não há CSS: os dois spans (desktop e mobile) entram no nome do botão.
+    await user.click(screen.getByRole('button', { name: /2026\/1/ }));
+    expect(
+      screen.getByRole('menuitemradio', { name: '2026/1' }),
+    ).toHaveAttribute('aria-checked', 'true');
+
+    await user.click(screen.getByRole('menuitemradio', { name: '2025/2' }));
+
+    expect(
+      await screen.findByRole('button', { name: /2025\/2/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('should list PDF and CSV in the download menu', async () => {
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    await user.click(screen.getByRole('button', { name: 'Baixar' }));
+
+    expect(screen.getByRole('menuitem', { name: 'PDF' })).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: 'CSV' })).toBeInTheDocument();
+  });
+
+  it('should open the print dialog when choosing PDF', async () => {
+    const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    await user.click(screen.getByRole('button', { name: 'Baixar' }));
+    await user.click(screen.getByRole('menuitem', { name: 'PDF' }));
+
+    expect(print).toHaveBeenCalledTimes(1);
+    print.mockRestore();
+  });
+
+  it('should translate the action buttons and the view menu to English', async () => {
+    await i18n.changeLanguage('en');
+    const user = userEvent.setup();
+    render(<DashboardView />);
+
+    expect(
+      screen.getByRole('button', { name: 'Download' }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Toggle empresa' }));
+    await user.click(screen.getByRole('button', { name: 'Overview' }));
+
+    expect(
+      screen.getByRole('menuitemradio', { name: 'Overview' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitemradio', { name: 'Managers' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitemradio', { name: 'Team members' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: 'Employee' }),
     ).toBeInTheDocument();
   });
 });

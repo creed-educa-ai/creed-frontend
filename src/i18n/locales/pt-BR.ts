@@ -398,4 +398,12 @@ export const ptBR = {
     dadosVisaoGeral: 'Dados de Visão Geral',
     evolucao: 'Evolução',
   },
+  dashboard: {
+    Geral: 'Visão Geral',
+    Gerentes: 'Gerentes',
+    Colaboradores: 'Colaboradores',
+    Funcionario: 'Funcionário',
+    Baixar: 'Baixar',
+    Periodo: 'Período',
+  },
 };
