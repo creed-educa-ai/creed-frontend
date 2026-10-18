@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
 import {
@@ -8,7 +9,8 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { ResumoCards } from './ResumoCards';
+import { ResultadoText } from './components/ResultadoText';
+import { ResumoCards } from './components/ResumoCards';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -21,7 +23,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useState } from 'react';
 
 // TODO: períodos, grupos e membros virão do backend
 const periods = ['2026/1', '2025/2', '2025/1'];
@@ -180,6 +181,7 @@ export function DashboardView() {
           </button>
         </div>
       </header>
+
       {/* BOTÃO DE TOGGLE APENAS PARA TESTES */}
       <Button
         type="button"
@@ -195,6 +197,7 @@ export function DashboardView() {
       >
         Toggle empresa
       </Button>
+
       <div className="px-6">
         <ResumoCards
           nomeEmpresa="Acme Inc."
@@ -218,6 +221,18 @@ export function DashboardView() {
             descricao:
               'A equipe demonstra abertura consistente a novas abordagens e experimentação em ciclos curtos.',
           }}
+        />
+        <ResultadoText
+          empresa={empresa}
+          destaqueTexto="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+          oportunidadeTexto="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+          analiseTexto={[
+            'Primeiro parágrafo da análise.',
+            'Segundo parágrafo da análise.',
+          ]}
+          recomendacaoTexto={[
+            'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
+          ]}
         />
       </div>
     </div>

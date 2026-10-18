@@ -386,8 +386,11 @@ export const ptBR = {
     iniciarQuestionario: 'Iniciar questionário',
   },
   resultado: {
+    resumo: 'Resumo do Creed.ai',
     destaque: 'Destaque',
     oportunidade: 'Oportunidade',
+    analise: 'Análise do Creed.ai',
+    recomendacao: 'Recomendação',
     resumoEmpresa: 'Resumo de {{empresa}}',
     taxaConclusao: 'Taxa de Conclusão',
     maisComum: 'Mais comum',
