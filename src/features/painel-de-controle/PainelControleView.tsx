@@ -2,9 +2,12 @@ import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
 import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { GerenciarQuestionario } from './GerenciarQuestionario';
+import { useState } from 'react';
 
 export function PainelControleView() {
   const { t } = useTranslation(['formulario']);
+  const [dataSelecionada, setDataSelecionada] = useState<string>('');
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
@@ -50,7 +53,13 @@ export function PainelControleView() {
         </div>
       </header>
 
-      <div className="px-6">{/* COMPONENTE AQUI */}</div>
+      <div className="px-6">
+        <GerenciarQuestionario
+          value={dataSelecionada}
+          onChange={setDataSelecionada}
+          placeholder="Selecione a data limite"
+        />
+      </div>
     </div>
   );
 }

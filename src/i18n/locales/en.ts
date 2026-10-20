@@ -387,4 +387,9 @@ export const en: typeof ptBR = {
     taxaConclusao: 'Completion Rate',
     maisComum: 'Most common',
   },
+  painelControle: {
+    titulo: 'Control Panel',
+    subtitulo: "Here is your organization's overview today",
+    gerenciar: 'Manage Questionnaire',
+  },
 };

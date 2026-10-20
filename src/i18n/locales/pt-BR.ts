@@ -392,4 +392,9 @@ export const ptBR = {
     taxaConclusao: 'Taxa de Conclusão',
     maisComum: 'Mais comum',
   },
+  painelControle: {
+    titulo: 'Painel de Controle',
+    subtitulo: 'Aqui está o panorama da sua organização hoje',
+    gerenciar: 'Gerenciar Questionário',
+  },
 };

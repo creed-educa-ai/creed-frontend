@@ -390,4 +390,9 @@ export const es: typeof ptBR = {
     taxaConclusao: 'Tasa de finalización',
     maisComum: 'Más común',
   },
+  painelControle: {
+    titulo: 'Panel de Control',
+    subtitulo: 'Aquí está el panorama de su organización hoy',
+    gerenciar: 'Gestionar Cuestionario',
+  },
 };
