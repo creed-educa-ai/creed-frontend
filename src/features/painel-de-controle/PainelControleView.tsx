@@ -7,7 +7,8 @@ import { useState } from 'react';
 
 export function PainelControleView() {
   const { t } = useTranslation(['formulario']);
-  const [dataSelecionada, setDataSelecionada] = useState<string>('');
+  const [dataInicio, setDataInicio] = useState<string>('');
+  const [dataLimite, setDataLimite] = useState<string>('');
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
@@ -55,9 +56,12 @@ export function PainelControleView() {
 
       <div className="px-6">
         <GerenciarQuestionario
-          value={dataSelecionada}
-          onChange={setDataSelecionada}
-          placeholder="Selecione a data limite"
+          valueInicio={dataInicio}
+          onChangeInicio={setDataInicio}
+          valueLimite={dataLimite}
+          onChangeLimite={setDataLimite}
+          placeholderInicial="Selecione a data inicial"
+          placeholderLimite="Selecione a data limite"
         />
       </div>
     </div>
