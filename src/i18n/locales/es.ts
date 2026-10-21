@@ -394,5 +394,8 @@ export const es: typeof ptBR = {
     titulo: 'Panel de Control',
     subtitulo: 'Aquí está el panorama de su organización hoy',
     gerenciar: 'Gestionar Cuestionario',
+    inicio: 'Inicio',
+    termino: 'Fin',
+    confirmar: 'Confirmar',
   },
 };

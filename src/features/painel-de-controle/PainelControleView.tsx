@@ -1,15 +1,27 @@
+import { useState } from 'react';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
 import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { GerenciarQuestionario } from './GerenciarQuestionario';
-import { useState } from 'react';
 
 export function PainelControleView() {
-  const { t } = useTranslation(['formulario']);
+  const { t } = useTranslation(['formulario', 'painelControle']);
+
   const [dataInicio, setDataInicio] = useState<string>('');
   const [dataLimite, setDataLimite] = useState<string>('');
+  const [horaInicio, setHoraInicio] = useState<string>('12:30');
+  const [horaLimite, setHoraLimite] = useState<string>('12:30');
 
+  const handleConfirmar = () => {
+    console.log('Dados salvos:', {
+      dataInicio,
+      horaInicio,
+      dataLimite,
+      horaLimite,
+    });
+    // TODO: LOGICA DO BACK
+  };
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
       <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-10 sm:flex-row sm:items-start sm:justify-between">
@@ -60,8 +72,11 @@ export function PainelControleView() {
           onChangeInicio={setDataInicio}
           valueLimite={dataLimite}
           onChangeLimite={setDataLimite}
-          placeholderInicial="Selecione a data inicial"
-          placeholderLimite="Selecione a data limite"
+          horaInicio={horaInicio}
+          onChangeHoraInicio={setHoraInicio}
+          horaLimite={horaLimite}
+          onChangeHoraLimite={setHoraLimite}
+          onConfirmar={handleConfirmar}
         />
       </div>
     </div>

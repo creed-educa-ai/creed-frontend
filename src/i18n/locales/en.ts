@@ -391,5 +391,8 @@ export const en: typeof ptBR = {
     titulo: 'Control Panel',
     subtitulo: "Here is your organization's overview today",
     gerenciar: 'Manage Questionnaire',
+    inicio: 'Start',
+    termino: 'End',
+    confirmar: 'Confirm',
   },
 };

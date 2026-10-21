@@ -396,5 +396,8 @@ export const ptBR = {
     titulo: 'Painel de Controle',
     subtitulo: 'Aqui está o panorama da sua organização hoje',
     gerenciar: 'Gerenciar Questionário',
+    inicio: 'Início',
+    termino: 'Término',
+    confirmar: 'Confirmar',
   },
 };
