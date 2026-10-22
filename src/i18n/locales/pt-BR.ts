@@ -395,4 +395,20 @@ export const ptBR = {
     taxaConclusao: 'Taxa de Conclusão',
     maisComum: 'Mais comum',
   },
+  organizations: {
+    addMember: {
+      email: {
+        label: 'E-mail do membro',
+        placeholder: 'Insira um e-mail',
+      },
+      submit: 'Adicionar membro',
+      role: {
+        label: 'Função',
+        options: { respondente: 'Respondente', gestor: 'Gestor' },
+      },
+    },
+    errors: {
+      invalidEmail: 'Digite um e-mail válido.',
+    },
+  },
 };
