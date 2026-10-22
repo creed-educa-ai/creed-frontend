@@ -401,4 +401,20 @@ export const en: typeof ptBR = {
     Baixar: 'Download',
     Periodo: 'Period',
   },
+  organizations: {
+    addMember: {
+      email: {
+        label: 'Member email',
+        placeholder: 'Enter an email',
+      },
+      submit: 'Add member',
+      role: {
+        label: 'Role',
+        options: { respondente: 'Respondent', gestor: 'Manager' },
+      },
+    },
+    errors: {
+      invalidEmail: 'Enter a valid email.',
+    },
+  },
 };
