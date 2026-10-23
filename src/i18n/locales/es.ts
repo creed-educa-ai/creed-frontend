@@ -397,5 +397,16 @@ export const es: typeof ptBR = {
     inicio: 'Inicio',
     termino: 'Fin',
     confirmar: 'Confirmar',
+    erros: {
+      inicioObrigatorio: 'Selecciona la fecha de inicio.',
+      horaInicioObrigatoria: 'Selecciona la hora de inicio.',
+      terminoObrigatorio: 'Selecciona la fecha de finalización.',
+      horaTerminoObrigatoria: 'Selecciona la hora de finalización.',
+      inicioNoPassado: 'La fecha de inicio no puede ser anterior a hoy.',
+      terminoAntesInicio:
+        'La fecha de finalización no puede ser anterior a la fecha de inicio.',
+      horaTerminoAntesInicio:
+        'La hora de finalización debe ser posterior a la hora de inicio.',
+    },
   },
 };

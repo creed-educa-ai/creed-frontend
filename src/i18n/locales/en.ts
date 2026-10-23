@@ -394,5 +394,14 @@ export const en: typeof ptBR = {
     inicio: 'Start',
     termino: 'End',
     confirmar: 'Confirm',
+    erros: {
+      inicioObrigatorio: 'Select the start date.',
+      horaInicioObrigatoria: 'Select the start time.',
+      terminoObrigatorio: 'Select the end date.',
+      horaTerminoObrigatoria: 'Select the end time.',
+      inicioNoPassado: 'The start date cannot be before today.',
+      terminoAntesInicio: 'The end date cannot be before the start date.',
+      horaTerminoAntesInicio: 'The end time must be after the start time.',
+    },
   },
 };

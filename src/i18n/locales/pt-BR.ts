@@ -399,5 +399,16 @@ export const ptBR = {
     inicio: 'Início',
     termino: 'Término',
     confirmar: 'Confirmar',
+    erros: {
+      inicioObrigatorio: 'Selecione a data de início.',
+      horaInicioObrigatoria: 'Selecione o horário de início.',
+      terminoObrigatorio: 'Selecione a data de término.',
+      horaTerminoObrigatoria: 'Selecione o horário de término.',
+      inicioNoPassado: 'A data de início não pode ser anterior a hoje.',
+      terminoAntesInicio:
+        'A data de término não pode ser anterior à data de início.',
+      horaTerminoAntesInicio:
+        'O horário de término deve ser posterior ao horário de início.',
+    },
   },
 };
