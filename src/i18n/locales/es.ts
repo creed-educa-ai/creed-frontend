@@ -420,4 +420,23 @@ export const es: typeof ptBR = {
       invalidEmail: 'Ingresa un correo válido.',
     },
   },
+  painelControle: {
+    titulo: 'Panel de Control',
+    subtitulo: 'Aquí está el panorama de su organización hoy',
+    gerenciar: 'Gestionar Cuestionario',
+    inicio: 'Inicio',
+    termino: 'Fin',
+    confirmar: 'Confirmar',
+    erros: {
+      inicioObrigatorio: 'Selecciona la fecha de inicio.',
+      horaInicioObrigatoria: 'Selecciona la hora de inicio.',
+      terminoObrigatorio: 'Selecciona la fecha de finalización.',
+      horaTerminoObrigatoria: 'Selecciona la hora de finalización.',
+      inicioNoPassado: 'La fecha de inicio no puede ser anterior a hoy.',
+      terminoAntesInicio:
+        'La fecha de finalización no puede ser anterior a la fecha de inicio.',
+      horaTerminoAntesInicio:
+        'La hora de finalización debe ser posterior a la hora de inicio.',
+    },
+  },
 };
