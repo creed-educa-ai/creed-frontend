@@ -36,6 +36,7 @@ export function PainelControleView() {
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
       <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-10 sm:flex-row sm:items-start sm:justify-between">
         <div>
+          {/* TODO: NOME DA EMPRESA DEVE VIR DO BACKEND */}
           <p className="text-sm font-bold text-heading">ACME Inc.</p>
           <h1 className="text-center text-3xl font-bold text-heading sm:text-left">
             {t('painelControle:titulo')}
