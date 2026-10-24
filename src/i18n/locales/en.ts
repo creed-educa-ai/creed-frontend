@@ -389,11 +389,13 @@ export const en: typeof ptBR = {
   },
   painelControle: {
     titulo: 'Control Panel',
-    subtitulo: "Here is your organization's overview today",
+    subtitulo: 'Here is an overview of your organization today',
     gerenciar: 'Manage Questionnaire',
     inicio: 'Start',
     termino: 'End',
     confirmar: 'Confirm',
+    selecionarData: 'Select a date',
+    selecionarHora: 'Select a time',
     erros: {
       inicioObrigatorio: 'Select the start date.',
       horaInicioObrigatoria: 'Select the start time.',

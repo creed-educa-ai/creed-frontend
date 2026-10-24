@@ -391,12 +391,14 @@ export const es: typeof ptBR = {
     maisComum: 'Más común',
   },
   painelControle: {
-    titulo: 'Panel de Control',
-    subtitulo: 'Aquí está el panorama de su organización hoy',
-    gerenciar: 'Gestionar Cuestionario',
+    titulo: 'Panel de control',
+    subtitulo: 'Aquí está el panorama de tu organización hoy',
+    gerenciar: 'Gestionar cuestionario',
     inicio: 'Inicio',
-    termino: 'Fin',
+    termino: 'Finalización',
     confirmar: 'Confirmar',
+    selecionarData: 'Selecciona la fecha',
+    selecionarHora: 'Selecciona la hora',
     erros: {
       inicioObrigatorio: 'Selecciona la fecha de inicio.',
       horaInicioObrigatoria: 'Selecciona la hora de inicio.',
