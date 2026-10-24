@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, max, startOfToday } from 'date-fns';
 import { ptBR, es, enUS, type Locale } from 'date-fns/locale';
 import { CalendarIcon, ChevronDown, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,14 +27,12 @@ interface GerenciarQuestionarioProps {
   control: Control<GerenciarQuestionarioFormValues>;
   errors: FieldErrors<GerenciarQuestionarioFormValues>;
   onConfirmar?: () => void;
-  minGeral?: string;
 }
 
 export function GerenciarQuestionario({
   control,
   errors,
   onConfirmar,
-  minGeral,
 }: GerenciarQuestionarioProps) {
   const { t, i18n } = useTranslation(['painelControle']);
   const [isOpen, setIsOpen] = useState(true);
@@ -47,9 +45,14 @@ export function GerenciarQuestionario({
     name: 'dataInicio',
   });
 
-  const currentLocale = localeMap[i18n.language] ?? enUS;
-  const minDateGeral = minGeral ? parseISO(minGeral) : undefined;
+  const idioma = i18n.language.split('-')[0] ?? 'pt';
+  const currentLocale = localeMap[idioma] ?? ptBR;
   const conteudoId = useId();
+
+  const hoje = startOfToday();
+  const minimoTermino = dataInicioValue
+    ? max([hoje, parseISO(dataInicioValue)])
+    : hoje;
 
   return (
     <section className="w-full">
@@ -112,9 +115,7 @@ export function GerenciarQuestionario({
                           selected={
                             field.value ? parseISO(field.value) : undefined
                           }
-                          disabled={
-                            minDateGeral ? { before: minDateGeral } : undefined
-                          }
+                          disabled={{ before: hoje }}
                           onSelect={(date) => {
                             if (date) {
                               field.onChange(format(date, 'yyyy-MM-dd'));
@@ -184,10 +185,10 @@ export function GerenciarQuestionario({
                           selected={
                             field.value ? parseISO(field.value) : undefined
                           }
-                          disabled={(date) => {
-                            if (!dataInicioValue) return false;
-                            return format(date, 'yyyy-MM-dd') < dataInicioValue;
-                          }}
+                          disabled={{ before: minimoTermino }}
+                          defaultMonth={
+                            field.value ? parseISO(field.value) : minimoTermino
+                          }
                           onSelect={(date) => {
                             if (date) {
                               field.onChange(format(date, 'yyyy-MM-dd'));

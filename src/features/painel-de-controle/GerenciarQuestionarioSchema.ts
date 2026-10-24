@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { parseISO, isValid } from 'date-fns';
+import { parseISO, isValid, startOfToday, format } from 'date-fns';
 
 export const ERROS = {
   inicioObrigatorio: 'painelControle:erros.inicioObrigatorio',
@@ -7,6 +7,7 @@ export const ERROS = {
   terminoObrigatorio: 'painelControle:erros.terminoObrigatorio',
   horaTerminoObrigatoria: 'painelControle:erros.horaTerminoObrigatoria',
   terminoAntesInicio: 'painelControle:erros.terminoAntesInicio',
+  inicioNoPassado: 'painelControle:erros.inicioNoPassado',
 } as const;
 
 export type ChaveErro = (typeof ERROS)[keyof typeof ERROS];
@@ -20,6 +21,15 @@ export const gerenciarQuestionarioSchema = z
   })
   .superRefine((dados, ctx) => {
     const { dataInicio, horaInicio, dataLimite, horaLimite } = dados;
+
+    const hoje = format(startOfToday(), 'yyyy-MM-dd');
+    if (dataInicio && dataInicio < hoje) {
+      ctx.addIssue({
+        code: 'custom',
+        message: ERROS.inicioNoPassado,
+        path: ['dataInicio'],
+      });
+    }
 
     if (!dataInicio || !horaInicio || !dataLimite || !horaLimite) {
       return;
