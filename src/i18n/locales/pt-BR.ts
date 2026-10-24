@@ -399,6 +399,8 @@ export const ptBR = {
     inicio: 'Início',
     termino: 'Término',
     confirmar: 'Confirmar',
+    selecionarData: 'Selecione a data',
+    selecionarHora: 'Selecione a hora',
     erros: {
       inicioObrigatorio: 'Selecione a data de início.',
       horaInicioObrigatoria: 'Selecione o horário de início.',
