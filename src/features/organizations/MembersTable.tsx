@@ -37,215 +37,208 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import type { Membro, StatusMembro, TagMembro } from '@/types/api';
+import type { Member, MemberStatus, MemberTag } from '@/types/api';
 
-const TAMANHO_PAGINA = 5;
+const PAGE_SIZE = 5;
 
-const COLUNAS_OPCIONAIS = [
+const OPTIONAL_COLUMNS = [
   'email',
-  'acao',
+  'action',
   'status',
   'tag',
-  'atualizadoEm',
+  'updatedAt',
 ] as const;
 
-type ColunaOpcional = (typeof COLUNAS_OPCIONAIS)[number];
-type ColunaOrdenavel = 'email' | 'atualizadoEm';
-type Direcao = 'asc' | 'desc';
+type OptionalColumn = (typeof OPTIONAL_COLUMNS)[number];
+type SortableColumn = 'email' | 'updatedAt';
+type SortDirection = 'asc' | 'desc';
 
-interface MembrosTabelaProps {
-  itens: Membro[];
-  onExcluir: (id: string) => Promise<void>;
+interface MembersTableProps {
+  members: Member[];
+  onDelete: (id: string) => Promise<void>;
 }
 
-function formatarData(iso: string, idioma: string) {
-  return new Intl.DateTimeFormat(idioma, { dateStyle: 'short' }).format(
+function formatDate(iso: string, language: string) {
+  return new Intl.DateTimeFormat(language, { dateStyle: 'short' }).format(
     new Date(iso),
   );
 }
 
-function badgeStatusClass(status: StatusMembro) {
+function statusBadgeClass(status: MemberStatus) {
   return status === 'ativo' ? 'bg-[#4E8F67]' : 'bg-[#C88C32]';
 }
 
-function badgeTagClass(tag: TagMembro) {
+function tagBadgeClass(tag: MemberTag) {
   if (tag === 'marketing') return 'bg-[#009E4F]';
   if (tag === 'vendas') return 'bg-[#008AC9]';
   return 'bg-[#8B1E8B]';
 }
 
-export function MembrosTabela({ itens, onExcluir }: MembrosTabelaProps) {
-  const { t, i18n } = useTranslation(['comum', 'membros']);
-  const [busca, setBusca] = useState('');
-  const [pagina, setPagina] = useState(1);
-  const [ordenacao, setOrdenacao] = useState<{
-    coluna: ColunaOrdenavel;
-    direcao: Direcao;
+export function MembersTable({ members, onDelete }: MembersTableProps) {
+  const { t, i18n } = useTranslation(['comum', 'organizations']);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [sorting, setSorting] = useState<{
+    column: SortableColumn;
+    direction: SortDirection;
   } | null>(null);
-  const [colunasVisiveis, setColunasVisiveis] = useState<Set<ColunaOpcional>>(
-    () => new Set(COLUNAS_OPCIONAIS),
+  const [visibleColumns, setVisibleColumns] = useState<Set<OptionalColumn>>(
+    () => new Set(OPTIONAL_COLUMNS),
   );
-  const [menuColunasAberto, setMenuColunasAberto] = useState(false);
-  const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
-  const [detalhe, setDetalhe] = useState<Membro | null>(null);
-  const [alvoExclusao, setAlvoExclusao] = useState<Membro | null>(null);
-  const [excluindo, setExcluindo] = useState(false);
-  const [erroExclusao, setErroExclusao] = useState(false);
+  const [columnsMenuOpen, setColumnsMenuOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [details, setDetails] = useState<Member | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Member | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
 
-  const filtrados = useMemo(() => {
-    const termo = busca.trim().toLowerCase();
-    const lista = termo
-      ? itens.filter((membro) => membro.email.toLowerCase().includes(termo))
-      : [...itens];
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const list = term
+      ? members.filter((member) => member.email.toLowerCase().includes(term))
+      : [...members];
 
-    if (!ordenacao) return lista;
+    if (!sorting) return list;
 
-    return lista.sort((a, b) => {
+    return list.sort((a, b) => {
       const cmp =
-        ordenacao.coluna === 'atualizadoEm'
-          ? Date.parse(a.atualizado_em) - Date.parse(b.atualizado_em)
+        sorting.column === 'updatedAt'
+          ? Date.parse(a.updated_at) - Date.parse(b.updated_at)
           : a.email.localeCompare(b.email, i18n.resolvedLanguage, {
               sensitivity: 'base',
             });
-      return ordenacao.direcao === 'asc' ? cmp : -cmp;
+      return sorting.direction === 'asc' ? cmp : -cmp;
     });
-  }, [busca, itens, ordenacao, i18n.resolvedLanguage]);
+  }, [search, members, sorting, i18n.resolvedLanguage]);
 
-  const totalPaginas = Math.max(
-    1,
-    Math.ceil(filtrados.length / TAMANHO_PAGINA),
-  );
-  const paginaAtual = Math.min(pagina, totalPaginas);
-  const visiveis = filtrados.slice(
-    (paginaAtual - 1) * TAMANHO_PAGINA,
-    paginaAtual * TAMANHO_PAGINA,
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageMembers = filtered.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
   );
 
-  function alternarOrdenacao(coluna: ColunaOrdenavel) {
-    setPagina(1);
-    setOrdenacao((atual) => {
-      if (atual?.coluna !== coluna) {
-        return { coluna, direcao: 'asc' };
+  function toggleSorting(column: SortableColumn) {
+    setPage(1);
+    setSorting((current) => {
+      if (current?.column !== column) {
+        return { column, direction: 'asc' };
       }
-      if (atual.direcao === 'asc') {
-        return { coluna, direcao: 'desc' };
+      if (current.direction === 'asc') {
+        return { column, direction: 'desc' };
       }
       return null;
     });
   }
 
-  function iconeOrdenacao(coluna: ColunaOrdenavel) {
-    if (ordenacao?.coluna !== coluna) {
+  function sortIcon(column: SortableColumn) {
+    if (sorting?.column !== column) {
       return <ArrowUpDownIcon className="size-3.5 opacity-70" />;
     }
-    return ordenacao.direcao === 'asc' ? (
+    return sorting.direction === 'asc' ? (
       <ArrowUpIcon className="size-3.5" />
     ) : (
       <ArrowDownIcon className="size-3.5" />
     );
   }
 
-  function visivel(coluna: ColunaOpcional) {
-    return colunasVisiveis.has(coluna);
+  function isVisible(column: OptionalColumn) {
+    return visibleColumns.has(column);
   }
 
-  function alternarColuna(coluna: ColunaOpcional, marcada: boolean) {
-    setColunasVisiveis((atual) => {
-      const proximo = new Set(atual);
-      if (marcada) {
-        proximo.add(coluna);
+  function toggleColumn(column: OptionalColumn, checked: boolean) {
+    setVisibleColumns((current) => {
+      const next = new Set(current);
+      if (checked) {
+        next.add(column);
       } else {
-        proximo.delete(coluna);
+        next.delete(column);
       }
-      return proximo;
+      return next;
     });
   }
 
-  const idsPagina = visiveis.map((membro) => membro.id);
-  const todosSelecionados =
-    idsPagina.length > 0 && idsPagina.every((id) => selecionados.has(id));
-  const algunsSelecionados =
-    idsPagina.some((id) => selecionados.has(id)) && !todosSelecionados;
+  const pageIds = pageMembers.map((member) => member.id);
+  const allSelected =
+    pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+  const someSelected = pageIds.some((id) => selected.has(id)) && !allSelected;
 
-  function alternarTodos(marcado: boolean) {
-    setSelecionados((atual) => {
-      const proximo = new Set(atual);
-      if (marcado) {
-        idsPagina.forEach((id) => {
-          proximo.add(id);
+  function toggleAll(checked: boolean) {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (checked) {
+        pageIds.forEach((id) => {
+          next.add(id);
         });
       } else {
-        idsPagina.forEach((id) => {
-          proximo.delete(id);
+        pageIds.forEach((id) => {
+          next.delete(id);
         });
       }
-      return proximo;
+      return next;
     });
   }
 
-  function alternarLinha(id: string, marcado: boolean) {
-    setSelecionados((atual) => {
-      const proximo = new Set(atual);
-      if (marcado) {
-        proximo.add(id);
+  function toggleRow(id: string, checked: boolean) {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (checked) {
+        next.add(id);
       } else {
-        proximo.delete(id);
+        next.delete(id);
       }
-      return proximo;
+      return next;
     });
   }
 
-  async function confirmarExclusao() {
-    if (!alvoExclusao || excluindo) return;
-    setExcluindo(true);
-    setErroExclusao(false);
+  async function confirmDelete() {
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    setDeleteError(false);
     try {
-      await onExcluir(alvoExclusao.id);
-      setSelecionados((atual) => {
-        const proximo = new Set(atual);
-        proximo.delete(alvoExclusao.id);
-        return proximo;
+      await onDelete(deleteTarget.id);
+      setSelected((current) => {
+        const next = new Set(current);
+        next.delete(deleteTarget.id);
+        return next;
       });
-      setAlvoExclusao(null);
+      setDeleteTarget(null);
     } catch {
-      setErroExclusao(true);
+      setDeleteError(true);
     } finally {
-      setExcluindo(false);
+      setDeleting(false);
     }
   }
 
-  const buscaAtiva = busca.trim().length > 0;
-  const selecionadosNaPagina = visiveis.filter((membro) =>
-    selecionados.has(membro.id),
+  const searchActive = search.trim().length > 0;
+  const selectedOnPage = pageMembers.filter((member) =>
+    selected.has(member.id),
   );
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Input
-          id="busca-email-membro"
+          id="member-email-search"
           type="search"
-          value={busca}
-          onChange={(evento) => {
-            setBusca(evento.target.value);
-            setPagina(1);
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            setPage(1);
           }}
-          placeholder={t('membros:buscaEmail')}
-          aria-label={t('membros:buscaEmail')}
+          placeholder={t('organizations:members.searchEmail')}
+          aria-label={t('organizations:members.searchEmail')}
           className="h-10 w-full max-w-xs rounded-lg border border-[#7C50B0] bg-card px-3 text-sm placeholder:text-[#8A8794] focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20"
         />
 
-        <Popover.Root
-          open={menuColunasAberto}
-          onOpenChange={setMenuColunasAberto}
-        >
+        <Popover.Root open={columnsMenuOpen} onOpenChange={setColumnsMenuOpen}>
           <Popover.Trigger asChild>
             <Button
               type="button"
               variant="outline"
               className="h-10 rounded-lg border-zinc-200 bg-card px-3.5 text-sm font-medium hover:bg-zinc-50"
             >
-              {t('membros:colunas')}
+              {t('organizations:members.columns')}
               <ChevronDownIcon className="ml-1 size-4" />
             </Button>
           </Popover.Trigger>
@@ -253,21 +246,23 @@ export function MembrosTabela({ itens, onExcluir }: MembrosTabelaProps) {
             <Popover.Content
               align="end"
               sideOffset={6}
-              aria-label={t('membros:colunasMenu')}
+              aria-label={t('organizations:members.columnsMenu')}
               className="z-30 w-48 rounded-lg border border-border bg-card p-2 shadow-lg"
             >
-              {COLUNAS_OPCIONAIS.map((coluna) => (
+              {OPTIONAL_COLUMNS.map((column) => (
                 <label
-                  key={coluna}
+                  key={column}
                   className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-sm hover:bg-accent"
                 >
                   <Checkbox
-                    checked={visivel(coluna)}
-                    onCheckedChange={(valor) => {
-                      alternarColuna(coluna, valor === true);
+                    checked={isVisible(column)}
+                    onCheckedChange={(value) => {
+                      toggleColumn(column, value === true);
                     }}
                   />
-                  <span>{t(`membros:colunasNomes.${coluna}`)}</span>
+                  <span>
+                    {t(`organizations:members.columnNames.${column}`)}
+                  </span>
                 </label>
               ))}
             </Popover.Content>
@@ -276,29 +271,27 @@ export function MembrosTabela({ itens, onExcluir }: MembrosTabelaProps) {
       </div>
 
       <div className="overflow-hidden rounded-lg">
-        <Table aria-label={t('membros:tabela')}>
+        <Table aria-label={t('organizations:members.table')}>
           <TableHeader>
             <TableRow className="border-b border-border/60 hover:bg-transparent">
               <TableHead className="w-10 pl-2">
                 <Checkbox
-                  checked={
-                    algunsSelecionados ? 'indeterminate' : todosSelecionados
-                  }
-                  onCheckedChange={(valor) => {
-                    alternarTodos(valor === true);
+                  checked={someSelected ? 'indeterminate' : allSelected}
+                  onCheckedChange={(value) => {
+                    toggleAll(value === true);
                   }}
-                  aria-label={t('membros:selecionarPagina')}
-                  disabled={visiveis.length === 0}
+                  aria-label={t('organizations:members.selectPage')}
+                  disabled={pageMembers.length === 0}
                 />
               </TableHead>
               <TableHead className="font-heading text-sm font-bold text-heading">
-                {t('membros:colunasNomes.nome')}
+                {t('organizations:members.columnNames.name')}
               </TableHead>
-              {visivel('email') && (
+              {isVisible('email') && (
                 <TableHead
                   aria-sort={
-                    ordenacao?.coluna === 'email'
-                      ? ordenacao.direcao === 'asc'
+                    sorting?.column === 'email'
+                      ? sorting.direction === 'asc'
                         ? 'ascending'
                         : 'descending'
                       : 'none'
@@ -308,36 +301,36 @@ export function MembrosTabela({ itens, onExcluir }: MembrosTabelaProps) {
                     type="button"
                     className="inline-flex cursor-pointer items-center gap-1 font-heading text-sm font-bold text-heading"
                     onClick={() => {
-                      alternarOrdenacao('email');
+                      toggleSorting('email');
                     }}
-                    aria-label={t('membros:ordenarEmail')}
+                    aria-label={t('organizations:members.sortByEmail')}
                   >
-                    {t('membros:colunasNomes.email')}
-                    {iconeOrdenacao('email')}
+                    {t('organizations:members.columnNames.email')}
+                    {sortIcon('email')}
                   </button>
                 </TableHead>
               )}
-              {visivel('acao') && (
+              {isVisible('action') && (
                 <TableHead className="text-center font-heading text-sm font-bold text-heading">
-                  {t('membros:colunasNomes.acao')}
+                  {t('organizations:members.columnNames.action')}
                 </TableHead>
               )}
-              {visivel('status') && (
+              {isVisible('status') && (
                 <TableHead className="text-center font-heading text-sm font-bold text-heading">
-                  {t('membros:colunasNomes.status')}
+                  {t('organizations:members.columnNames.status')}
                 </TableHead>
               )}
-              {visivel('tag') && (
+              {isVisible('tag') && (
                 <TableHead className="text-center font-heading text-sm font-bold text-heading">
-                  {t('membros:colunasNomes.tag')}
+                  {t('organizations:members.columnNames.tag')}
                 </TableHead>
               )}
-              {visivel('atualizadoEm') && (
+              {isVisible('updatedAt') && (
                 <TableHead
                   className="text-center"
                   aria-sort={
-                    ordenacao?.coluna === 'atualizadoEm'
-                      ? ordenacao.direcao === 'asc'
+                    sorting?.column === 'updatedAt'
+                      ? sorting.direction === 'asc'
                         ? 'ascending'
                         : 'descending'
                       : 'none'
@@ -347,116 +340,118 @@ export function MembrosTabela({ itens, onExcluir }: MembrosTabelaProps) {
                     type="button"
                     className="inline-flex cursor-pointer items-center justify-center gap-1 font-heading text-sm font-bold text-heading"
                     onClick={() => {
-                      alternarOrdenacao('atualizadoEm');
+                      toggleSorting('updatedAt');
                     }}
-                    aria-label={t('membros:ordenarData')}
+                    aria-label={t('organizations:members.sortByDate')}
                   >
-                    {t('membros:colunasNomes.atualizadoEm')}
-                    {iconeOrdenacao('atualizadoEm')}
+                    {t('organizations:members.columnNames.updatedAt')}
+                    {sortIcon('updatedAt')}
                   </button>
                 </TableHead>
               )}
               <TableHead className="text-center font-heading text-sm font-semibold text-destructive">
-                {t('membros:colunasNomes.excluir')}
+                {t('organizations:members.columnNames.delete')}
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {visiveis.length === 0 && (
+            {pageMembers.length === 0 && (
               <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={3 + colunasVisiveis.size}
+                  colSpan={3 + visibleColumns.size}
                   className="py-10 text-center text-muted-foreground"
                 >
-                  {buscaAtiva ? t('membros:vazioBusca') : t('membros:vazio')}
+                  {searchActive
+                    ? t('organizations:members.emptySearch')
+                    : t('organizations:members.empty')}
                 </TableCell>
               </TableRow>
             )}
-            {visiveis.map((membro) => {
-              const marcada = selecionados.has(membro.id);
-              const isAtivo = membro.status === 'ativo';
+            {pageMembers.map((member) => {
+              const checked = selected.has(member.id);
+              const isActive = member.status === 'ativo';
 
               return (
                 <TableRow
-                  key={membro.id}
-                  data-state={marcada ? 'selected' : undefined}
+                  key={member.id}
+                  data-state={checked ? 'selected' : undefined}
                   className="border-b border-border/30 transition-colors hover:bg-muted/30"
                 >
                   <TableCell className="pl-2">
                     <Checkbox
-                      checked={marcada}
-                      onCheckedChange={(valor) => {
-                        alternarLinha(membro.id, valor === true);
+                      checked={checked}
+                      onCheckedChange={(value) => {
+                        toggleRow(member.id, value === true);
                       }}
-                      aria-label={membro.nome}
+                      aria-label={member.name}
                     />
                   </TableCell>
                   <TableCell className="font-medium text-foreground">
-                    {membro.nome}
+                    {member.name}
                   </TableCell>
-                  {visivel('email') && (
+                  {isVisible('email') && (
                     <TableCell
-                      title={membro.email}
+                      title={member.email}
                       className="max-w-[220px] truncate text-muted-foreground"
                     >
-                      {membro.email}
+                      {member.email}
                     </TableCell>
                   )}
-                  {visivel('acao') && (
+                  {isVisible('action') && (
                     <TableCell className="text-center">
                       <button
                         type="button"
                         onClick={() => {
-                          setDetalhe(membro);
+                          setDetails(member);
                         }}
                         className={cn(
                           'inline-flex cursor-pointer items-center justify-center rounded-full px-4 py-1 text-xs font-semibold shadow-none transition-colors select-none',
-                          isAtivo
+                          isActive
                             ? 'bg-[#532B88] text-white hover:bg-[#6438A0]'
                             : 'bg-[#E2D8F3] text-[#7C50B0] hover:bg-[#D7C8EE]',
                         )}
                       >
-                        {t('membros:ver')}
+                        {t('organizations:members.view')}
                       </button>
                     </TableCell>
                   )}
-                  {visivel('status') && (
+                  {isVisible('status') && (
                     <TableCell className="text-center">
                       <span
                         className={cn(
                           'inline-flex items-center justify-center rounded-full px-3.5 py-0.5 text-xs font-medium text-white shadow-none select-none',
-                          badgeStatusClass(membro.status),
+                          statusBadgeClass(member.status),
                         )}
                       >
-                        {t(`membros:status.${membro.status}`)}
+                        {t(`organizations:members.status.${member.status}`)}
                       </span>
                     </TableCell>
                   )}
-                  {visivel('tag') && (
+                  {isVisible('tag') && (
                     <TableCell className="text-center">
                       <span
                         className={cn(
                           'inline-flex items-center justify-center rounded-full px-3.5 py-0.5 text-xs font-medium text-white shadow-none select-none',
-                          badgeTagClass(membro.tag),
+                          tagBadgeClass(member.tag),
                         )}
                       >
-                        {t(`membros:tags.${membro.tag}`)}
+                        {t(`organizations:members.tags.${member.tag}`)}
                       </span>
                     </TableCell>
                   )}
-                  {visivel('atualizadoEm') && (
+                  {isVisible('updatedAt') && (
                     <TableCell className="text-center text-sm text-muted-foreground">
-                      {formatarData(membro.atualizado_em, i18n.language)}
+                      {formatDate(member.updated_at, i18n.language)}
                     </TableCell>
                   )}
                   <TableCell className="text-center">
                     <button
                       type="button"
                       className="inline-flex cursor-pointer items-center justify-center rounded-lg p-1.5 text-[#DC5548] transition-colors hover:bg-destructive/10 hover:text-[#B83E34]"
-                      aria-label={`${t('membros:excluir')} ${membro.nome}`}
+                      aria-label={`${t('organizations:members.delete')} ${member.name}`}
                       onClick={() => {
-                        setErroExclusao(false);
-                        setAlvoExclusao(membro);
+                        setDeleteError(false);
+                        setDeleteTarget(member);
                       }}
                     >
                       <Trash2Icon className="size-4" />
@@ -471,102 +466,105 @@ export function MembrosTabela({ itens, onExcluir }: MembrosTabelaProps) {
 
       <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          {t('membros:selecionados', {
-            count: selecionadosNaPagina.length,
-            total: visiveis.length,
+          {t('organizations:members.selected', {
+            count: selectedOnPage.length,
+            total: pageMembers.length,
           })}
         </p>
         <nav
-          aria-label={t('membros:paginacao')}
+          aria-label={t('organizations:members.pagination')}
           className="flex items-center gap-2"
         >
           <p className="text-sm text-muted-foreground" aria-live="polite">
-            {t('membros:pagina', { atual: paginaAtual, total: totalPaginas })}
+            {t('organizations:members.page', {
+              current: currentPage,
+              total: totalPages,
+            })}
           </p>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            disabled={paginaAtual <= 1}
+            disabled={currentPage <= 1}
             onClick={() => {
-              setPagina(Math.max(1, paginaAtual - 1));
+              setPage(Math.max(1, currentPage - 1));
             }}
             className="rounded-lg text-sm"
           >
-            {t('membros:anterior')}
+            {t('organizations:members.previous')}
           </Button>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            disabled={paginaAtual >= totalPaginas}
+            disabled={currentPage >= totalPages}
             onClick={() => {
-              setPagina(paginaAtual + 1);
+              setPage(currentPage + 1);
             }}
             className="rounded-lg text-sm"
           >
-            {t('membros:proximo')}
+            {t('organizations:members.next')}
           </Button>
         </nav>
       </div>
 
       <Dialog
-        open={detalhe !== null}
-        onOpenChange={(aberto) => {
-          if (!aberto) {
-            setDetalhe(null);
+        open={details !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDetails(null);
           }
         }}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t('membros:detalhesTitulo')}</DialogTitle>
-            <DialogDescription>{detalhe?.nome}</DialogDescription>
+            <DialogTitle>{t('organizations:members.detailsTitle')}</DialogTitle>
+            <DialogDescription>{details?.name}</DialogDescription>
           </DialogHeader>
-          {detalhe && (
+          {details && (
             <dl className="grid grid-cols-2 gap-3 text-sm">
               <div>
                 <dt className="text-muted-foreground">
-                  {t('membros:colunasNomes.email')}
+                  {t('organizations:members.columnNames.email')}
                 </dt>
-                <dd className="font-medium break-all">{detalhe.email}</dd>
+                <dd className="font-medium break-all">{details.email}</dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">
-                  {t('membros:colunasNomes.status')}
-                </dt>
-                <dd>
-                  <span
-                    className={cn(
-                      'inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white',
-                      badgeStatusClass(detalhe.status),
-                    )}
-                  >
-                    {t(`membros:status.${detalhe.status}`)}
-                  </span>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">
-                  {t('membros:colunasNomes.tag')}
+                  {t('organizations:members.columnNames.status')}
                 </dt>
                 <dd>
                   <span
                     className={cn(
                       'inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white',
-                      badgeTagClass(detalhe.tag),
+                      statusBadgeClass(details.status),
                     )}
                   >
-                    {t(`membros:tags.${detalhe.tag}`)}
+                    {t(`organizations:members.status.${details.status}`)}
                   </span>
                 </dd>
               </div>
               <div>
                 <dt className="text-muted-foreground">
-                  {t('membros:colunasNomes.atualizadoEm')}
+                  {t('organizations:members.columnNames.tag')}
+                </dt>
+                <dd>
+                  <span
+                    className={cn(
+                      'inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white',
+                      tagBadgeClass(details.tag),
+                    )}
+                  >
+                    {t(`organizations:members.tags.${details.tag}`)}
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">
+                  {t('organizations:members.columnNames.updatedAt')}
                 </dt>
                 <dd className="font-medium">
-                  {formatarData(detalhe.atualizado_em, i18n.language)}
+                  {formatDate(details.updated_at, i18n.language)}
                 </dd>
               </div>
             </dl>
@@ -575,42 +573,44 @@ export function MembrosTabela({ itens, onExcluir }: MembrosTabelaProps) {
       </Dialog>
 
       <AlertDialog
-        open={alvoExclusao !== null}
-        onOpenChange={(aberto) => {
-          if (!aberto && !excluindo) {
-            setAlvoExclusao(null);
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleting) {
+            setDeleteTarget(null);
           }
         }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t('membros:confirmarExclusaoTitulo')}
+              {t('organizations:members.confirmDeleteTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('membros:confirmarExclusaoDescricao', {
-                nome: alvoExclusao?.nome ?? '',
+              {t('organizations:members.confirmDeleteDescription', {
+                name: deleteTarget?.name ?? '',
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {erroExclusao && (
+          {deleteError && (
             <p role="alert" className="text-sm text-destructive">
-              {t('membros:erroExclusao')}
+              {t('organizations:members.deleteError')}
             </p>
           )}
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={excluindo}>
+            <AlertDialogCancel disabled={deleting}>
               {t('acoes.cancelar')}
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
-              disabled={excluindo}
-              onClick={(evento) => {
-                evento.preventDefault();
-                void confirmarExclusao();
+              disabled={deleting}
+              onClick={(event) => {
+                event.preventDefault();
+                void confirmDelete();
               }}
             >
-              {excluindo ? t('membros:excluindo') : t('membros:excluir')}
+              {deleting
+                ? t('organizations:members.deleting')
+                : t('organizations:members.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

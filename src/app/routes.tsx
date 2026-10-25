@@ -16,7 +16,7 @@ import { FormView } from '@/features/responses/FormView';
 import { RevisaoRespostasRoute } from '@/features/responses/RevisaoRespostasRoute';
 import { SubmissionConfirmationView } from '@/features/responses/SubmissionConfirmationView';
 import { DashboardView } from '@/features/dashboards/DashboardView';
-import { MembrosView } from '@/features/membros/MembrosView';
+import { MembersView } from '@/features/organizations/MembersView';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
@@ -60,5 +60,5 @@ export const router = createBrowserRouter([
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
   { path: '/aguarde-confirmacao', element: <AguardeConfirmacaoView /> },
   { path: '/recuperar-senha', element: <AlterarSenhaView /> },
-  { path: '/membros', element: <MembrosView /> },
+  { path: '/membros', element: <MembersView /> },
 ]);

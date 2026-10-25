@@ -10,26 +10,26 @@ import {
 } from '@/components/ui/collapsible';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { MembrosTabela } from '@/features/membros/MembrosTabela';
+import { MembersTable } from '@/features/organizations/MembersTable';
 import {
-  carregarMembros,
-  excluirMembro,
-} from '@/features/membros/membrosSlice';
+  deleteMember,
+  loadMembers,
+} from '@/features/organizations/organizationsSlice';
 
-export function MembrosView() {
-  const { t } = useTranslation(['comum', 'membros']);
+export function MembersView() {
+  const { t } = useTranslation(['comum', 'organizations']);
   const dispatch = useAppDispatch();
-  const { itens, empresa, status, erro } = useAppSelector(
-    (state) => state.membros,
+  const { members, organization, status, error } = useAppSelector(
+    (state) => state.organizations,
   );
-  const [aberto, setAberto] = useState(true);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
-    void dispatch(carregarMembros());
+    void dispatch(loadMembers());
   }, [dispatch]);
 
-  async function aoExcluir(id: string) {
-    await dispatch(excluirMembro(id)).unwrap();
+  async function handleDelete(id: string) {
+    await dispatch(deleteMember(id)).unwrap();
   }
 
   return (
@@ -39,11 +39,7 @@ export function MembrosView() {
           <SeletorIdioma />
         </div>
 
-        <Collapsible
-          open={aberto}
-          onOpenChange={setAberto}
-          className="space-y-4"
-        >
+        <Collapsible open={open} onOpenChange={setOpen} className="space-y-4">
           <div className="flex items-center gap-3">
             <CollapsibleTrigger asChild>
               <button
@@ -53,13 +49,13 @@ export function MembrosView() {
                 <ChevronDownIcon
                   className={cn(
                     'size-5 text-heading transition-transform duration-200',
-                    !aberto && '-rotate-90',
+                    !open && '-rotate-90',
                   )}
                 />
                 <h2 className="font-heading text-lg font-bold break-words text-heading">
-                  {empresa
-                    ? t('membros:titulo', { empresa })
-                    : t('membros:tabela')}
+                  {organization
+                    ? t('organizations:members.title', { organization })
+                    : t('organizations:members.table')}
                 </h2>
               </button>
             </CollapsibleTrigger>
@@ -68,7 +64,7 @@ export function MembrosView() {
 
           <CollapsibleContent>
             <div className="min-h-[calc(100svh-9rem)] rounded-[20px] border border-primary/15 bg-card p-3 shadow-sm sm:p-6">
-              {status === 'carregando' && (
+              {status === 'loading' && (
                 <div className="space-y-3" aria-live="polite">
                   <p className="text-sm text-muted-foreground">
                     {t('carregando')}
@@ -78,17 +74,17 @@ export function MembrosView() {
                 </div>
               )}
 
-              {status === 'erro' && (
+              {status === 'error' && (
                 <p
                   role="alert"
                   className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-destructive"
                 >
-                  {erro && t(`membros:${erro}`)} {t('tenteRecarregar')}
+                  {error && t(error)} {t('tenteRecarregar')}
                 </p>
               )}
 
-              {status === 'pronto' && (
-                <MembrosTabela itens={itens} onExcluir={aoExcluir} />
+              {status === 'ready' && (
+                <MembersTable members={members} onDelete={handleDelete} />
               )}
             </div>
           </CollapsibleContent>

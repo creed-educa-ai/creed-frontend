@@ -1,29 +1,29 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MembrosTabela } from '@/features/membros/MembrosTabela';
+import { MembersTable } from '@/features/organizations/MembersTable';
 import {
-  membrosApi,
-  redefinirMembrosMock,
-} from '@/features/membros/membrosApi';
+  organizationsApi,
+  resetMembersMock,
+} from '@/features/organizations/organizationsApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
-import type { Membro } from '@/types/api';
+import type { Member } from '@/types/api';
 
-let itens: Membro[];
+let itens: Member[];
 
 function linhas() {
   return within(screen.getByRole('table')).getAllByRole('row').slice(1);
 }
 
-describe('MembrosTabela', () => {
+describe('MembersTable', () => {
   beforeEach(async () => {
-    redefinirMembrosMock();
-    itens = (await membrosApi.listar()).itens;
+    resetMembersMock();
+    itens = (await organizationsApi.listMembers()).itens;
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
   it('exibe cinco membros por página e permite voltar', async () => {
-    render(<MembrosTabela itens={itens} onExcluir={vi.fn()} />);
+    render(<MembersTable members={itens} onDelete={vi.fn()} />);
 
     expect(linhas()).toHaveLength(5);
     expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled();
@@ -36,7 +36,7 @@ describe('MembrosTabela', () => {
   });
 
   it('reinicia a página ao filtrar e ignora espaços e caixa no e-mail', async () => {
-    render(<MembrosTabela itens={itens} onExcluir={vi.fn()} />);
+    render(<MembersTable members={itens} onDelete={vi.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: 'Próximo' }));
     await userEvent.type(screen.getByRole('searchbox'), ' FELICIA.REID ');
 
@@ -48,12 +48,12 @@ describe('MembrosTabela', () => {
 
   it('distingue uma lista vazia de uma busca sem resultados', async () => {
     const { rerender } = render(
-      <MembrosTabela itens={[]} onExcluir={vi.fn()} />,
+      <MembersTable members={[]} onDelete={vi.fn()} />,
     );
     expect(
       screen.getByText('Nenhum membro associado à empresa.'),
     ).toBeInTheDocument();
-    rerender(<MembrosTabela itens={itens} onExcluir={vi.fn()} />);
+    rerender(<MembersTable members={itens} onDelete={vi.fn()} />);
     await userEvent.type(screen.getByRole('searchbox'), 'inexistente');
     expect(
       screen.getByText('Nenhum membro encontrado para este e-mail.'),
@@ -61,7 +61,7 @@ describe('MembrosTabela', () => {
   });
 
   it('ordena e-mails nos dois sentidos e restaura a ordem original', async () => {
-    render(<MembrosTabela itens={itens} onExcluir={vi.fn()} />);
+    render(<MembersTable members={itens} onDelete={vi.fn()} />);
     const ordenar = screen.getByRole('button', { name: 'Ordenar por e-mail' });
     await userEvent.click(ordenar);
     expect(linhas()[0]).toHaveTextContent('Maurides Cambalhota');
@@ -75,7 +75,7 @@ describe('MembrosTabela', () => {
   });
 
   it('ordena datas e as formata no idioma selecionado', async () => {
-    render(<MembrosTabela itens={itens} onExcluir={vi.fn()} />);
+    render(<MembersTable members={itens} onDelete={vi.fn()} />);
     expect(screen.getByText('18/10/2026')).toBeInTheDocument();
     const ordenar = screen.getByRole('button', {
       name: 'Ordenar por data recente',
@@ -91,7 +91,7 @@ describe('MembrosTabela', () => {
   });
 
   it('seleciona apenas a página atual e mantém a seleção ao navegar', async () => {
-    render(<MembrosTabela itens={itens} onExcluir={vi.fn()} />);
+    render(<MembersTable members={itens} onDelete={vi.fn()} />);
     const selecionar = () =>
       screen.getByRole('checkbox', {
         name: 'Selecionar todos os membros desta página',
@@ -120,10 +120,10 @@ describe('MembrosTabela', () => {
   it('ordena datas pelo instante mesmo com fusos diferentes', async () => {
     const comFusos = itens.slice(0, 2).map((membro, indice) => ({
       ...membro,
-      atualizado_em:
+      updated_at:
         indice === 0 ? '2026-10-18T10:00:00-03:00' : '2026-10-18T12:00:00Z',
     }));
-    render(<MembrosTabela itens={comFusos} onExcluir={vi.fn()} />);
+    render(<MembersTable members={comFusos} onDelete={vi.fn()} />);
     const ordenar = screen.getByRole('button', {
       name: 'Ordenar por data recente',
     });
@@ -134,7 +134,7 @@ describe('MembrosTabela', () => {
   });
 
   it('permite ocultar todas as colunas opcionais e fechar o seletor com Escape', async () => {
-    render(<MembrosTabela itens={itens} onExcluir={vi.fn()} />);
+    render(<MembersTable members={itens} onDelete={vi.fn()} />);
     const botao = screen.getByRole('button', { name: 'Colunas' });
     await userEvent.click(botao);
     const seletor = screen.getByRole('dialog', { name: 'Exibir colunas' });
@@ -151,7 +151,7 @@ describe('MembrosTabela', () => {
 
   it('abre detalhes de membros pendentes e cancela a exclusão sem removê-los', async () => {
     const onExcluir = vi.fn();
-    render(<MembrosTabela itens={itens} onExcluir={onExcluir} />);
+    render(<MembersTable members={itens} onDelete={onExcluir} />);
     const linha = screen.getByText('Volante Ronaldo').closest('tr')!;
     await userEvent.click(within(linha).getByRole('button', { name: 'Ver' }));
     const detalhes = screen.getByRole('dialog');
@@ -174,7 +174,7 @@ describe('MembrosTabela', () => {
       .fn()
       .mockRejectedValueOnce(new Error('Falha de rede'))
       .mockResolvedValueOnce(undefined);
-    render(<MembrosTabela itens={itens} onExcluir={onExcluir} />);
+    render(<MembersTable members={itens} onDelete={onExcluir} />);
     await userEvent.click(
       screen.getByRole('button', { name: 'Excluir Enner Valência' }),
     );
@@ -201,7 +201,7 @@ describe('MembrosTabela', () => {
       concluir = resolve;
     });
     const onExcluir = vi.fn(() => exclusao);
-    render(<MembrosTabela itens={itens} onExcluir={onExcluir} />);
+    render(<MembersTable members={itens} onDelete={onExcluir} />);
     await userEvent.click(
       screen.getByRole('button', { name: 'Excluir Enner Valência' }),
     );
@@ -220,12 +220,12 @@ describe('MembrosTabela', () => {
 
   it('ajusta a página quando a lista diminui e não deixa a navegação travada', async () => {
     const { rerender } = render(
-      <MembrosTabela itens={itens} onExcluir={vi.fn()} />,
+      <MembersTable members={itens} onDelete={vi.fn()} />,
     );
     await userEvent.click(screen.getByRole('button', { name: 'Próximo' }));
-    rerender(<MembrosTabela itens={itens.slice(0, 5)} onExcluir={vi.fn()} />);
+    rerender(<MembersTable members={itens.slice(0, 5)} onDelete={vi.fn()} />);
     expect(screen.getByText('Página 1 de 1')).toBeInTheDocument();
-    rerender(<MembrosTabela itens={itens} onExcluir={vi.fn()} />);
+    rerender(<MembersTable members={itens} onDelete={vi.fn()} />);
     await userEvent.click(screen.getByRole('button', { name: 'Anterior' }));
     expect(screen.getByText('Página 1 de 2')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled();

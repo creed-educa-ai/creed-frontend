@@ -4,7 +4,7 @@ import authenticationReducer from '@/features/authentication/authenticationSlice
 import respondentesReducer from '@/features/respondentes/respondentesSlice';
 import respondentesDemograficosReducer from '@/features/respondentes/respondentesDemograficosSlice';
 import responsesReducer from '@/features/responses/responsesSlice';
-import membrosReducer from '@/features/membros/membrosSlice';
+import organizationsReducer from '@/features/organizations/organizationsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,7 +12,7 @@ export const store = configureStore({
     respondentes: respondentesReducer,
     respondentesDemograficos: respondentesDemograficosReducer,
     responses: responsesReducer,
-    membros: membrosReducer,
+    organizations: organizationsReducer,
   },
 });
 

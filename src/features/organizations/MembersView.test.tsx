@@ -3,36 +3,36 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MembrosView } from '@/features/membros/MembrosView';
-import membrosReducer from '@/features/membros/membrosSlice';
+import { MembersView } from '@/features/organizations/MembersView';
+import organizationsReducer from '@/features/organizations/organizationsSlice';
 import respondentesReducer from '@/features/respondentes/respondentesSlice';
 import {
-  membrosApi,
-  redefinirMembrosMock,
-} from '@/features/membros/membrosApi';
+  organizationsApi,
+  resetMembersMock,
+} from '@/features/organizations/organizationsApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
 function renderizar() {
   const store = configureStore({
     reducer: {
-      membros: membrosReducer,
+      organizations: organizationsReducer,
       respondentes: respondentesReducer,
     },
   });
 
   return render(
     <Provider store={store}>
-      <MembrosView />
+      <MembersView />
     </Provider>,
   );
 }
 
-describe('MembrosView', () => {
+describe('MembersView', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
   beforeEach(async () => {
-    redefinirMembrosMock();
+    resetMembersMock();
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
@@ -45,7 +45,7 @@ describe('MembrosView', () => {
   });
 
   it('traduz falhas de carregamento sem exibir mensagens técnicas', async () => {
-    vi.spyOn(membrosApi, 'listar').mockRejectedValueOnce(
+    vi.spyOn(organizationsApi, 'listMembers').mockRejectedValueOnce(
       new Error('Internal server error'),
     );
     await i18n.changeLanguage('es');
