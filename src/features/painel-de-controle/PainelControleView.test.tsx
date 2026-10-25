@@ -148,6 +148,33 @@ describe('PainelControleView', () => {
     ).toBeInTheDocument();
   });
 
+  it('should show the chosen time in the Portuguese format', async () => {
+    const user = userEvent.setup();
+    render(<PainelControleView />);
+
+    await escolherHora(user, colunaInicio(), '15', '45');
+
+    expect(
+      within(colunaInicio()).getByRole('button', { name: '15h45' }),
+    ).toBeInTheDocument();
+  });
+
+  it('should show the time picker and the chosen time in English', async () => {
+    await i18n.changeLanguage('en');
+    const user = userEvent.setup();
+    render(<PainelControleView />);
+
+    await user.click(botaoHora(colunaInicio()));
+    expect(screen.getByText('Hour')).toBeInTheDocument();
+    // "09": em inglês a hora 15 teria o mesmo nome do minuto 15.
+    await user.click(screen.getByRole('button', { name: '09' }));
+    await user.click(screen.getByRole('button', { name: '45' }));
+
+    expect(
+      within(colunaInicio()).getByRole('button', { name: '09:45' }),
+    ).toBeInTheDocument();
+  });
+
   it('should show the required errors and not save when the form is empty', async () => {
     const consoleSpy = vi
       .spyOn(console, 'log')
@@ -174,6 +201,66 @@ describe('PainelControleView', () => {
     consoleSpy.mockRestore();
   });
 
+  it('should announce each error and link it to its field', async () => {
+    const user = userEvent.setup();
+    render(<PainelControleView />);
+
+    await user.click(botaoConfirmar());
+
+    expect(await screen.findAllByRole('alert')).toHaveLength(4);
+    expect(botaoData(colunaInicio())).toHaveAttribute('aria-invalid', 'true');
+    expect(botaoData(colunaInicio())).toHaveAccessibleDescription(
+      i18n.t('painelControle:erros.inicioObrigatorio'),
+    );
+    expect(botaoHora(colunaTermino())).toHaveAccessibleDescription(
+      i18n.t('painelControle:erros.horaTerminoObrigatoria'),
+    );
+  });
+
+  it('should show an error and not save when the start time today has already passed', async () => {
+    const consoleSpy = vi
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    render(<PainelControleView />);
+
+    // "Agora" é 10/01/2026 às 10:00.
+    await escolherData(user, colunaInicio(), 10);
+    await escolherHora(user, colunaInicio(), '09', '00');
+    await escolherData(user, colunaTermino(), 11);
+    await escolherHora(user, colunaTermino(), '12', '00');
+    await user.click(botaoConfirmar());
+
+    expect(
+      await screen.findByText(
+        i18n.t('painelControle:erros.horaInicioNoPassado'),
+      ),
+    ).toBeInTheDocument();
+    expect(consoleSpy).not.toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
+  });
+
+  it('should accept a start time later today', async () => {
+    const consoleSpy = vi
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    render(<PainelControleView />);
+
+    await escolherData(user, colunaInicio(), 10);
+    await escolherHora(user, colunaInicio(), '10', '15');
+    await escolherData(user, colunaTermino(), 11);
+    await escolherHora(user, colunaTermino(), '12', '00');
+    await user.click(botaoConfirmar());
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledOnce();
+    });
+
+    consoleSpy.mockRestore();
+  });
+
   it('should show an error and not save when the end time is before the start time on the same day', async () => {
     const consoleSpy = vi
       .spyOn(console, 'log')
@@ -185,6 +272,37 @@ describe('PainelControleView', () => {
     await escolherHora(user, colunaInicio(), '15', '00');
     await escolherData(user, colunaTermino(), 17);
     await escolherHora(user, colunaTermino(), '09', '00');
+    await user.click(botaoConfirmar());
+
+    expect(
+      await screen.findByText(
+        i18n.t('painelControle:erros.horaTerminoAntesInicio'),
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(i18n.t('painelControle:erros.terminoAntesInicio')),
+    ).not.toBeInTheDocument();
+    expect(consoleSpy).not.toHaveBeenCalled();
+
+    consoleSpy.mockRestore();
+  });
+
+  it('should show an error and not save when the start date is moved past the end date', async () => {
+    const consoleSpy = vi
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    render(<PainelControleView />);
+
+    // O calendário do início não olha o término: só o schema pega este caso.
+    await escolherData(user, colunaInicio(), 17);
+    await escolherHora(user, colunaInicio(), '09', '00');
+    await escolherData(user, colunaTermino(), 17);
+    await escolherHora(user, colunaTermino(), '18', '00');
+    await user.click(
+      within(colunaInicio()).getByRole('button', { name: '17/01/2026' }),
+    );
+    await user.click(botaoDoDia(20));
     await user.click(botaoConfirmar());
 
     expect(

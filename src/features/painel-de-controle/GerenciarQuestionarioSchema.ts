@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { parseISO, isValid, startOfToday, format } from 'date-fns';
+import { format } from 'date-fns';
 
 export const ERROS = {
   inicioObrigatorio: 'painelControle:erros.inicioObrigatorio',
@@ -7,7 +7,9 @@ export const ERROS = {
   terminoObrigatorio: 'painelControle:erros.terminoObrigatorio',
   horaTerminoObrigatoria: 'painelControle:erros.horaTerminoObrigatoria',
   terminoAntesInicio: 'painelControle:erros.terminoAntesInicio',
+  horaTerminoAntesInicio: 'painelControle:erros.horaTerminoAntesInicio',
   inicioNoPassado: 'painelControle:erros.inicioNoPassado',
+  horaInicioNoPassado: 'painelControle:erros.horaInicioNoPassado',
 } as const;
 
 export type ChaveErro = (typeof ERROS)[keyof typeof ERROS];
@@ -22,12 +24,23 @@ export const gerenciarQuestionarioSchema = z
   .superRefine((dados, ctx) => {
     const { dataInicio, horaInicio, dataLimite, horaLimite } = dados;
 
-    const hoje = format(startOfToday(), 'yyyy-MM-dd');
+    const agora = new Date();
+    const hoje = format(agora, 'yyyy-MM-dd');
     if (dataInicio && dataInicio < hoje) {
       ctx.addIssue({
         code: 'custom',
         message: ERROS.inicioNoPassado,
         path: ['dataInicio'],
+      });
+    } else if (
+      dataInicio === hoje &&
+      horaInicio &&
+      horaInicio < format(agora, 'HH:mm')
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        message: ERROS.horaInicioNoPassado,
+        path: ['horaInicio'],
       });
     }
 
@@ -35,20 +48,19 @@ export const gerenciarQuestionarioSchema = z
       return;
     }
 
-    const inicioStr = `${dataInicio}T${horaInicio}:00`;
-    const terminoStr = `${dataLimite}T${horaLimite}:00`;
-
-    const inicioDate = parseISO(inicioStr);
-    const terminoDate = parseISO(terminoStr);
-
-    if (isValid(inicioDate) && isValid(terminoDate)) {
-      if (terminoDate <= inicioDate) {
-        ctx.addIssue({
-          code: 'custom',
-          message: ERROS.terminoAntesInicio,
-          path: ['dataLimite'],
-        });
-      }
+    // 'yyyy-MM-dd' e 'HH:mm' com zero à esquerda ordenam certo como texto.
+    if (dataLimite < dataInicio) {
+      ctx.addIssue({
+        code: 'custom',
+        message: ERROS.terminoAntesInicio,
+        path: ['dataLimite'],
+      });
+    } else if (dataLimite === dataInicio && horaLimite <= horaInicio) {
+      ctx.addIssue({
+        code: 'custom',
+        message: ERROS.horaTerminoAntesInicio,
+        path: ['horaLimite'],
+      });
     }
   });
 

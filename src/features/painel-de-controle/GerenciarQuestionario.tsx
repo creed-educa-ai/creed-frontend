@@ -48,6 +48,12 @@ export function GerenciarQuestionario({
   const idioma = i18n.language.split('-')[0] ?? 'pt';
   const currentLocale = localeMap[idioma] ?? ptBR;
   const conteudoId = useId();
+  const erroId = (campo: keyof GerenciarQuestionarioFormValues) =>
+    `${conteudoId}-${campo}-erro`;
+  const ligacaoErro = (campo: keyof GerenciarQuestionarioFormValues) => ({
+    'aria-invalid': Boolean(errors[campo]),
+    'aria-describedby': errors[campo] ? erroId(campo) : undefined,
+  });
 
   const hoje = startOfToday();
   const minimoTermino = dataInicioValue
@@ -75,12 +81,12 @@ export function GerenciarQuestionario({
           />
           <h2 className="text-xl font-bold">{t('painelControle:gerenciar')}</h2>
         </button>
-        <div className="h-px flex-1 bg-primary/40" aria-hidden="true" />
+        <div className="h-px flex-1 bg-border" aria-hidden="true" />
       </div>
 
       {isOpen && (
         <div id={conteudoId} className="mt-4">
-          <div className="flex flex-col items-start gap-4 rounded-3xl bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col items-start gap-4 rounded-3xl bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap gap-6">
               {/* COLUNA INÍCIO */}
               <div className="flex flex-col gap-2">
@@ -96,9 +102,10 @@ export function GerenciarQuestionario({
                     <Popover open={openInicio} onOpenChange={setOpenInicio}>
                       <PopoverTrigger asChild>
                         <Button
+                          {...ligacaoErro('dataInicio')}
                           type="button"
                           variant="outline"
-                          className="w-auto justify-start gap-3 rounded-2xl border-primary/50 text-primary hover:bg-primary/5"
+                          className="w-auto justify-start gap-3 rounded-2xl border-primary text-primary hover:bg-accent"
                         >
                           <CalendarIcon size={18} />
                           {field.value
@@ -127,11 +134,10 @@ export function GerenciarQuestionario({
                     </Popover>
                   )}
                 />
-                {errors.dataInicio?.message && (
-                  <span className="text-xs text-red-500">
-                    {t(errors.dataInicio.message as ChaveErro)}
-                  </span>
-                )}
+                <MensagemErro
+                  id={erroId('dataInicio')}
+                  mensagem={errors.dataInicio?.message}
+                />
 
                 {/* HORA INÍCIO */}
                 <Controller
@@ -139,17 +145,17 @@ export function GerenciarQuestionario({
                   control={control}
                   render={({ field }) => (
                     <TimePickerPopover
+                      {...ligacaoErro('horaInicio')}
                       value={field.value}
                       onChange={field.onChange}
                       placeholder={t('painelControle:selecionarHora')}
                     />
                   )}
                 />
-                {errors.horaInicio?.message && (
-                  <span className="text-xs text-red-500">
-                    {t(errors.horaInicio.message as ChaveErro)}
-                  </span>
-                )}
+                <MensagemErro
+                  id={erroId('horaInicio')}
+                  mensagem={errors.horaInicio?.message}
+                />
               </div>
 
               {/* COLUNA TÉRMINO */}
@@ -166,9 +172,10 @@ export function GerenciarQuestionario({
                     <Popover open={openLimite} onOpenChange={setOpenLimite}>
                       <PopoverTrigger asChild>
                         <Button
+                          {...ligacaoErro('dataLimite')}
                           type="button"
                           variant="outline"
-                          className="w-auto justify-start gap-3 rounded-2xl border-primary/50 text-primary hover:bg-primary/5"
+                          className="w-auto justify-start gap-3 rounded-2xl border-primary text-primary hover:bg-accent"
                         >
                           <CalendarIcon size={18} />
                           {field.value
@@ -200,11 +207,10 @@ export function GerenciarQuestionario({
                     </Popover>
                   )}
                 />
-                {errors.dataLimite?.message && (
-                  <span className="text-xs text-red-500">
-                    {t(errors.dataLimite.message as ChaveErro)}
-                  </span>
-                )}
+                <MensagemErro
+                  id={erroId('dataLimite')}
+                  mensagem={errors.dataLimite?.message}
+                />
 
                 {/* HORA TÉRMINO */}
                 <Controller
@@ -212,17 +218,17 @@ export function GerenciarQuestionario({
                   control={control}
                   render={({ field }) => (
                     <TimePickerPopover
+                      {...ligacaoErro('horaLimite')}
                       value={field.value}
                       onChange={field.onChange}
                       placeholder={t('painelControle:selecionarHora')}
                     />
                   )}
                 />
-                {errors.horaLimite?.message && (
-                  <span className="text-xs text-red-500">
-                    {t(errors.horaLimite.message as ChaveErro)}
-                  </span>
-                )}
+                <MensagemErro
+                  id={erroId('horaLimite')}
+                  mensagem={errors.horaLimite?.message}
+                />
               </div>
             </div>
 
@@ -231,7 +237,7 @@ export function GerenciarQuestionario({
                 type="button"
                 variant="default"
                 onClick={onConfirmar}
-                className="rounded-full px-6 py-2 hover:bg-primary/90"
+                className="rounded-full px-6 py-2 hover:bg-primary-hover"
               >
                 {t('painelControle:confirmar')}
               </Button>
@@ -247,11 +253,15 @@ function TimePickerPopover({
   value,
   onChange,
   placeholder,
+  ...ariaErro
 }: {
   value: string;
   onChange: (val: string) => void;
   placeholder: string;
+  'aria-invalid': boolean;
+  'aria-describedby': string | undefined;
 }) {
+  const { t } = useTranslation(['painelControle']);
   const [open, setOpen] = useState(false);
   const [h = '12', m = '30'] = value ? value.split(':') : [];
 
@@ -264,20 +274,25 @@ function TimePickerPopover({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          {...ariaErro}
           type="button"
           variant="outline"
-          className="w-48 justify-start gap-3 rounded-2xl border-primary/50 text-primary hover:bg-primary/5"
+          className="w-48 justify-start gap-3 rounded-2xl border-primary text-primary hover:bg-accent"
         >
           <Clock size={18} />
-          <span>{value ? value.replace(':', 'h') : placeholder}</span>
+          <span>
+            {value
+              ? t('painelControle:seletorHora.valor', { hora: h, minuto: m })
+              : placeholder}
+          </span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 rounded-2xl border border-border bg-white p-2 shadow-md">
+      <PopoverContent className="w-56 rounded-2xl border border-border bg-popover p-2 shadow-md">
         <div className="flex h-48 gap-2">
           {/* COLUNA HORA */}
           <div className="flex-1 space-y-1 overflow-y-auto pr-1">
-            <div className="sticky top-0 bg-white px-2 py-1 text-xs font-bold text-primary">
-              Hora
+            <div className="sticky top-0 bg-popover px-2 py-1 text-xs font-bold text-primary">
+              {t('painelControle:seletorHora.hora')}
             </div>
             {hours.map((hour) => (
               <Button
@@ -288,17 +303,19 @@ function TimePickerPopover({
                   onChange(`${hour}:${m}`);
                 }}
                 className={`w-full cursor-pointer rounded-lg py-1.5 text-center text-sm transition-colors ${
-                  h === hour ? 'bg-primary font-bold text-white' : ''
+                  h === hour
+                    ? 'bg-primary font-bold text-primary-foreground hover:bg-primary-hover'
+                    : ''
                 }`}
               >
-                {hour}h
+                {t('painelControle:seletorHora.opcaoHora', { hora: hour })}
               </Button>
             ))}
           </div>
           {/* COLUNA MINUTO */}
           <div className="flex-1 space-y-1 overflow-y-auto border-l border-border pl-1">
-            <div className="sticky top-0 bg-white px-2 py-1 text-xs font-bold text-primary">
-              Min
+            <div className="sticky top-0 bg-popover px-2 py-1 text-xs font-bold text-primary">
+              {t('painelControle:seletorHora.minuto')}
             </div>
             {minutes.map((min) => (
               <Button
@@ -310,7 +327,9 @@ function TimePickerPopover({
                   setOpen(false);
                 }}
                 className={`w-full cursor-pointer rounded-lg py-1.5 text-center text-sm transition-colors ${
-                  m === min ? 'bg-primary font-bold text-white' : ''
+                  m === min
+                    ? 'bg-primary font-bold text-primary-foreground hover:bg-primary-hover'
+                    : ''
                 }`}
               >
                 {min}
@@ -320,5 +339,23 @@ function TimePickerPopover({
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function MensagemErro({
+  id,
+  mensagem,
+}: {
+  id: string;
+  mensagem: string | undefined;
+}) {
+  const { t } = useTranslation(['painelControle']);
+  if (!mensagem) {
+    return null;
+  }
+  return (
+    <span id={id} role="alert" className="text-xs text-destructive">
+      {t(mensagem as ChaveErro)}
+    </span>
   );
 }
