@@ -420,4 +420,10 @@ export const es: typeof ptBR = {
       invalidEmail: 'Ingresa un correo válido.',
     },
   },
+  aceite: {
+    titulo: 'Solicitud de registro',
+    responsavel: 'Responsable del registro',
+    aceitar: 'Aceptar',
+    rejeitar: 'Rechazar',
+  },
 };

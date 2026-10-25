@@ -417,4 +417,10 @@ export const en: typeof ptBR = {
       invalidEmail: 'Enter a valid email.',
     },
   },
+  aceite: {
+    titulo: 'Registration request',
+    responsavel: 'Registered by',
+    aceitar: 'Accept',
+    rejeitar: 'Reject',
+  },
 };

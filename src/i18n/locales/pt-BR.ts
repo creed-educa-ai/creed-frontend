@@ -422,4 +422,10 @@ export const ptBR = {
       invalidEmail: 'Digite um e-mail válido.',
     },
   },
+  aceite: {
+    titulo: 'Solicitação de cadastro',
+    responsavel: 'Responsável pelo cadastro',
+    aceitar: 'Aceitar',
+    rejeitar: 'Rejeitar',
+  },
 };
