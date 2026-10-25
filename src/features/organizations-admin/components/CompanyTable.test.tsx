@@ -164,6 +164,37 @@ describe('CompanyTable', () => {
     expect(onAceitar).not.toHaveBeenCalled();
   });
 
+  it('não considera para aprovação a empresa escondida pela pesquisa', async () => {
+    const user = userEvent.setup();
+    renderTabela();
+
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Selecionar Acme Inc.' }),
+    );
+
+    await user.type(screen.getByRole('textbox', { name: 'Pesquise' }), 'Inova');
+
+    expect(
+      screen.getByText('0 de 1 linha(s) selecionada(s).'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Aprovar' })).toBeDisabled();
+
+    await user.click(
+      screen.getByRole('checkbox', { name: 'Selecionar Inova Tech' }),
+    );
+
+    expect(
+      screen.getByText('1 de 1 linha(s) selecionada(s).'),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Aprovar' }));
+
+    const modal = within(await screen.findByRole('dialog'));
+
+    expect(modal.getByText('Inova Tech')).toBeInTheDocument();
+    expect(modal.queryByText('Acme Inc.')).not.toBeInTheDocument();
+  });
+
   it('chama onAceitar com a empresa quando a aprovação é confirmada', async () => {
     const user = userEvent.setup();
     const { onAceitar } = renderTabela();

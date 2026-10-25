@@ -227,7 +227,9 @@ export function CompanyTable({
     },
   });
 
-  const selecionadas = table.getSelectedRowModel().rows;
+  // Só conta o que a pesquisa deixa visível: uma linha selecionada e depois
+  // escondida pelo filtro não pode abrir o modal de aprovação.
+  const selecionadas = table.getFilteredSelectedRowModel().rows;
 
   return (
     <div className="w-full rounded-3xl bg-card p-6 shadow-sm">
@@ -320,7 +322,7 @@ export function CompanyTable({
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {t('empresas:selecionadas', {
-            selecionadas: table.getFilteredSelectedRowModel().rows.length,
+            selecionadas: selecionadas.length,
             total: table.getFilteredRowModel().rows.length,
           })}
         </p>
