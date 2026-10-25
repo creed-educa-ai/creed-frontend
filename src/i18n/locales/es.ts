@@ -3,6 +3,52 @@ import type { ptBR } from './pt-BR';
 // pt-BR é a fonte da verdade: tipar por ele faz o TypeScript acusar chave
 // faltando ou sobrando nas demais traduções.
 export const es: typeof ptBR = {
+  membros: {
+    titulo: 'Miembros de {{empresa}}',
+    buscaEmail: 'Introduce un correo electrónico',
+    colunas: 'Columnas',
+    colunasMenu: 'Mostrar columnas',
+    tabela: 'Miembros de la empresa',
+    selecionarPagina: 'Seleccionar todos los miembros de esta página',
+    paginacao: 'Paginación de miembros',
+    pagina: 'Página {{atual}} de {{total}}',
+    excluindo: 'Eliminando…',
+    erroExclusao: 'No se pudo eliminar al miembro. Inténtalo de nuevo.',
+    erroCarregamento: 'No se pudieron cargar los miembros de la empresa.',
+    selecionados_zero: '{{count}} de {{total}} filas seleccionadas.',
+    selecionados_one: '{{count}} de {{total}} filas seleccionadas.',
+    selecionados_other: '{{count}} de {{total}} filas seleccionadas.',
+    anterior: 'Anterior',
+    proximo: 'Siguiente',
+    ver: 'Ver',
+    vazio: 'No hay miembros asociados a la empresa.',
+    vazioBusca: 'No se encontraron miembros con este correo electrónico.',
+    detalhesTitulo: 'Datos del miembro',
+    confirmarExclusaoTitulo: 'Eliminar miembro',
+    confirmarExclusaoDescricao:
+      '¿Quieres eliminar a {{nome}} de la lista de miembros de la empresa? Esta acción no se puede deshacer.',
+    excluir: 'Eliminar',
+    ordenarEmail: 'Ordenar por correo electrónico',
+    ordenarData: 'Ordenar por fecha reciente',
+    colunasNomes: {
+      nome: 'Nombre',
+      email: 'Correo electrónico',
+      acao: 'Acción',
+      status: 'Estado',
+      tag: 'Etiqueta',
+      atualizadoEm: 'Fecha reciente',
+      excluir: 'Eliminar',
+    },
+    status: {
+      ativo: 'Activo',
+      pendente: 'Pendiente',
+    },
+    tags: {
+      marketing: 'Marketing',
+      vendas: 'Ventas',
+      rh: 'RR. HH.',
+    },
+  },
   comum: {
     carregando: 'Cargando…',
     semDado: '—',
