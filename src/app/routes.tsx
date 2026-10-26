@@ -18,6 +18,7 @@ import { SubmissionConfirmationView } from '@/features/responses/SubmissionConfi
 import { DashboardView } from '@/features/dashboards/DashboardView';
 import { MembersView } from '@/features/organizations/MembersView';
 import { PainelControleView } from '@/features/painel-de-controle/PainelControleView';
+import { PainelControleSuperView } from '@/features/superadm/PainelControleSuperView';
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
   },
   { path: '/dashboard', element: <DashboardView /> },
   { path: '/painel-controle', element: <PainelControleView /> },
+  { path: '/painel-controle-super', element: <PainelControleSuperView /> },
   { path: '/sobre', element: <SobreView /> },
   { path: '/cadastro', element: <CadastroView /> },
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },

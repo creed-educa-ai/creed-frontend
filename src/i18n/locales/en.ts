@@ -489,4 +489,13 @@ export const en: typeof ptBR = {
       horaTerminoAntesInicio: 'The end time must be after the start time.',
     },
   },
+  adicionarMentorando: {
+    titulo: 'Add mentee',
+    adicionar: 'Add',
+    email: { label: "Mentee's email", placeholder: 'Enter an email' },
+    erros: {
+      emailObrigatorio: "Enter the mentee's email.",
+      emailInvalido: 'Enter a valid email.',
+    },
+  },
 };
