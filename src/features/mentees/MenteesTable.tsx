@@ -76,9 +76,9 @@ function normalize(text: string) {
 }
 
 // Cor cheia e texto branco nos dois status, como no mockup. Contraste abaixo do
-// mínimo AA (4,5:1): ~3:1 no verde e ~2,3:1 no amarelo. Desvio do mockup a
-// validar com o supervisor.
-// > 🟡 Premissa — "Inativo" não aparece no mockup; assumimos amarelo cheio com
+// mínimo AA (4,5:1): ~3:1 no verde e ~4,2:1 no vermelho. Desvio a validar
+// com o supervisor.
+// > 🟡 Premissa — "Inativo" não aparece no mockup; assumimos vermelho cheio com
 // > texto branco.
 function StatusBadge({ status }: { status: MenteeStatus }) {
   const { t } = useTranslation(['mentees']);
@@ -86,7 +86,7 @@ function StatusBadge({ status }: { status: MenteeStatus }) {
     <span
       className={cn(
         'inline-block rounded-full px-3 py-1 text-xs font-medium text-primary-foreground',
-        status === 'active' ? 'bg-success' : 'bg-warning',
+        status === 'active' ? 'bg-success' : 'bg-destructive',
       )}
     >
       {t(`mentees:status.${status}`)}
