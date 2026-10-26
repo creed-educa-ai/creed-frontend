@@ -32,6 +32,7 @@ export function CompanyDashboardView() {
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
       <DashboardHeader
         organizationName={ORGANIZATION_NAME}
+        showControlPanel
         filters={
           <>
             <PeriodFilter

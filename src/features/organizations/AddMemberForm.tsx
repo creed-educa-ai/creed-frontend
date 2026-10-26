@@ -59,10 +59,10 @@ export function AddMemberForm({ onSubmit }: AddMemberFormProps) {
   return (
     <form
       noValidate
-      className="flex flex-col gap-3 md:flex-row md:items-start"
+      className="flex flex-col gap-3"
       onSubmit={(event) => void handleSubmit(submit)(event)}
     >
-      <Field data-invalid={Boolean(errors.email)} className="md:flex-1">
+      <Field data-invalid={Boolean(errors.email)}>
         <FieldLabel htmlFor="member-email" className="sr-only">
           {t('organizations:addMember.email.label')}
         </FieldLabel>
@@ -94,7 +94,7 @@ export function AddMemberForm({ onSubmit }: AddMemberFormProps) {
         <FieldError errors={[translateError(errors.email?.message)]} />
       </Field>
 
-      <Field data-invalid={Boolean(errors.role)} className="md:w-56">
+      <Field data-invalid={Boolean(errors.role)}>
         <FieldLabel htmlFor="member-role" className="sr-only">
           {t('organizations:addMember.role.label')}
         </FieldLabel>
