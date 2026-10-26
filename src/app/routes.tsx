@@ -17,6 +17,7 @@ import { RevisaoRespostasRoute } from '@/features/responses/RevisaoRespostasRout
 import { SubmissionConfirmationView } from '@/features/responses/SubmissionConfirmationView';
 import { UserDashboardView } from '@/features/dashboards/UserDashboardView';
 import { CompanyDashboardView } from '@/features/dashboards/CompanyDashboardView';
+import { OrganizationsAdminView } from '@/features/organizations-admin/OrganizationsAdminView';
 import { MembersView } from '@/features/organizations/MembersView';
 import { PainelControleView } from '@/features/painel-de-controle/PainelControleView';
 import { PainelControleSuperView } from '@/features/superadm/PainelControleSuperView';
@@ -66,5 +67,6 @@ export const router = createBrowserRouter([
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
   { path: '/aguarde-confirmacao', element: <AguardeConfirmacaoView /> },
   { path: '/recuperar-senha', element: <AlterarSenhaView /> },
+  { path: '/organizations-admin', element: <OrganizationsAdminView /> },
   { path: '/membros', element: <MembersView /> },
 ]);
