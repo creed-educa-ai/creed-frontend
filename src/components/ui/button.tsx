@@ -23,6 +23,9 @@ const buttonVariants = cva(
         destructive:
           'bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20',
 
+        'destructive-solid':
+          'bg-destructive text-primary-foreground hover:bg-[color-mix(in_oklch,var(--destructive),var(--foreground)_10%)] focus-visible:border-destructive/40 focus-visible:ring-destructive/20',
+
         link: 'text-primary underline-offset-4 hover:underline',
       },
 
