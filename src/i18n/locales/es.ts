@@ -449,4 +449,13 @@ export const es: typeof ptBR = {
         'La hora de finalización debe ser posterior a la hora de inicio.',
     },
   },
+  adicionarMentorando: {
+    titulo: 'Agregar mentoreado',
+    adicionar: 'Agregar',
+    email: { label: 'Correo del mentoreado', placeholder: 'Ingresa un correo' },
+    erros: {
+      emailObrigatorio: 'Ingresa el correo del mentoreado.',
+      emailInvalido: 'Ingresa un correo válido.',
+    },
+  },
 };

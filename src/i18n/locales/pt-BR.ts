@@ -451,4 +451,13 @@ export const ptBR = {
         'O horário de término deve ser posterior ao horário de início.',
     },
   },
+  adicionarMentorando: {
+    titulo: 'Adicionar mentorando',
+    adicionar: 'Adicionar',
+    email: { label: 'E-mail do mentorando', placeholder: 'Insira um Email' },
+    erros: {
+      emailObrigatorio: 'Informe o e-mail do mentorando.',
+      emailInvalido: 'Informe um e-mail válido.',
+    },
+  },
 };
