@@ -82,7 +82,7 @@ export function AdicionarMentorando({ onSubmit }: AdicionarMentorandoProps) {
       {isOpen && (
         <div
           id={conteudoId}
-          className="max-w-auto mt-4 rounded-2xl bg-card p-5 shadow-sm"
+          className="mt-4 max-w-100 rounded-2xl bg-card p-5 shadow-sm"
         >
           <form
             noValidate
