@@ -15,7 +15,8 @@ import { OnboardQuestionarioView } from '@/features/responses/OnboardQuestionari
 import { FormView } from '@/features/responses/FormView';
 import { RevisaoRespostasRoute } from '@/features/responses/RevisaoRespostasRoute';
 import { SubmissionConfirmationView } from '@/features/responses/SubmissionConfirmationView';
-import { DashboardView } from '@/features/dashboards/DashboardView';
+import { UserDashboardView } from '@/features/dashboards/UserDashboardView';
+import { CompanyDashboardView } from '@/features/dashboards/CompanyDashboardView';
 import { MembersView } from '@/features/organizations/MembersView';
 import { PainelControleView } from '@/features/painel-de-controle/PainelControleView';
 import { PainelControleSuperView } from '@/features/superadm/PainelControleSuperView';
@@ -56,7 +57,8 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  { path: '/dashboard', element: <DashboardView /> },
+  { path: '/dashboard', element: <UserDashboardView /> },
+  { path: '/dashboard/company', element: <CompanyDashboardView /> },
   { path: '/painel-controle', element: <PainelControleView /> },
   { path: '/painel-controle-super', element: <PainelControleSuperView /> },
   { path: '/sobre', element: <SobreView /> },
