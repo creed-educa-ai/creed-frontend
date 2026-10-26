@@ -302,6 +302,34 @@ export const ptBR = {
     },
   },
 
+  mentees: {
+    title: 'Mentorandos',
+    search: { label: 'Pesquisar mentorandos', placeholder: 'Pesquise' },
+    columnsMenu: 'Colunas',
+    columns: {
+      name: 'Nome',
+      questionnaire: 'Questionário',
+      results: 'Resultados',
+      status: 'Status',
+      delete: 'Excluir',
+    },
+    actions: {
+      edit: 'Editar',
+      viewResults: 'Ver Resultados',
+      delete: 'Excluir',
+      editFor: 'Editar questionário de {{name}}',
+      viewResultsFor: 'Ver resultados de {{name}}',
+      deleteFor: 'Excluir {{name}}',
+    },
+    status: { active: 'Ativo', pending: 'Pendente' },
+    empty: 'Nenhum mentorando cadastrado ainda.',
+    noResults: 'Nenhum mentorando encontrado para essa pesquisa.',
+    confirmDelete: {
+      title: 'Excluir mentorando?',
+      description: 'Tem certeza de que deseja excluir {{name}}?',
+      confirm: 'Excluir',
+    },
+  },
   termo: {
     titulo: 'TERMO DE CONSENTIMENTO INFORMADO, ESCLARECIDO E LIVRE',
     corpo:

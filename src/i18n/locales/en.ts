@@ -300,6 +300,34 @@ export const en: typeof ptBR = {
     },
   },
 
+  mentees: {
+    title: 'Mentees',
+    search: { label: 'Search mentees', placeholder: 'Search' },
+    columnsMenu: 'Columns',
+    columns: {
+      name: 'Name',
+      questionnaire: 'Questionnaire',
+      results: 'Results',
+      status: 'Status',
+      delete: 'Delete',
+    },
+    actions: {
+      edit: 'Edit',
+      viewResults: 'View results',
+      delete: 'Delete',
+      editFor: 'Edit questionnaire for {{name}}',
+      viewResultsFor: 'View results for {{name}}',
+      deleteFor: 'Delete {{name}}',
+    },
+    status: { active: 'Active', pending: 'Pending' },
+    empty: 'No mentees registered yet.',
+    noResults: 'No mentees match your search.',
+    confirmDelete: {
+      title: 'Delete mentee?',
+      description: 'Are you sure you want to delete {{name}}?',
+      confirm: 'Delete',
+    },
+  },
   termo: {
     titulo: 'INFORMED, CLARIFIED AND FREE CONSENT FORM',
     corpo:

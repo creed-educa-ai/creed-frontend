@@ -303,6 +303,34 @@ export const es: typeof ptBR = {
     },
   },
 
+  mentees: {
+    title: 'Mentorados',
+    search: { label: 'Buscar mentorados', placeholder: 'Buscar' },
+    columnsMenu: 'Columnas',
+    columns: {
+      name: 'Nombre',
+      questionnaire: 'Cuestionario',
+      results: 'Resultados',
+      status: 'Estado',
+      delete: 'Eliminar',
+    },
+    actions: {
+      edit: 'Editar',
+      viewResults: 'Ver resultados',
+      delete: 'Eliminar',
+      editFor: 'Editar cuestionario de {{name}}',
+      viewResultsFor: 'Ver resultados de {{name}}',
+      deleteFor: 'Eliminar a {{name}}',
+    },
+    status: { active: 'Activo', pending: 'Pendiente' },
+    empty: 'Aún no hay mentorados registrados.',
+    noResults: 'Ningún mentorado coincide con la búsqueda.',
+    confirmDelete: {
+      title: '¿Eliminar mentorado?',
+      description: '¿Seguro que quieres eliminar a {{name}}?',
+      confirm: 'Eliminar',
+    },
+  },
   termo: {
     titulo: 'FORMULARIO DE CONSENTIMIENTO LIBRE, INFORMADO Y ACLARADO',
     corpo:
