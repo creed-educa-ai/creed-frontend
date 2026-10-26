@@ -55,7 +55,7 @@ export function AdicionarMentorando({ onSubmit }: AdicionarMentorandoProps) {
 
   return (
     <section className="w-full">
-      {/* CABEÇALHO */}
+      {/* HEADER */}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -80,7 +80,10 @@ export function AdicionarMentorando({ onSubmit }: AdicionarMentorandoProps) {
       </div>
 
       {isOpen && (
-        <div id={conteudoId} className="mt-4 rounded-2xl bg-card p-5 shadow-sm">
+        <div
+          id={conteudoId}
+          className="max-w-auto mt-4 rounded-2xl bg-card p-5 shadow-sm"
+        >
           <form
             noValidate
             onSubmit={(event) => void handleSubmit(submit)(event)}

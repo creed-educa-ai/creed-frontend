@@ -24,7 +24,7 @@ describe('PainelControleSuperView', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
-        name: i18n.t('painelControle:adicionarMentorando.titulo'),
+        name: i18n.t('adicionarMentorando:titulo'),
       }),
     ).toBeInTheDocument();
   });
@@ -38,13 +38,13 @@ describe('PainelControleSuperView', () => {
 
     await user.type(
       screen.getByRole('textbox', {
-        name: i18n.t('painelControle:adicionarMentorando.email.label'),
+        name: i18n.t('adicionarMentorando:email.label'),
       }),
       'ana@exemplo.com',
     );
     await user.click(
       screen.getByRole('button', {
-        name: i18n.t('painelControle:adicionarMentorando.adicionar'),
+        name: i18n.t('adicionarMentorando:adicionar'),
       }),
     );
 
