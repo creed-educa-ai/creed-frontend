@@ -138,3 +138,20 @@ export interface AnswerResponse {
   value: string | null;
   created_at: string;
 }
+
+// Modelo provisório da tabela; o domínio organizacoes ainda não tem contrato REST.
+export type MemberStatus = 'ativo' | 'pendente';
+export type MemberTag = 'marketing' | 'vendas' | 'rh';
+
+export interface Member {
+  id: string;
+  name: string;
+  email: string;
+  status: MemberStatus;
+  tag: MemberTag;
+  updated_at: string;
+}
+
+export interface MemberList extends ListaPaginada<Member> {
+  organization: string;
+}
