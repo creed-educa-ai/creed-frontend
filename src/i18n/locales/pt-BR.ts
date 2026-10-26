@@ -306,6 +306,7 @@ export const ptBR = {
     title: 'Mentorandos',
     search: { label: 'Pesquisar mentorandos', placeholder: 'Pesquise' },
     columnsMenu: 'Colunas',
+    select: { all: 'Selecionar todos', row: 'Selecionar {{name}}' },
     columns: {
       name: 'Nome',
       questionnaire: 'Questionário',
@@ -321,7 +322,7 @@ export const ptBR = {
       viewResultsFor: 'Ver resultados de {{name}}',
       deleteFor: 'Excluir {{name}}',
     },
-    status: { active: 'Ativo', pending: 'Pendente' },
+    status: { active: 'Ativo', inactive: 'Inativo' },
     empty: 'Nenhum mentorando cadastrado ainda.',
     noResults: 'Nenhum mentorando encontrado para essa pesquisa.',
     confirmDelete: {

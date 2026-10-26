@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -29,9 +30,9 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
-// > 🟡 Premissa — o Figma da tabela de mentorandos só mostra "Ativo"; "Pendente"
-// > aparece na tabela de empresas da mesma tela. Assumimos os dois valores.
-export type MenteeStatus = 'active' | 'pending';
+// > 🟡 Premissa — o Figma da tabela de mentorandos só mostra "Ativo".
+// > "Inativo" segue o `RecordStatus` do backend (`active` e `inactive`).
+export type MenteeStatus = 'active' | 'inactive';
 
 export interface Mentee {
   id: string;
@@ -77,8 +78,8 @@ function normalize(text: string) {
 // Cor cheia e texto branco nos dois status, como no mockup. Contraste abaixo do
 // mínimo AA (4,5:1): ~3:1 no verde e ~2,3:1 no amarelo. Desvio do mockup a
 // validar com o supervisor.
-// > 🟡 Premissa — "Pendente" não aparece no mockup; assumimos amarelo cheio com
-// > texto branco, igual ao "Ativo".
+// > 🟡 Premissa — "Inativo" não aparece no mockup; assumimos amarelo cheio com
+// > texto branco.
 function StatusBadge({ status }: { status: MenteeStatus }) {
   const { t } = useTranslation(['mentees']);
   return (
@@ -107,6 +108,12 @@ export function MenteesTable({
   const [visibleColumns, setVisibleColumns] = useState<
     Record<ColumnKey, boolean>
   >({ questionnaire: true, results: true, status: true, delete: true });
+  // Linhas marcadas na tabela. Por ora só marca e desmarca: nada sai do
+  // componente e nenhuma ação usa a seleção.
+  // > 🟡 Premissa — o mockup tem caixas de seleção para exportar resultados no
+  // > futuro, mas a exportação não está especificada. A seleção fica só aqui,
+  // > sem prop de saída, e os cartões (celular) não têm caixa.
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   function toggleColumn(column: ColumnKey, checked: boolean) {
     setVisibleColumns((current) => ({ ...current, [column]: checked }));
@@ -115,6 +122,17 @@ export function MenteesTable({
   const visible = mentees.filter((mentee) =>
     normalize(mentee.name).includes(normalize(query.trim())),
   );
+
+  function toggleSelected(ids: string[], checked: boolean) {
+    setSelectedIds((current) =>
+      checked
+        ? [...new Set([...current, ...ids])]
+        : current.filter((id) => !ids.includes(id)),
+    );
+  }
+
+  const allVisibleSelected =
+    visible.length > 0 && visible.every((m) => selectedIds.includes(m.id));
 
   const cancelRef = useRef<HTMLButtonElement>(null);
   const [highlightCancel, setHighlightCancel] = useState(false);
@@ -271,7 +289,19 @@ export function MenteesTable({
                 <Table>
                   <TableHeader className="bg-card text-base text-heading">
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="px-5 text-heading">
+                      <TableHead className="w-10 pl-5">
+                        <Checkbox
+                          aria-label={t('mentees:select.all')}
+                          checked={allVisibleSelected}
+                          onCheckedChange={(checked) => {
+                            toggleSelected(
+                              visible.map((m) => m.id),
+                              checked === true,
+                            );
+                          }}
+                        />
+                      </TableHead>
+                      <TableHead className="pr-5 pl-3 text-heading">
                         {t('mentees:columns.name')}
                       </TableHead>
                       {visibleColumns.questionnaire && (
@@ -302,7 +332,18 @@ export function MenteesTable({
                         key={mentee.id}
                         className="hover:bg-transparent"
                       >
-                        <TableCell className="px-5 py-1.5 font-medium break-words">
+                        <TableCell className="w-10 py-1.5 pl-5">
+                          <Checkbox
+                            aria-label={t('mentees:select.row', {
+                              name: mentee.name,
+                            })}
+                            checked={selectedIds.includes(mentee.id)}
+                            onCheckedChange={(checked) => {
+                              toggleSelected([mentee.id], checked === true);
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell className="py-1.5 pr-5 pl-3 font-medium break-words">
                           {mentee.name}
                         </TableCell>
                         {visibleColumns.questionnaire && (

@@ -307,6 +307,7 @@ export const es: typeof ptBR = {
     title: 'Mentorados',
     search: { label: 'Buscar mentorados', placeholder: 'Buscar' },
     columnsMenu: 'Columnas',
+    select: { all: 'Seleccionar todos', row: 'Seleccionar {{name}}' },
     columns: {
       name: 'Nombre',
       questionnaire: 'Cuestionario',
@@ -322,7 +323,7 @@ export const es: typeof ptBR = {
       viewResultsFor: 'Ver resultados de {{name}}',
       deleteFor: 'Eliminar a {{name}}',
     },
-    status: { active: 'Activo', pending: 'Pendiente' },
+    status: { active: 'Activo', inactive: 'Inactivo' },
     empty: 'Aún no hay mentorados registrados.',
     noResults: 'Ningún mentorado coincide con la búsqueda.',
     confirmDelete: {

@@ -21,7 +21,7 @@ const mentees: Mentee[] = [
   {
     id: '2',
     name: 'Volante Ronaldo',
-    status: 'pending',
+    status: 'inactive',
     hasAnsweredCurrent: false,
   },
   {
@@ -77,7 +77,7 @@ describe('MenteesTable', () => {
       expect(within(table).getByText(name)).toBeInTheDocument();
     }
     expect(within(table).getAllByText('Ativo')).toHaveLength(2);
-    expect(within(table).getByText('Pendente')).toBeInTheDocument();
+    expect(within(table).getByText('Inativo')).toBeInTheDocument();
     expect(
       within(screen.getByRole('list')).getAllByRole('listitem'),
     ).toHaveLength(3);
@@ -239,6 +239,56 @@ describe('MenteesTable', () => {
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
 
+  it('marca e desmarca linhas, e a caixa do cabeçalho marca todas', async () => {
+    const user = userEvent.setup();
+    renderTable();
+    const table = screen.getByRole('table');
+    const todas = within(table).getByRole('checkbox', {
+      name: 'Selecionar todos',
+    });
+    const enner = within(table).getByRole('checkbox', {
+      name: 'Selecionar Enner Valência',
+    });
+
+    await user.click(enner);
+    expect(enner).toBeChecked();
+    expect(todas).not.toBeChecked();
+
+    await user.click(todas);
+    for (const caixa of within(table).getAllByRole('checkbox')) {
+      expect(caixa).toBeChecked();
+    }
+
+    await user.click(todas);
+    for (const caixa of within(table).getAllByRole('checkbox')) {
+      expect(caixa).not.toBeChecked();
+    }
+  });
+
+  it('a caixa do cabeçalho marca só as linhas que a busca deixa visíveis', async () => {
+    const user = userEvent.setup();
+    renderTable();
+    const busca = screen.getByRole('searchbox', {
+      name: 'Pesquisar mentorandos',
+    });
+
+    await user.type(busca, 'jose');
+    const table = screen.getByRole('table');
+    await user.click(
+      within(table).getByRole('checkbox', { name: 'Selecionar todos' }),
+    );
+
+    await user.clear(busca);
+    expect(
+      within(table).getByRole('checkbox', { name: 'Selecionar José Maurides' }),
+    ).toBeChecked();
+    expect(
+      within(table).getByRole('checkbox', {
+        name: 'Selecionar Enner Valência',
+      }),
+    ).not.toBeChecked();
+  });
+
   it('troca os textos quando o idioma muda', async () => {
     await i18n.changeLanguage('en');
     renderTable();
@@ -252,7 +302,7 @@ describe('MenteesTable', () => {
         name: 'Edit questionnaire for Enner Valência',
       }),
     ).toBeInTheDocument();
-    expect(within(table).getByText('Pending')).toBeInTheDocument();
+    expect(within(table).getByText('Inactive')).toBeInTheDocument();
   });
 
   it('esconde e mostra colunas pelo menu Colunas, menos o Nome', async () => {
@@ -280,7 +330,7 @@ describe('MenteesTable', () => {
     expect(
       within(table).queryByRole('columnheader', { name: 'Status' }),
     ).not.toBeInTheDocument();
-    expect(within(table).queryByText('Pendente')).not.toBeInTheDocument();
+    expect(within(table).queryByText('Inativo')).not.toBeInTheDocument();
     expect(
       within(table).getByRole('columnheader', { name: 'Nome' }),
     ).toBeInTheDocument();
@@ -299,7 +349,7 @@ describe('MenteesTable', () => {
     expect(
       within(table).getByRole('columnheader', { name: 'Status' }),
     ).toBeInTheDocument();
-    expect(within(table).getByText('Pendente')).toBeInTheDocument();
+    expect(within(table).getByText('Inativo')).toBeInTheDocument();
   });
 
   it('Esc e clique fora não fecham o diálogo: destacam o Cancelar', async () => {

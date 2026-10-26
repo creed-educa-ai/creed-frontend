@@ -304,6 +304,7 @@ export const en: typeof ptBR = {
     title: 'Mentees',
     search: { label: 'Search mentees', placeholder: 'Search' },
     columnsMenu: 'Columns',
+    select: { all: 'Select all', row: 'Select {{name}}' },
     columns: {
       name: 'Name',
       questionnaire: 'Questionnaire',
@@ -319,7 +320,7 @@ export const en: typeof ptBR = {
       viewResultsFor: 'View results for {{name}}',
       deleteFor: 'Delete {{name}}',
     },
-    status: { active: 'Active', pending: 'Pending' },
+    status: { active: 'Active', inactive: 'Inactive' },
     empty: 'No mentees registered yet.',
     noResults: 'No mentees match your search.',
     confirmDelete: {
