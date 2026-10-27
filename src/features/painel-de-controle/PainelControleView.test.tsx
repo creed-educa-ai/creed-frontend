@@ -1,8 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { PainelControleView } from './PainelControleView';
+import organizationsReducer from '@/features/organizations/organizationsSlice';
+import { resetMembersMock } from '@/features/organizations/organizationsApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+
+// A seção de membros lê e carrega a lista pelo slice de organizations.
+function renderizar() {
+  const store = configureStore({
+    reducer: { organizations: organizationsReducer },
+  });
+
+  return render(
+    <Provider store={store}>
+      <PainelControleView />
+    </Provider>,
+  );
+}
 
 // A coluna é o contêiner do rótulo ("Início"/"Término") e dos dois botões dele.
 function coluna(rotulo: string) {
@@ -58,6 +75,7 @@ describe('PainelControleView', () => {
   beforeEach(async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2026, 0, 10, 10, 0));
+    resetMembersMock();
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
@@ -65,10 +83,13 @@ describe('PainelControleView', () => {
     vi.useRealTimers();
   });
 
-  it('should render the organization name and the translated title', () => {
-    render(<PainelControleView />);
+  it('should render the organization name and the translated title', async () => {
+    renderizar();
 
-    expect(screen.getByText('ACME Inc.')).toBeInTheDocument();
+    expect(await screen.findByText('Acme Inc.')).toBeInTheDocument();
+    expect(
+      screen.getByText(i18n.t('painelControle:subtitulo')),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', {
         level: 1,
@@ -78,7 +99,7 @@ describe('PainelControleView', () => {
   });
 
   it('should show prompts instead of pre-filled dates and times', () => {
-    render(<PainelControleView />);
+    renderizar();
 
     for (const col of [colunaInicio(), colunaTermino()]) {
       expect(botaoData(col)).toBeInTheDocument();
@@ -88,7 +109,7 @@ describe('PainelControleView', () => {
 
   it('should open the calendar when clicking the start date button', async () => {
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await user.click(botaoData(colunaInicio()));
 
@@ -97,7 +118,7 @@ describe('PainelControleView', () => {
 
   it('should block days before today in the start date calendar', async () => {
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await user.click(botaoData(colunaInicio()));
 
@@ -111,7 +132,7 @@ describe('PainelControleView', () => {
 
   it('should block days before the start date in the end date calendar', async () => {
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await escolherData(user, colunaInicio(), 17);
     await user.click(botaoData(colunaTermino()));
@@ -123,7 +144,7 @@ describe('PainelControleView', () => {
 
   it('should show the calendar and the chosen date in Portuguese', async () => {
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await user.click(botaoData(colunaInicio()));
     expect(screen.getByText(/janeiro/i)).toBeInTheDocument();
@@ -137,7 +158,7 @@ describe('PainelControleView', () => {
   it('should show the calendar and the chosen date in English', async () => {
     await i18n.changeLanguage('en');
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await user.click(botaoData(colunaInicio()));
     expect(screen.getByText(/january/i)).toBeInTheDocument();
@@ -150,7 +171,7 @@ describe('PainelControleView', () => {
 
   it('should show the chosen time in the Portuguese format', async () => {
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await escolherHora(user, colunaInicio(), '15', '45');
 
@@ -162,7 +183,7 @@ describe('PainelControleView', () => {
   it('should show the time picker and the chosen time in English', async () => {
     await i18n.changeLanguage('en');
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await user.click(botaoHora(colunaInicio()));
     expect(screen.getByText('Hour')).toBeInTheDocument();
@@ -180,7 +201,7 @@ describe('PainelControleView', () => {
       .spyOn(console, 'log')
       .mockImplementation(() => undefined);
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await user.click(botaoConfirmar());
 
@@ -203,7 +224,7 @@ describe('PainelControleView', () => {
 
   it('should announce each error and link it to its field', async () => {
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await user.click(botaoConfirmar());
 
@@ -222,7 +243,7 @@ describe('PainelControleView', () => {
       .spyOn(console, 'log')
       .mockImplementation(() => undefined);
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     // "Agora" é 10/01/2026 às 10:00.
     await escolherData(user, colunaInicio(), 10);
@@ -246,7 +267,7 @@ describe('PainelControleView', () => {
       .spyOn(console, 'log')
       .mockImplementation(() => undefined);
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await escolherData(user, colunaInicio(), 10);
     await escolherHora(user, colunaInicio(), '10', '15');
@@ -266,7 +287,7 @@ describe('PainelControleView', () => {
       .spyOn(console, 'log')
       .mockImplementation(() => undefined);
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await escolherData(user, colunaInicio(), 17);
     await escolherHora(user, colunaInicio(), '15', '00');
@@ -292,7 +313,7 @@ describe('PainelControleView', () => {
       .spyOn(console, 'log')
       .mockImplementation(() => undefined);
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     // O calendário do início não olha o término: só o schema pega este caso.
     await escolherData(user, colunaInicio(), 17);
@@ -320,7 +341,7 @@ describe('PainelControleView', () => {
       .spyOn(console, 'log')
       .mockImplementation(() => undefined);
     const user = userEvent.setup();
-    render(<PainelControleView />);
+    renderizar();
 
     await escolherData(user, colunaInicio(), 17);
     await escolherHora(user, colunaInicio(), '15', '45');
@@ -338,5 +359,52 @@ describe('PainelControleView', () => {
     });
 
     consoleSpy.mockRestore();
+  });
+
+  it('should render the three section titles, without collapsing', async () => {
+    renderizar();
+
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: i18n.t('painelControle:adicionarMembro'),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: i18n.t('painelControle:gerenciar'),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', {
+        level: 2,
+        name: 'Membros de Acme Inc.',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', {
+        name: i18n.t('painelControle:gerenciar'),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should list the organization members', async () => {
+    renderizar();
+
+    expect(await screen.findByText('Enner Valência')).toBeInTheDocument();
+  });
+
+  it('should highlight the control panel in the menu', () => {
+    renderizar();
+
+    expect(
+      screen.getByRole('button', {
+        name: i18n.t('formulario:menuPainelControle'),
+      }),
+    ).toHaveAttribute('aria-current', 'page');
+    expect(
+      screen.getByRole('button', { name: i18n.t('formulario:menuPainel') }),
+    ).not.toHaveAttribute('aria-current');
   });
 });

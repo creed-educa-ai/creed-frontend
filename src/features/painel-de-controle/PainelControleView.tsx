@@ -1,17 +1,26 @@
-import CreedSymbol from '@/components/logos/logo';
-import wordmark from '@/components/logos/wordmark-dark.svg';
-import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useAppSelector } from '@/app/hooks';
+import { PanelHeader } from '@/components/layout/panelHeader';
+import { SectionHeader } from '@/components/layout/sectionHeader';
+import { AddMemberForm } from '@/features/organizations/AddMemberForm';
+import type { AddMemberValues } from '@/features/organizations/addMemberSchema';
+import { MembersSection } from '@/features/organizations/MembersSection';
 import {
   gerenciarQuestionarioSchema,
   type GerenciarQuestionarioFormValues,
 } from './GerenciarQuestionarioSchema';
 import { GerenciarQuestionario } from './GerenciarQuestionario';
 
+// Painel de controle da empresa: convidar membros, abrir o período do
+// questionário e acompanhar os membros.
 export function PainelControleView() {
-  const { t } = useTranslation(['formulario', 'painelControle']);
+  const { t } = useTranslation(['painelControle']);
+  // O nome chega junto com a lista de membros, que o MembersSection carrega.
+  const organization = useAppSelector(
+    (state) => state.organizations.organization,
+  );
 
   const {
     control,
@@ -32,60 +41,49 @@ export function PainelControleView() {
     // TODO: Lógica de integração com o backend
   };
 
+  function handleAddMember(values: AddMemberValues) {
+    console.log('Membro adicionado:', values);
+    // TODO: integração — o organizationsApi ainda não tem convite de membro
+  }
+
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
-      <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-10 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          {/* TODO: NOME DA EMPRESA DEVE VIR DO BACKEND */}
-          <p className="text-sm font-bold text-heading">ACME Inc.</p>
-          <h1 className="text-center text-3xl font-bold text-heading sm:text-left">
-            {t('painelControle:titulo')}
-          </h1>
+      <PanelHeader
+        eyebrow={organization}
+        title={t('painelControle:titulo')}
+        subtitle={t('painelControle:subtitulo')}
+      />
+
+      {/* Ações lado a lado (adicionar membro, período do questionário) e a
+          tabela de membros embaixo, na largura toda. No celular, tudo numa
+          coluna, nessa ordem. */}
+      <main className="flex flex-col gap-8 px-6 pb-10">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          {/* Sem recolher, ao contrário do dashboard: o painel é curto e as
+              seções são as ações da tela. flex-1 nivela os cards da linha. */}
+          <section className="flex flex-col gap-4">
+            <SectionHeader>{t('painelControle:adicionarMembro')}</SectionHeader>
+            <div className="flex-1 rounded-3xl bg-card p-6 shadow-sm">
+              <AddMemberForm onSubmit={handleAddMember} />
+            </div>
+          </section>
+
+          <section className="flex flex-col gap-4">
+            <SectionHeader>{t('painelControle:gerenciar')}</SectionHeader>
+            <div className="flex-1">
+              <GerenciarQuestionario
+                control={control}
+                errors={errors}
+                onConfirmar={() => {
+                  void handleSubmit(onSubmit)();
+                }}
+              />
+            </div>
+          </section>
         </div>
 
-        <div className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-background p-2 sm:justify-end">
-          <button
-            type="button"
-            aria-label={t('formulario:menuPainel')}
-            className="text-brand p-2 transition-colors hover:opacity-80"
-          >
-            <LayoutDashboard size={24} />
-          </button>
-          <button
-            type="button"
-            aria-label={t('formulario:menuFormulario')}
-            className="text-brand p-2 transition-colors hover:opacity-80"
-          >
-            <ClipboardPen size={24} />
-          </button>
-          <button
-            type="button"
-            aria-label={t('formulario:menuInformacoes')}
-            className="text-brand p-2 transition-colors hover:opacity-80"
-          >
-            <Info size={24} />
-          </button>
-          <CreedSymbol className="size-6" />
-          <img src={wordmark} alt="CREED.ai" className="w-24" />
-          <button
-            type="button"
-            aria-label={t('formulario:menuSair')}
-            className="text-brand p-2 transition-colors hover:opacity-80"
-          >
-            <LogOut size={24} />
-          </button>
-        </div>
-      </header>
-
-      <div className="px-6">
-        <GerenciarQuestionario
-          control={control}
-          errors={errors}
-          onConfirmar={() => {
-            void handleSubmit(onSubmit)();
-          }}
-        />
-      </div>
+        <MembersSection />
+      </main>
     </div>
   );
 }

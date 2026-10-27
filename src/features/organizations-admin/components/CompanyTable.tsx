@@ -1,28 +1,23 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-  type RowSelectionState,
-  type SortingState,
-  type VisibilityState,
-} from '@tanstack/react-table';
-import { ArrowUpDown, ChevronDown, Trash2 } from 'lucide-react';
-
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+  ModalAceite,
+  type EmpresaPendente,
+} from '@/components/modals/ModalAceite';
+import { ConfirmDeleteDialog } from '@/components/table/confirmDeleteDialog';
+import { SortableHead } from '@/components/table/sortableHead';
+import { CenterCell } from '@/components/table/centerCell';
+import { TableFooter } from '@/components/table/tableFooter';
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+  RowActionButton,
+  DeleteRowButton,
+  StatusPill,
+} from '@/components/table/tablePills';
+import {
+  tableHeadClass,
+  tableHeadDangerClass,
+} from '@/components/table/tableStyles';
+import { TableToolbar } from '@/components/table/tableToolbar';
 import {
   Table,
   TableBody,
@@ -31,10 +26,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  ModalAceite,
-  type EmpresaPendente,
-} from '@/components/modals/ModalAceite';
+import { useTablePage } from '@/hooks/useTablePage';
+import { useTableSort } from '@/hooks/useTableSort';
+import { cn, normalizeForSearch } from '@/lib/utils';
 
 export type StatusEmpresa = 'ativo' | 'pendente';
 
@@ -46,18 +40,21 @@ export interface Empresa extends EmpresaPendente {
 interface CompanyTableProps {
   empresas: Empresa[];
   onVerResultados: (id: string) => void;
-  onExcluir: (id: string) => void;
+  // Pode devolver uma promessa: o diálogo de confirmação espera por ela.
+  onExcluir: (id: string) => void | Promise<void>;
   onAceitar: (empresa: Empresa) => void;
   onRejeitar: (empresa: Empresa) => void;
 }
 
+// O nome fica sempre: sem ele não dá para saber de quem é a linha.
 const COLUNAS_OCULTAVEIS = [
-  'nome',
   'email',
   'resultados',
   'status',
   'excluir',
 ] as const;
+
+type ColunaOcultavel = (typeof COLUNAS_OCULTAVEIS)[number];
 
 export function CompanyTable({
   empresas,
@@ -66,301 +63,199 @@ export function CompanyTable({
   onAceitar,
   onRejeitar,
 }: CompanyTableProps) {
-  const { t } = useTranslation(['empresas']);
-
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [globalFilter, setGlobalFilter] = useState('');
+  const { t, i18n } = useTranslation(['empresas', 'comum']);
+  const [pesquisa, setPesquisa] = useState('');
+  const {
+    sorting,
+    toggle: alternarOrdem,
+    directionOf,
+  } = useTableSort<'nome'>();
+  const [colunasVisiveis, setColunasVisiveis] = useState<Set<ColunaOcultavel>>(
+    () => new Set(COLUNAS_OCULTAVEIS),
+  );
   const [empresaEmAnalise, setEmpresaEmAnalise] = useState<Empresa | null>(
     null,
   );
+  const [empresaAExcluir, setEmpresaAExcluir] = useState<Empresa | null>(null);
 
-  const columns = useMemo<ColumnDef<Empresa>[]>(
-    () => [
-      {
-        id: 'aprovar',
-        header: () => (
-          <span className="font-bold text-heading">
-            {t('empresas:colunas.aprovar')}
-          </span>
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            disabled={!row.getCanSelect()}
-            onCheckedChange={(valor) => {
-              row.toggleSelected(valor === true);
-            }}
-            aria-label={t('empresas:selecionarLinha', {
-              nome: row.original.nomeEmpresa,
-            })}
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
-      {
-        id: 'nome',
-        accessorKey: 'nomeEmpresa',
-        header: () => (
-          <span className="font-bold text-heading">
-            {t('empresas:colunas.nome')}
-          </span>
-        ),
-      },
-      {
-        id: 'email',
-        accessorKey: 'email',
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            className="px-0 font-bold text-heading"
-            onClick={() => {
-              column.toggleSorting(column.getIsSorted() === 'asc');
-            }}
-          >
-            {t('empresas:colunas.email')}
-            <ArrowUpDown className="size-4" aria-hidden="true" />
-          </Button>
-        ),
-        cell: ({ row }) => (
-          <span className="block max-w-48 truncate">{row.original.email}</span>
-        ),
-      },
-      {
-        id: 'resultados',
-        header: () => (
-          <div className="text-center font-bold text-heading">
-            {t('empresas:colunas.resultados')}
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <Button
-              size="sm"
-              className="rounded-full"
-              disabled={row.original.status === 'pendente'}
-              onClick={() => {
-                onVerResultados(row.original.id);
-              }}
-            >
-              {t('empresas:verResultados')}
-            </Button>
-          </div>
-        ),
-        enableSorting: false,
-      },
-      {
-        id: 'status',
-        accessorKey: 'status',
-        header: () => (
-          <div className="text-center font-bold text-heading">
-            {t('empresas:colunas.status')}
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <span
-              className={`rounded-full px-3 py-0.5 text-xs font-semibold text-white ${
-                row.original.status === 'ativo' ? 'bg-success' : 'bg-warning'
-              }`}
-            >
-              {t(`empresas:status.${row.original.status}`)}
-            </span>
-          </div>
-        ),
-      },
-      {
-        id: 'excluir',
-        header: () => (
-          <div className="text-center font-bold text-destructive">
-            {t('empresas:colunas.excluir')}
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-destructive"
-              aria-label={t('empresas:excluirEmpresa', {
-                nome: row.original.nomeEmpresa,
-              })}
-              onClick={() => {
-                onExcluir(row.original.id);
-              }}
-            >
-              <Trash2 className="size-5" aria-hidden="true" />
-            </Button>
-          </div>
-        ),
-        enableSorting: false,
-      },
-    ],
-    [t, onVerResultados, onExcluir],
-  );
+  const filtradas = useMemo(() => {
+    const termo = normalizeForSearch(pesquisa);
+    const lista = termo
+      ? empresas.filter(
+          (empresa) =>
+            normalizeForSearch(empresa.nomeEmpresa).includes(termo) ||
+            normalizeForSearch(empresa.email).includes(termo),
+        )
+      : [...empresas];
 
-  const table = useReactTable({
-    data: empresas,
-    columns,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      globalFilter,
-    },
-    onSortingChange: setSorting,
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    enableRowSelection: (row) => row.original.status === 'pendente',
-    getRowId: (empresa) => empresa.id,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: {
-        pageSize: 5,
-      },
-    },
-  });
+    // Pendentes sempre no topo: são as que pedem uma ação. Dentro de cada
+    // grupo vale a ordem por nome, se ligada; senão, a ordem que veio.
+    const grupo = (empresa: Empresa) => (empresa.status === 'pendente' ? 0 : 1);
+    return lista.sort((a, b) => {
+      if (grupo(a) !== grupo(b)) return grupo(a) - grupo(b);
+      if (!sorting) return 0;
+      const cmp = a.nomeEmpresa.localeCompare(
+        b.nomeEmpresa,
+        i18n.resolvedLanguage,
+        { sensitivity: 'base' },
+      );
+      return sorting.direction === 'asc' ? cmp : -cmp;
+    });
+  }, [pesquisa, empresas, sorting, i18n.resolvedLanguage]);
 
-  // Só conta o que a pesquisa deixa visível: uma linha selecionada e depois
-  // escondida pelo filtro não pode abrir o modal de aprovação.
-  const selecionadas = table.getFilteredSelectedRowModel().rows;
+  const paginacao = useTablePage(filtradas);
+  const empresasDaPagina = paginacao.pageItems;
+
+  function visivel(coluna: ColunaOcultavel) {
+    return colunasVisiveis.has(coluna);
+  }
 
   return (
-    <div className="w-full rounded-3xl bg-card p-6 shadow-sm">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Input
-          value={globalFilter}
-          onChange={(evento) => {
-            setGlobalFilter(evento.target.value);
-          }}
-          placeholder={t('empresas:pesquisar')}
-          aria-label={t('empresas:pesquisar')}
-          className="max-w-sm"
-        />
+    <div className="flex flex-col gap-4">
+      <TableToolbar
+        search={pesquisa}
+        onSearchChange={(valor) => {
+          setPesquisa(valor);
+          paginacao.reset();
+        }}
+        searchLabel={t('empresas:pesquisar')}
+        searchPlaceholder={t('empresas:pesquisar')}
+        columns={COLUNAS_OCULTAVEIS.map((coluna) => ({
+          key: coluna,
+          label: t(`empresas:colunas.${coluna}`),
+          visible: visivel(coluna),
+        }))}
+        onToggleColumn={(chave, mostrar) => {
+          setColunasVisiveis((atuais) => {
+            const proximas = new Set(atuais);
+            if (mostrar) {
+              proximas.add(chave as ColunaOcultavel);
+            } else {
+              proximas.delete(chave as ColunaOcultavel);
+            }
+            return proximas;
+          });
+        }}
+      />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              {t('empresas:colunas.titulo')}
-              <ChevronDown className="size-4" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent align="end">
-            {COLUNAS_OCULTAVEIS.map((id) => (
-              <DropdownMenuCheckboxItem
-                key={id}
-                checked={table.getColumn(id)?.getIsVisible() ?? true}
-                onCheckedChange={(visivel) => {
-                  table.getColumn(id)?.toggleVisibility(visivel);
-                }}
-              >
-                {t(`empresas:colunas.${id}`)}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      <div className="mt-4 w-full overflow-x-auto">
+      <div className="overflow-x-auto">
         <Table>
-          <TableHeader className="bg-card">
-            {table.getHeaderGroups().map((grupo) => (
-              <TableRow key={grupo.id} className="bg-card hover:bg-card">
-                {grupo.headers.map((cabecalho) => (
-                  <TableHead key={cabecalho.id} className="bg-card">
-                    {cabecalho.isPlaceholder
-                      ? null
-                      : flexRender(
-                          cabecalho.column.columnDef.header,
-                          cabecalho.getContext(),
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <SortableHead
+                label={t('empresas:colunas.nome')}
+                ariaLabel={t('comum:tabela.ordenarPorNome')}
+                direction={directionOf('nome')}
+                onToggle={() => {
+                  paginacao.reset();
+                  alternarOrdem('nome');
+                }}
+              />
+              {visivel('email') && (
+                <TableHead className={tableHeadClass}>
+                  {t('empresas:colunas.email')}
+                </TableHead>
+              )}
+              {visivel('resultados') && (
+                <TableHead className={cn(tableHeadClass, 'text-center')}>
+                  {t('empresas:colunas.resultados')}
+                </TableHead>
+              )}
+              {visivel('status') && (
+                <TableHead className={cn(tableHeadClass, 'text-center')}>
+                  {t('empresas:colunas.status')}
+                </TableHead>
+              )}
+              {visivel('excluir') && (
+                <TableHead className={tableHeadDangerClass}>
+                  {t('empresas:colunas.excluir')}
+                </TableHead>
+              )}
+            </TableRow>
           </TableHeader>
 
           <TableBody>
-            {table.getRowModel().rows.length > 0 ? (
-              table.getRowModel().rows.map((linha) => (
-                <TableRow
-                  key={linha.id}
-                  data-state={linha.getIsSelected() ? 'selected' : undefined}
-                  className="bg-card"
-                >
-                  {linha.getVisibleCells().map((celula) => (
-                    <TableCell key={celula.id}>
-                      {flexRender(
-                        celula.column.columnDef.cell,
-                        celula.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow className="bg-card">
+            {empresasDaPagina.length === 0 && (
+              <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-muted-foreground"
+                  colSpan={1 + colunasVisiveis.size}
+                  className="py-10 text-center text-muted-foreground"
                 >
                   {t('empresas:vazio')}
                 </TableCell>
               </TableRow>
             )}
+            {empresasDaPagina.map((empresa) => {
+              const pendente = empresa.status === 'pendente';
+
+              return (
+                <TableRow key={empresa.id}>
+                  <TableCell className="font-medium">
+                    {empresa.nomeEmpresa}
+                  </TableCell>
+                  {visivel('email') && (
+                    <TableCell
+                      title={empresa.email}
+                      className="max-w-[220px] truncate text-muted-foreground"
+                    >
+                      {empresa.email}
+                    </TableCell>
+                  )}
+                  {visivel('resultados') && (
+                    <CenterCell>
+                      <RowActionButton
+                        disabled={pendente}
+                        onClick={() => {
+                          onVerResultados(empresa.id);
+                        }}
+                      >
+                        {t('empresas:verResultados')}
+                      </RowActionButton>
+                    </CenterCell>
+                  )}
+                  {visivel('status') && (
+                    <CenterCell>
+                      {/* Clicar no "Pendente" abre o aceite da empresa. */}
+                      <StatusPill
+                        tone={pendente ? 'warning' : 'success'}
+                        {...(pendente && {
+                          onClick: () => {
+                            setEmpresaEmAnalise(empresa);
+                          },
+                          label: t('empresas:analisarCadastro', {
+                            nome: empresa.nomeEmpresa,
+                          }),
+                        })}
+                      >
+                        {t(`empresas:status.${empresa.status}`)}
+                      </StatusPill>
+                    </CenterCell>
+                  )}
+                  {visivel('excluir') && (
+                    <CenterCell>
+                      <DeleteRowButton
+                        label={t('empresas:excluirEmpresa', {
+                          nome: empresa.nomeEmpresa,
+                        })}
+                        onClick={() => {
+                          setEmpresaAExcluir(empresa);
+                        }}
+                      />
+                    </CenterCell>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          {t('empresas:selecionadas', {
-            selecionadas: selecionadas.length,
-            total: table.getFilteredRowModel().rows.length,
-          })}
-        </p>
-
-        <div className="flex flex-wrap gap-2">
-          <Button
-            className="bg-success text-white hover:bg-success/90"
-            disabled={selecionadas.length !== 1}
-            onClick={() => {
-              setEmpresaEmAnalise(selecionadas[0]?.original ?? null);
-            }}
-          >
-            {t('empresas:aprovar')}
-          </Button>
-
-          <Button
-            variant="outline"
-            className="bg-white hover:bg-gray-100"
-            disabled={!table.getCanPreviousPage()}
-            onClick={() => {
-              table.previousPage();
-            }}
-          >
-            {t('empresas:anterior')}
-          </Button>
-
-          <Button
-            variant="outline"
-            className="bg-white hover:bg-gray-100"
-            disabled={!table.getCanNextPage()}
-            onClick={() => {
-              table.nextPage();
-            }}
-          >
-            {t('empresas:proxima')}
-          </Button>
-        </div>
-      </div>
+      <TableFooter
+        page={paginacao.page}
+        totalPages={paginacao.totalPages}
+        onPrevious={paginacao.previous}
+        onNext={paginacao.next}
+      />
 
       <ModalAceite
         open={empresaEmAnalise !== null}
@@ -374,17 +269,28 @@ export function CompanyTable({
           if (empresaEmAnalise) {
             onAceitar(empresaEmAnalise);
           }
-
-          table.resetRowSelection();
           setEmpresaEmAnalise(null);
         }}
         onReject={() => {
           if (empresaEmAnalise) {
             onRejeitar(empresaEmAnalise);
           }
-
-          table.resetRowSelection();
           setEmpresaEmAnalise(null);
+        }}
+      />
+
+      <ConfirmDeleteDialog
+        open={empresaAExcluir !== null}
+        title={t('empresas:confirmarExclusao.titulo')}
+        description={t('empresas:confirmarExclusao.descricao', {
+          nome: empresaAExcluir?.nomeEmpresa ?? '',
+        })}
+        onConfirm={async () => {
+          if (!empresaAExcluir) return;
+          await onExcluir(empresaAExcluir.id);
+        }}
+        onClose={() => {
+          setEmpresaAExcluir(null);
         }}
       />
     </div>

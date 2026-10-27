@@ -32,6 +32,8 @@ interface PrismaRadarChartProps {
   className?: string;
   // Versão reduzida para o dashboard: card com título dentro e radar menor.
   compact?: boolean;
+  // Título do card na versão compacta; o padrão é "Prisma de competências".
+  title?: string;
 }
 
 interface TickProps {
@@ -53,14 +55,120 @@ const chartConfig = {
   },
 };
 
+// Versão compacta: rótulos maiores e todos fora do radar. O de cima fica acima
+// do vértice, os de baixo abaixo, e os laterais saem para o lado. Nome com
+// espaço quebra em duas linhas, para o rótulo lateral caber em card estreito.
+const COMPACT_NAME_SIZE = 13;
+const COMPACT_VALUE_SIZE = 16;
+const COMPACT_NAME_LINE = COMPACT_NAME_SIZE + 3;
+const COMPACT_VALUE_LINE = COMPACT_VALUE_SIZE + 4;
+// O recharts desenha o rótulo 8px além do vértice.
+const TICK_OFFSET = 8;
+// Folga extra no topo: a estimativa da altura do texto não bastou e o nome do
+// vértice de cima saía cortado pela borda do gráfico.
+const TOP_SAFETY = 16;
+
+// "Tomada de decisão" → ["Tomada de", "decisão"]: quebra no último espaço.
+function splitName(name: string) {
+  const lastSpace = name.lastIndexOf(' ');
+  if (lastSpace === -1) return [name];
+  return [name.slice(0, lastSpace), name.slice(lastSpace + 1)];
+}
+
+// Largura estimada de um texto: ~0,6 do tamanho da fonte por caractere.
+function textWidth(text: string, fontSize: number) {
+  return Math.ceil(text.length * fontSize * 0.6);
+}
+
+// Altura do rótulo, do topo do nome à base do valor.
+function labelHeight(name: string) {
+  const lines = splitName(name).length;
+  return (
+    COMPACT_NAME_SIZE + (lines - 1) * COMPACT_NAME_LINE + COMPACT_VALUE_LINE
+  );
+}
+
+// Espaço reservado aos rótulos em volta do radar. Com isso como margem e o
+// raio em 100%, o recharts dá ao radar todo o espaço que sobra. Ele desenha
+// em sentido horário a partir do topo: o 1º nome é o vértice de cima, o 2º o
+// lateral direito, o 3º e o 4º os de baixo e o último o lateral esquerdo.
+function compactMargin(names: string[], withPrevious: boolean) {
+  const valueWidth = textWidth(
+    withPrevious ? '100 / 100' : '100',
+    COMPACT_VALUE_SIZE,
+  );
+  const labelWidth = (name: string) =>
+    Math.max(
+      valueWidth,
+      ...splitName(name).map((line) => textWidth(line, COMPACT_NAME_SIZE)),
+    );
+  const [top = '', right = '', bottomRight = '', bottomLeft = '', left = ''] =
+    names;
+
+  return {
+    top: labelHeight(top) + TICK_OFFSET + TOP_SAFETY,
+    right: labelWidth(right) + TICK_OFFSET,
+    bottom:
+      Math.max(labelHeight(bottomRight), labelHeight(bottomLeft)) + TICK_OFFSET,
+    left: labelWidth(left) + TICK_OFFSET,
+  };
+}
+
+function PeriodLegend({
+  current,
+  previous,
+}: {
+  current: PrismaPeriod;
+  previous: PrismaPeriod | undefined;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <span
+        className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
+        style={{
+          borderColor: 'var(--border)',
+          backgroundColor: 'var(--accent)',
+          color: 'var(--accent-foreground)',
+        }}
+      >
+        <span
+          aria-hidden="true"
+          className="w-5 border-t-[3px]"
+          style={{ borderColor: chartConfig.current.color }}
+        />
+        {current.label}
+      </span>
+      {previous && (
+        <span
+          className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
+          style={{
+            borderColor: 'var(--border)',
+            backgroundColor: 'var(--accent)',
+            color: 'var(--accent-foreground)',
+          }}
+        >
+          <span
+            aria-hidden="true"
+            className="w-5 border-t-2 border-dashed"
+            style={{ borderColor: chartConfig.previous.color }}
+          />
+          {previous.label}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function RadarMetricTick({
   tick,
   current,
   previous,
+  compact,
 }: {
   tick: TickProps;
   current: PrismaScores;
   previous: PrismaScores | undefined;
+  compact: boolean;
 }) {
   const { t } = useTranslation(['dashboardPrisma']);
   const dimension = tick.payload?.value;
@@ -72,6 +180,51 @@ function RadarMetricTick({
   const centerY = tick.cy ?? 0;
   const anchor = x > centerX + 8 ? 'start' : x < centerX - 8 ? 'end' : 'middle';
   const previousValue = previous?.[dimension];
+
+  if (compact) {
+    const lines = splitName(t(`dashboardPrisma:dimensoes.${dimension}`));
+    const below = y > centerY;
+    const upperSide = !below && anchor !== 'middle';
+    // Distância da base da primeira linha à base do valor.
+    const span = (lines.length - 1) * COMPACT_NAME_LINE + COMPACT_VALUE_LINE;
+    // Abaixo do vértice; ao lado dele, centralizado na altura; ou acima.
+    const firstDy = below
+      ? COMPACT_NAME_SIZE + 2
+      : upperSide
+        ? COMPACT_NAME_SIZE / 2 - span / 2
+        : -2 - span;
+
+    return (
+      <text x={x} y={y} textAnchor={upperSide ? anchor : 'middle'}>
+        {lines.map((line, index) => (
+          <tspan
+            key={line}
+            x={x}
+            dy={index === 0 ? firstDy : COMPACT_NAME_LINE}
+            fill="var(--foreground)"
+            fontSize={COMPACT_NAME_SIZE}
+            fontWeight="500"
+          >
+            {line}
+          </tspan>
+        ))}
+        <tspan
+          x={x}
+          dy={COMPACT_VALUE_LINE}
+          fill={chartConfig.current.color}
+          fontSize={COMPACT_VALUE_SIZE}
+          fontWeight="700"
+        >
+          {String(current[dimension])}
+          {previousValue !== undefined && (
+            <tspan fill={chartConfig.previous.color}>
+              {` / ${String(previousValue)}`}
+            </tspan>
+          )}
+        </tspan>
+      </text>
+    );
+  }
 
   return (
     <text x={x} y={y} textAnchor={anchor} className="text-[10px] sm:text-xs">
@@ -117,6 +270,7 @@ export function PrismaRadarChart({
   previous,
   className,
   compact = false,
+  title,
 }: PrismaRadarChartProps) {
   const { t } = useTranslation(['dashboardPrisma']);
   const chartData = PRISMA_DIMENSIONS.map((dimension) => ({
@@ -130,6 +284,9 @@ export function PrismaRadarChart({
         anterior: previous.label,
       })
     : t('dashboardPrisma:descricaoSemComparacao', { atual: current.label });
+  const names = PRISMA_DIMENSIONS.map((dimension) =>
+    t(`dashboardPrisma:dimensoes.${dimension}`),
+  );
 
   return (
     <figure className={compact ? `h-full ${className ?? ''}` : className}>
@@ -143,39 +300,8 @@ export function PrismaRadarChart({
             <p className="mt-1 text-sm text-muted-foreground">{label}</p>
           </figcaption>
 
-          <div className="mb-3 flex flex-wrap gap-2">
-            <span
-              className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
-              style={{
-                borderColor: 'var(--border)',
-                backgroundColor: 'var(--accent)',
-                color: 'var(--accent-foreground)',
-              }}
-            >
-              <span
-                aria-hidden="true"
-                className="w-5 border-t-[3px]"
-                style={{ borderColor: chartConfig.current.color }}
-              />
-              {current.label}
-            </span>
-            {previous && (
-              <span
-                className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
-                style={{
-                  borderColor: 'var(--border)',
-                  backgroundColor: 'var(--accent)',
-                  color: 'var(--accent-foreground)',
-                }}
-              >
-                <span
-                  aria-hidden="true"
-                  className="w-5 border-t-2 border-dashed"
-                  style={{ borderColor: chartConfig.previous.color }}
-                />
-                {previous.label}
-              </span>
-            )}
+          <div className="mb-3">
+            <PeriodLegend current={current} previous={previous} />
           </div>
         </>
       )}
@@ -183,32 +309,45 @@ export function PrismaRadarChart({
       <div
         className={
           compact
-            ? 'h-full rounded-2xl bg-card p-5 shadow-sm'
+            ? 'flex h-full flex-col rounded-2xl bg-card p-5 shadow-sm'
             : 'rounded-lg border border-border bg-card px-2 py-3 shadow-sm sm:px-5 sm:py-4'
         }
         style={{ backgroundColor: 'var(--card)' }}
       >
-        {/* Na versão compacta o título fica dentro do card, como no Figma */}
+        {/* Na versão compacta título e legenda ficam dentro do card, como no
+            Figma. A legenda aparece mesmo com um período só: assim os dois
+            radares do dashboard têm a mesma estrutura e o mesmo tamanho. */}
         {compact && (
-          <h3 className="text-xl font-bold text-heading">
-            {t('dashboardPrisma:titulo')}
-          </h3>
+          <>
+            <h3 className="text-xl font-bold text-heading">
+              {title ?? t('dashboardPrisma:titulo')}
+            </h3>
+            <div className="mt-3">
+              <PeriodLegend current={current} previous={previous} />
+            </div>
+          </>
         )}
 
+        {/* Na versão compacta o radar ocupa a altura que sobra no card, com
+            300px de piso para quando o card estiver sozinho (celular). */}
         <ChartContainer
           id="prisma-radar"
           config={chartConfig}
-          className="text-xs"
+          className={compact ? 'mt-4 min-h-[300px] flex-1 text-xs' : 'text-xs'}
           style={{
-            height: compact ? '240px' : 'clamp(350px, 55vw, 430px)',
+            height: compact ? undefined : 'clamp(350px, 55vw, 430px)',
             color: 'var(--foreground)',
           }}
           aria-label={label}
         >
           <RadarChart
             data={chartData}
-            outerRadius="62%"
-            margin={{ top: 20, right: 32, bottom: 20, left: 32 }}
+            outerRadius={compact ? '100%' : '62%'}
+            margin={
+              compact
+                ? compactMargin(names, previous !== undefined)
+                : { top: 20, right: 32, bottom: 20, left: 32 }
+            }
           >
             <PolarGrid stroke="var(--border)" />
             <PolarAngleAxis
@@ -218,6 +357,7 @@ export function PrismaRadarChart({
                   tick={tick as TickProps}
                   current={current.scores}
                   previous={previous?.scores}
+                  compact={compact}
                 />
               )}
             />

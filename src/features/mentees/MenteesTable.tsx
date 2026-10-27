@@ -1,25 +1,20 @@
-import { useId, useRef, useState } from 'react';
-import { ChevronDown, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ConfirmDeleteDialog } from '@/components/table/confirmDeleteDialog';
+import { CenterCell } from '@/components/table/centerCell';
+import { SortableHead } from '@/components/table/sortableHead';
+import { TableFooter } from '@/components/table/tableFooter';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+  RowActionButton,
+  DeleteRowButton,
+  StatusPill,
+} from '@/components/table/tablePills';
+import {
+  tableHeadClass,
+  tableHeadDangerClass,
+} from '@/components/table/tableStyles';
+import { TableToolbar } from '@/components/table/tableToolbar';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -28,7 +23,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { cn } from '@/lib/utils';
+import { useRowSelection } from '@/hooks/useRowSelection';
+import { useTablePage } from '@/hooks/useTablePage';
+import { useTableSort } from '@/hooks/useTableSort';
+import { cn, normalizeForSearch } from '@/lib/utils';
 
 // > 🟡 Premissa — o Figma da tabela de mentorandos só mostra "Ativo".
 // > "Inativo" segue o `RecordStatus` do backend (`active` e `inactive`).
@@ -52,6 +50,11 @@ interface MenteesTableProps {
   // Pode devolver uma promessa: o diálogo espera por ela para fechar. Se for
   // rejeitada, o diálogo continua aberto para tentar de novo.
   onDelete: (mentee: Mentee) => void | Promise<void>;
+  // Caixas de seleção na primeira coluna. Desligadas por padrão: nenhuma ação
+  // usa a seleção ainda.
+  // > 🟡 Premissa — o Figma tem as caixas (exportar resultados no futuro), mas
+  // > nada está especificado. O código fica, e volta ligando esta prop.
+  selectable?: boolean;
 }
 
 type ColumnKey = 'questionnaire' | 'results' | 'status' | 'delete';
@@ -67,14 +70,6 @@ const TOGGLEABLE_COLUMNS: ColumnKey[] = [
   'delete',
 ];
 
-// Compara sem diferenciar maiúsculas nem acentos: "jose" acha "José".
-function normalize(text: string) {
-  return text
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase();
-}
-
 // Cor cheia e texto branco nos dois status, como no mockup. Contraste abaixo do
 // mínimo AA (4,5:1): ~3:1 no verde e ~4,2:1 no vermelho. Desvio a validar
 // com o supervisor.
@@ -83,14 +78,9 @@ function normalize(text: string) {
 function StatusBadge({ status }: { status: MenteeStatus }) {
   const { t } = useTranslation(['mentees']);
   return (
-    <span
-      className={cn(
-        'inline-block rounded-full px-3 py-1 text-xs font-medium text-primary-foreground',
-        status === 'active' ? 'bg-success' : 'bg-destructive',
-      )}
-    >
+    <StatusPill tone={status === 'active' ? 'success' : 'destructive'}>
       {t(`mentees:status.${status}`)}
-    </span>
+    </StatusPill>
   );
 }
 
@@ -99,12 +89,11 @@ export function MenteesTable({
   onViewResults,
   onEditQuestionnaire,
   onDelete,
+  selectable = false,
 }: MenteesTableProps) {
-  const { t } = useTranslation(['mentees', 'comum']);
-  const titleId = useId();
+  const { t, i18n } = useTranslation(['mentees', 'comum']);
   const [query, setQuery] = useState('');
   const [menteeToDelete, setMenteeToDelete] = useState<Mentee | null>(null);
-  const [deleting, setDeleting] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<
     Record<ColumnKey, boolean>
   >({ questionnaire: true, results: true, status: true, delete: true });
@@ -113,67 +102,36 @@ export function MenteesTable({
   // > 🟡 Premissa — o mockup tem caixas de seleção para exportar resultados no
   // > futuro, mas a exportação não está especificada. A seleção fica só aqui,
   // > sem prop de saída, e os cartões (celular) não têm caixa.
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const selection = useRowSelection();
 
-  function toggleColumn(column: ColumnKey, checked: boolean) {
-    setVisibleColumns((current) => ({ ...current, [column]: checked }));
-  }
+  const { sorting, toggle: toggleSort, directionOf } = useTableSort<'name'>();
 
   const visible = mentees.filter((mentee) =>
-    normalize(mentee.name).includes(normalize(query.trim())),
+    normalizeForSearch(mentee.name).includes(normalizeForSearch(query)),
   );
-
-  function toggleSelected(ids: string[], checked: boolean) {
-    setSelectedIds((current) =>
-      checked
-        ? [...new Set([...current, ...ids])]
-        : current.filter((id) => !ids.includes(id)),
-    );
+  if (sorting) {
+    visible.sort((a, b) => {
+      const cmp = a.name.localeCompare(b.name, i18n.resolvedLanguage, {
+        sensitivity: 'base',
+      });
+      return sorting.direction === 'asc' ? cmp : -cmp;
+    });
   }
+  const pagination = useTablePage(visible);
+  const pageMentees = pagination.pageItems;
 
-  const allVisibleSelected =
-    visible.length > 0 && visible.every((m) => selectedIds.includes(m.id));
-
-  const cancelRef = useRef<HTMLButtonElement>(null);
-  const [highlightCancel, setHighlightCancel] = useState(false);
-
-  function closeDeleteDialog() {
-    setHighlightCancel(false);
-    setMenteeToDelete(null);
-  }
-
-  // Modal obrigatório (ver ui-e-responsividade.md): Esc e clique fora não
-  // fecham. O foco vai para "Cancelar" e o botão ganha o anel de foco, mostrando
-  // que é preciso escolher uma das opções.
-  // > 🟡 Premissa — a convenção manda destacar "a ação principal". Aqui o
-  // > destaque vai para Cancelar, a ação menos destrutiva: assim um Enter logo
-  // > depois não exclui ninguém.
-  function drawAttention() {
-    cancelRef.current?.focus();
-    setHighlightCancel(true);
-  }
-
-  async function confirmDelete() {
-    if (!menteeToDelete || deleting) return;
-    setDeleting(true);
-    try {
-      await onDelete(menteeToDelete);
-      closeDeleteDialog();
-    } catch {
-      // O erro é de quem passou o `onDelete`. O diálogo continua aberto.
-    } finally {
-      setDeleting(false);
-    }
-  }
+  const pageIds = pageMentees.map((mentee) => mentee.id);
+  const selectedOnPage = pageIds.filter((id) => selection.isSelected(id));
+  const allPageSelected =
+    pageIds.length > 0 && selectedOnPage.length === pageIds.length;
 
   // Os mesmos três botões aparecem na tabela e nos cartões do celular. No
   // celular têm 40px de altura (alvo de toque); da tabela em diante (md),
   // ficam compactos, como no mockup.
   function editButton(mentee: Mentee) {
     return (
-      <Button
-        type="button"
-        className="h-10 rounded-full px-4 md:h-7 md:px-3 md:text-xs"
+      <RowActionButton
+        className="h-10 px-4 md:h-7 md:px-3"
         disabled={!mentee.hasAnsweredCurrent}
         aria-label={t('mentees:actions.editFor', { name: mentee.name })}
         onClick={() => {
@@ -181,15 +139,14 @@ export function MenteesTable({
         }}
       >
         {t('mentees:actions.edit')}
-      </Button>
+      </RowActionButton>
     );
   }
 
   function resultsButton(mentee: Mentee) {
     return (
-      <Button
-        type="button"
-        className="h-10 rounded-full px-4 md:h-7 md:px-3 md:text-xs"
+      <RowActionButton
+        className="h-10 px-4 md:h-7 md:px-3"
         disabled={!mentee.hasAnsweredCurrent}
         aria-label={t('mentees:actions.viewResultsFor', { name: mentee.name })}
         onClick={() => {
@@ -197,33 +154,25 @@ export function MenteesTable({
         }}
       >
         {t('mentees:actions.viewResults')}
-      </Button>
+      </RowActionButton>
     );
   }
 
   function deleteButton(mentee: Mentee) {
     return (
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="size-10 text-destructive hover:text-destructive md:size-7"
-        aria-label={t('mentees:actions.deleteFor', { name: mentee.name })}
+      <DeleteRowButton
+        className="size-10 md:size-8"
+        label={t('mentees:actions.deleteFor', { name: mentee.name })}
         onClick={() => {
           setMenteeToDelete(mentee);
         }}
-      >
-        <Trash2 />
-      </Button>
+      />
     );
   }
 
   return (
-    <section aria-labelledby={titleId} className="flex flex-col gap-4">
-      <h2 id={titleId} className="text-xl font-bold text-heading">
-        {t('mentees:title')}
-      </h2>
-
+    // O título ("Mentorandos") e o card são de quem usa o componente.
+    <div className="flex flex-col gap-4">
       {mentees.length === 0 ? (
         <p
           role="status"
@@ -232,139 +181,118 @@ export function MenteesTable({
           {t('mentees:empty')}
         </p>
       ) : (
-        // No celular só há a busca acima dos cartões. Da tabela em diante (md),
-        // busca, seleção de colunas e tabela ficam no mesmo container.
-        <div className="flex flex-col gap-3 md:gap-0 md:overflow-hidden md:rounded-xl md:border md:border-border md:bg-card">
-          <div className="flex items-center gap-3 md:p-4">
-            <Input
-              type="search"
-              className="h-10 md:h-8 md:max-w-sm"
-              aria-label={t('mentees:search.label')}
-              placeholder={t('mentees:search.placeholder')}
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-              }}
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="ml-auto hidden md:inline-flex"
-                >
-                  {t('mentees:columnsMenu')}
-                  <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {TOGGLEABLE_COLUMNS.map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column}
-                    checked={visibleColumns[column]}
-                    onCheckedChange={(checked) => {
-                      toggleColumn(column, checked);
-                    }}
-                    onSelect={(event) => {
-                      event.preventDefault();
-                    }}
-                  >
-                    {t(`mentees:columns.${column}`)}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+        <>
+          <TableToolbar
+            search={query}
+            onSearchChange={(value) => {
+              setQuery(value);
+              pagination.reset();
+            }}
+            searchLabel={t('mentees:search.label')}
+            searchPlaceholder={t('mentees:search.placeholder')}
+            columns={TOGGLEABLE_COLUMNS.map((column) => ({
+              key: column,
+              label: t(`mentees:columns.${column}`),
+              visible: visibleColumns[column],
+            }))}
+            onToggleColumn={(key, checked) => {
+              setVisibleColumns((current) => ({ ...current, [key]: checked }));
+            }}
+          />
 
           {visible.length === 0 ? (
             <p
               role="status"
-              className="rounded-lg border border-border px-4 py-8 text-center text-sm text-muted-foreground md:rounded-none md:border-x-0 md:border-b-0"
+              className="rounded-lg border border-border px-4 py-8 text-center text-sm text-muted-foreground"
             >
               {t('mentees:noResults')}
             </p>
           ) : (
             <>
-              <div className="hidden md:block">
+              <div className="hidden overflow-x-auto md:block">
                 <Table>
-                  <TableHeader className="bg-card text-base text-heading">
+                  <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-10 pl-5">
-                        <Checkbox
-                          aria-label={t('mentees:select.all')}
-                          checked={allVisibleSelected}
-                          onCheckedChange={(checked) => {
-                            toggleSelected(
-                              visible.map((m) => m.id),
-                              checked === true,
-                            );
-                          }}
-                        />
-                      </TableHead>
-                      <TableHead className="pr-5 pl-3 text-heading">
-                        {t('mentees:columns.name')}
-                      </TableHead>
+                      {selectable && (
+                        <TableHead className="w-10">
+                          <Checkbox
+                            aria-label={t('mentees:select.all')}
+                            checked={allPageSelected}
+                            onCheckedChange={(checked) => {
+                              selection.toggle(pageIds, checked === true);
+                            }}
+                          />
+                        </TableHead>
+                      )}
+                      <SortableHead
+                        label={t('mentees:columns.name')}
+                        ariaLabel={t('comum:tabela.ordenarPorNome')}
+                        direction={directionOf('name')}
+                        onToggle={() => {
+                          pagination.reset();
+                          toggleSort('name');
+                        }}
+                      />
                       {visibleColumns.questionnaire && (
-                        <TableHead className="text-heading">
+                        <TableHead
+                          className={cn(tableHeadClass, 'text-center')}
+                        >
                           {t('mentees:columns.questionnaire')}
                         </TableHead>
                       )}
                       {visibleColumns.results && (
-                        <TableHead className="text-heading">
+                        <TableHead
+                          className={cn(tableHeadClass, 'text-center')}
+                        >
                           {t('mentees:columns.results')}
                         </TableHead>
                       )}
                       {visibleColumns.status && (
-                        <TableHead className="text-center text-heading">
+                        <TableHead
+                          className={cn(tableHeadClass, 'text-center')}
+                        >
                           {t('mentees:columns.status')}
                         </TableHead>
                       )}
                       {visibleColumns.delete && (
-                        <TableHead className="text-center text-destructive">
+                        <TableHead className={tableHeadDangerClass}>
                           {t('mentees:columns.delete')}
                         </TableHead>
                       )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {visible.map((mentee) => (
-                      <TableRow
-                        key={mentee.id}
-                        className="hover:bg-transparent"
-                      >
-                        <TableCell className="w-10 py-1.5 pl-5">
-                          <Checkbox
-                            aria-label={t('mentees:select.row', {
-                              name: mentee.name,
-                            })}
-                            checked={selectedIds.includes(mentee.id)}
-                            onCheckedChange={(checked) => {
-                              toggleSelected([mentee.id], checked === true);
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell className="py-1.5 pr-5 pl-3 font-medium break-words">
+                    {pageMentees.map((mentee) => (
+                      <TableRow key={mentee.id}>
+                        {selectable && (
+                          <TableCell>
+                            <Checkbox
+                              aria-label={t('mentees:select.row', {
+                                name: mentee.name,
+                              })}
+                              checked={selection.isSelected(mentee.id)}
+                              onCheckedChange={(checked) => {
+                                selection.toggle([mentee.id], checked === true);
+                              }}
+                            />
+                          </TableCell>
+                        )}
+                        <TableCell className="font-medium break-words">
                           {mentee.name}
                         </TableCell>
                         {visibleColumns.questionnaire && (
-                          <TableCell className="py-1.5">
-                            {editButton(mentee)}
-                          </TableCell>
+                          <CenterCell>{editButton(mentee)}</CenterCell>
                         )}
                         {visibleColumns.results && (
-                          <TableCell className="py-1.5">
-                            {resultsButton(mentee)}
-                          </TableCell>
+                          <CenterCell>{resultsButton(mentee)}</CenterCell>
                         )}
                         {visibleColumns.status && (
-                          <TableCell className="py-1.5 text-center">
+                          <CenterCell>
                             <StatusBadge status={mentee.status} />
-                          </TableCell>
+                          </CenterCell>
                         )}
                         {visibleColumns.delete && (
-                          <TableCell className="py-1.5 text-center">
-                            {deleteButton(mentee)}
-                          </TableCell>
+                          <CenterCell>{deleteButton(mentee)}</CenterCell>
                         )}
                       </TableRow>
                     ))}
@@ -373,7 +301,7 @@ export function MenteesTable({
               </div>
 
               <ul className="grid gap-3 md:hidden">
-                {visible.map((mentee) => (
+                {pageMentees.map((mentee) => (
                   <li
                     key={mentee.id}
                     className="min-w-0 rounded-lg border border-border bg-card p-4"
@@ -394,57 +322,33 @@ export function MenteesTable({
               </ul>
             </>
           )}
-        </div>
+
+          <TableFooter
+            selected={selectable ? selectedOnPage.length : undefined}
+            total={pageMentees.length}
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onPrevious={pagination.previous}
+            onNext={pagination.next}
+          />
+        </>
       )}
 
-      {/* Fecha só pelos botões (Cancelar ou Excluir). */}
-      <AlertDialog open={menteeToDelete !== null}>
-        <AlertDialogContent
-          onOverlayClick={drawAttention}
-          onEscapeKeyDown={(event) => {
-            event.preventDefault();
-            drawAttention();
-          }}
-        >
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('mentees:confirmDelete.title')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('mentees:confirmDelete.description', {
-                name: menteeToDelete?.name ?? '',
-              })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              ref={cancelRef}
-              disabled={deleting}
-              className={cn(
-                highlightCancel && 'border-ring ring-3 ring-ring/50',
-              )}
-              onBlur={() => {
-                setHighlightCancel(false);
-              }}
-              onClick={() => {
-                closeDeleteDialog();
-              }}
-            >
-              {t('comum:acoes.cancelar')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive-solid"
-              disabled={deleting}
-              onClick={(event) => {
-                event.preventDefault();
-                void confirmDelete();
-              }}
-            >
-              {t('mentees:confirmDelete.confirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </section>
+      <ConfirmDeleteDialog
+        open={menteeToDelete !== null}
+        title={t('mentees:confirmDelete.title')}
+        description={t('mentees:confirmDelete.description', {
+          name: menteeToDelete?.name ?? '',
+        })}
+        onConfirm={async () => {
+          if (!menteeToDelete) return;
+          await onDelete(menteeToDelete);
+          selection.remove(menteeToDelete.id);
+        }}
+        onClose={() => {
+          setMenteeToDelete(null);
+        }}
+      />
+    </div>
   );
 }

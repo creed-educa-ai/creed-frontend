@@ -19,12 +19,14 @@ export function MetricasCard({ metricas, titulo }: MetricasCardProps) {
   const atencao = ordenadas[ordenadas.length - 1];
 
   return (
-    <article className="rounded-2xl bg-card p-5 shadow-sm">
+    <article className="flex h-full flex-col rounded-2xl bg-card p-5 shadow-sm">
       <h3 className="text-xl font-bold text-heading">
         {titulo ?? t('resultado:metricas')}
       </h3>
 
-      <ul className="mt-3 divide-y divide-border">
+      {/* As linhas dividem a altura do card: ao lado do radar, os dois cards
+          ficam nivelados sem sobrar espaço embaixo da lista. */}
+      <ul className="mt-3 flex flex-1 flex-col divide-y divide-border">
         {ordenadas.map((metrica) => {
           // Primeira palavra em destaque, o resto em cinza (como no Figma).
           const [primeira, ...resto] = metrica.nome.split(' ');
@@ -34,7 +36,7 @@ export function MetricasCard({ metricas, titulo }: MetricasCardProps) {
           return (
             <li
               key={metrica.nome}
-              className="flex items-center justify-between gap-3 py-2.5"
+              className="flex flex-1 items-center justify-between gap-3 py-2.5"
             >
               <span className="text-sm">
                 <span className="font-bold text-heading">{primeira}</span>

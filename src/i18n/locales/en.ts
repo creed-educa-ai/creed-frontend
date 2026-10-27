@@ -4,6 +4,19 @@ import type { ptBR } from './pt-BR';
 // faltando ou sobrando nas demais traduções.
 export const en: typeof ptBR = {
   comum: {
+    // Textos que as tabelas compartilham (src/components/table).
+    tabela: {
+      ordenarPorNome: 'Sort by name',
+      colunas: 'Columns',
+      paginacao: 'Pagination',
+      pagina: 'Page {{current}} of {{total}}',
+      anterior: 'Previous',
+      proximo: 'Next',
+      selecionadas: '{{count}} of {{total}} row(s) selected.',
+      excluir: 'Delete',
+      excluindo: 'Deleting…',
+      erroExcluir: "Couldn't delete. Please try again.",
+    },
     carregando: 'Loading…',
     semDado: '—',
     tenteRecarregar: 'Try reloading the page.',
@@ -379,6 +392,7 @@ export const en: typeof ptBR = {
     concluidoMensagem: 'Review your answers before submitting.',
     revisarEEnviar: 'Review and submit',
     menuPainel: 'Dashboard',
+    menuPainelControle: 'Control panel',
     menuFormulario: 'Form',
     menuInformacoes: 'Information',
     menuSair: 'Log out',
@@ -467,7 +481,6 @@ export const en: typeof ptBR = {
       confirmDeleteDescription:
         'Remove {{name}} from the company member list? This action cannot be undone.',
       delete: 'Delete',
-      sortByEmail: 'Sort by email',
       sortByDate: 'Sort by recent date',
       columnNames: {
         name: 'Name',
@@ -499,6 +512,7 @@ export const en: typeof ptBR = {
     rejeitar: 'Reject',
   },
   empresas: {
+    titulo: 'Companies',
     pesquisar: 'Search',
     colunas: {
       titulo: 'Columns',
@@ -517,17 +531,25 @@ export const en: typeof ptBR = {
     selecionadas: '{{selecionadas}} of {{total}} row(s) selected.',
     selecionarLinha: 'Select {{nome}}',
     excluirEmpresa: 'Delete {{nome}}',
+    analisarCadastro: 'Review the sign-up of {{nome}}',
+    confirmarExclusao: {
+      titulo: 'Delete company',
+      descricao: 'Are you sure you want to delete {{nome}}?',
+    },
     vazio: 'No companies found.',
   },
   painelControle: {
+    administradora: 'Administrator',
+    subtituloAdmin: 'Here is an overview of Creed today',
     titulo: 'Control Panel',
     subtitulo: 'Here is an overview of your organization today',
     gerenciar: 'Manage Questionnaire',
+    adicionarMembro: 'Add Member',
     inicio: 'Start',
     termino: 'End',
     confirmar: 'Confirm',
-    selecionarData: 'Select a date',
-    selecionarHora: 'Select a time',
+    selecionarData: 'Date',
+    selecionarHora: 'Time',
     seletorHora: {
       hora: 'Hour',
       minuto: 'Min',

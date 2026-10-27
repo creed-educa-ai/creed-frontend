@@ -2,6 +2,19 @@
 // compartilhado; cada feature ganha o seu.
 export const ptBR = {
   comum: {
+    // Textos que as tabelas compartilham (src/components/table).
+    tabela: {
+      ordenarPorNome: 'Ordenar por nome',
+      colunas: 'Colunas',
+      paginacao: 'Paginação',
+      pagina: 'Página {{current}} de {{total}}',
+      anterior: 'Anterior',
+      proximo: 'Próximo',
+      selecionadas: '{{count}} de {{total}} linha(s) selecionada(s).',
+      excluir: 'Excluir',
+      excluindo: 'Excluindo…',
+      erroExcluir: 'Não foi possível excluir. Tente novamente.',
+    },
     carregando: 'Carregando…',
     semDado: '—',
     tenteRecarregar: 'Tente recarregar a página.',
@@ -381,6 +394,7 @@ export const ptBR = {
     concluidoMensagem: 'Revise suas respostas antes de enviar.',
     revisarEEnviar: 'Revisar e enviar',
     menuPainel: 'Painel',
+    menuPainelControle: 'Painel de controle',
     menuFormulario: 'Formulário',
     menuInformacoes: 'Informações',
     menuSair: 'Sair',
@@ -472,7 +486,6 @@ export const ptBR = {
       confirmDeleteDescription:
         'Remover {{name}} da lista de membros da empresa? Esta ação não pode ser desfeita.',
       delete: 'Excluir',
-      sortByEmail: 'Ordenar por e-mail',
       sortByDate: 'Ordenar por data recente',
       columnNames: {
         name: 'Nome',
@@ -504,6 +517,7 @@ export const ptBR = {
     rejeitar: 'Rejeitar',
   },
   empresas: {
+    titulo: 'Empresas',
     pesquisar: 'Pesquise',
     colunas: {
       titulo: 'Colunas',
@@ -522,17 +536,25 @@ export const ptBR = {
     selecionadas: '{{selecionadas}} de {{total}} linha(s) selecionada(s).',
     selecionarLinha: 'Selecionar {{nome}}',
     excluirEmpresa: 'Excluir {{nome}}',
+    analisarCadastro: 'Analisar o cadastro de {{nome}}',
+    confirmarExclusao: {
+      titulo: 'Excluir empresa',
+      descricao: 'Tem certeza de que deseja excluir {{nome}}?',
+    },
     vazio: 'Nenhuma empresa encontrada.',
   },
   painelControle: {
+    administradora: 'Administradora',
+    subtituloAdmin: 'Aqui está o panorama do Creed hoje',
     titulo: 'Painel de Controle',
     subtitulo: 'Aqui está o panorama da sua organização hoje',
     gerenciar: 'Gerenciar Questionário',
+    adicionarMembro: 'Adicionar Membro',
     inicio: 'Início',
     termino: 'Término',
     confirmar: 'Confirmar',
-    selecionarData: 'Selecione a data',
-    selecionarHora: 'Selecione a hora',
+    selecionarData: 'Data',
+    selecionarHora: 'Hora',
     seletorHora: {
       hora: 'Hora',
       minuto: 'Min',

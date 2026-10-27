@@ -15,7 +15,8 @@ import { OnboardQuestionarioView } from '@/features/responses/OnboardQuestionari
 import { FormView } from '@/features/responses/FormView';
 import { RevisaoRespostasRoute } from '@/features/responses/RevisaoRespostasRoute';
 import { SubmissionConfirmationView } from '@/features/responses/SubmissionConfirmationView';
-import { DashboardView } from '@/features/dashboards/DashboardView';
+import { UserDashboardView } from '@/features/dashboards/UserDashboardView';
+import { CompanyDashboardView } from '@/features/dashboards/CompanyDashboardView';
 import { OrganizationsAdminView } from '@/features/organizations-admin/OrganizationsAdminView';
 import { MembersView } from '@/features/organizations/MembersView';
 import { PainelControleView } from '@/features/painel-de-controle/PainelControleView';
@@ -57,9 +58,10 @@ export const router = createBrowserRouter([
       },
     ],
   },
-  { path: '/dashboard', element: <DashboardView /> },
-  { path: '/painel-controle', element: <PainelControleView /> },
-  { path: '/painel-controle-super', element: <PainelControleSuperView /> },
+  { path: '/dashboard', element: <UserDashboardView /> },
+  { path: '/dashboard/company', element: <CompanyDashboardView /> },
+  { path: '/control-panel', element: <PainelControleView /> },
+  { path: '/control-panel/admin', element: <PainelControleSuperView /> },
   { path: '/sobre', element: <SobreView /> },
   { path: '/cadastro', element: <CadastroView /> },
   { path: '/primeiro-acesso', element: <AlterarSenhaView /> },

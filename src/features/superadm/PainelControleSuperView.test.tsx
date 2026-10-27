@@ -13,9 +13,12 @@ describe('PainelControleSuperView', () => {
     vi.restoreAllMocks();
   });
 
-  it('should render the translated title and the add mentee section', () => {
+  it('should render the admin header and the three section titles', () => {
     render(<PainelControleSuperView />);
 
+    expect(
+      screen.getByText(i18n.t('painelControle:administradora')),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', {
         level: 1,
@@ -23,10 +26,34 @@ describe('PainelControleSuperView', () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', {
-        name: i18n.t('adicionarMentorando:titulo'),
-      }),
+      screen.getByText(i18n.t('painelControle:subtituloAdmin')),
     ).toBeInTheDocument();
+    for (const titulo of [
+      i18n.t('adicionarMentorando:titulo'),
+      i18n.t('empresas:titulo'),
+      i18n.t('mentees:title'),
+    ]) {
+      expect(
+        screen.getByRole('heading', { level: 2, name: titulo }),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it('should list the companies and the mentees', () => {
+    render(<PainelControleSuperView />);
+
+    expect(screen.getByText('Tech Solutions')).toBeInTheDocument();
+    expect(screen.getAllByText('Wilson Mathias').length).toBeGreaterThan(0);
+  });
+
+  it('should highlight the control panel in the menu', () => {
+    render(<PainelControleSuperView />);
+
+    expect(
+      screen.getByRole('button', {
+        name: i18n.t('formulario:menuPainelControle'),
+      }),
+    ).toHaveAttribute('aria-current', 'page');
   });
 
   it('should hand the typed email to the placeholder handler', async () => {

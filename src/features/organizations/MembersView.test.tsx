@@ -127,8 +127,8 @@ describe('MembersView', () => {
     expect(screen.getByText('18/10/26')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Columnas' }));
     expect(
-      screen.getByRole('dialog', { name: 'Mostrar columnas' }),
-    ).toBeInTheDocument();
+      within(screen.getByRole('menu')).getAllByRole('menuitemcheckbox'),
+    ).toHaveLength(5);
     await userEvent.keyboard('{Escape}');
     const tabela = screen.getByRole('table', {
       name: 'Miembros de la empresa',
