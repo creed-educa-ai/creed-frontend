@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppSelector } from '@/app/hooks';
-import { NavMenu } from '@/components/layout/navMenu';
+import { PanelHeader } from '@/components/layout/panelHeader';
 import { SectionHeader } from '@/components/layout/sectionHeader';
 import { AddMemberForm } from '@/features/organizations/AddMemberForm';
 import type { AddMemberValues } from '@/features/organizations/addMemberSchema';
@@ -48,19 +48,11 @@ export function PainelControleView() {
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
-      <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-10 sm:flex-row sm:items-start sm:justify-between">
-        <div className="text-center sm:text-left">
-          <p className="text-sm font-bold text-heading">{organization}</p>
-          <h1 className="text-3xl font-bold text-heading">
-            {t('painelControle:titulo')}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('painelControle:subtitulo')}
-          </p>
-        </div>
-
-        <NavMenu active="controlPanel" showControlPanel />
-      </header>
+      <PanelHeader
+        eyebrow={organization}
+        title={t('painelControle:titulo')}
+        subtitle={t('painelControle:subtitulo')}
+      />
 
       {/* Ações lado a lado (adicionar membro, período do questionário) e a
           tabela de membros embaixo, na largura toda. No celular, tudo numa

@@ -33,7 +33,7 @@ export function MembersSection() {
           ? t('organizations:members.title', { organization })
           : t('organizations:members.table')}
       </SectionHeader>
-      <div className="rounded-[20px] border border-primary/15 bg-card p-3 shadow-sm sm:p-6">
+      <div className="rounded-3xl bg-card p-6 shadow-sm">
         {status === 'loading' && (
           <div className="space-y-3" aria-live="polite">
             <p className="text-sm text-muted-foreground">{t('carregando')}</p>

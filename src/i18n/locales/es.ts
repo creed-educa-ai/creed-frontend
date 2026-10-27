@@ -4,6 +4,19 @@ import type { ptBR } from './pt-BR';
 // faltando ou sobrando nas demais traduções.
 export const es: typeof ptBR = {
   comum: {
+    // Textos que as tabelas compartilham (src/components/table).
+    tabela: {
+      ordenarPorNome: 'Ordenar por nombre',
+      colunas: 'Columnas',
+      paginacao: 'Paginación',
+      pagina: 'Página {{current}} de {{total}}',
+      anterior: 'Anterior',
+      proximo: 'Siguiente',
+      selecionadas: '{{count}} de {{total}} fila(s) seleccionada(s).',
+      excluir: 'Eliminar',
+      excluindo: 'Eliminando…',
+      erroExcluir: 'No se pudo eliminar. Inténtalo de nuevo.',
+    },
     carregando: 'Cargando…',
     semDado: '—',
     tenteRecarregar: 'Intenta recargar la página.',
@@ -471,7 +484,6 @@ export const es: typeof ptBR = {
       confirmDeleteDescription:
         '¿Quieres eliminar a {{name}} de la lista de miembros de la empresa? Esta acción no se puede deshacer.',
       delete: 'Eliminar',
-      sortByEmail: 'Ordenar por correo electrónico',
       sortByDate: 'Ordenar por fecha reciente',
       columnNames: {
         name: 'Nombre',
@@ -503,6 +515,7 @@ export const es: typeof ptBR = {
     rejeitar: 'Rechazar',
   },
   empresas: {
+    titulo: 'Empresas',
     pesquisar: 'Buscar',
     colunas: {
       titulo: 'Columnas',
@@ -521,9 +534,16 @@ export const es: typeof ptBR = {
     selecionadas: '{{selecionadas}} de {{total}} fila(s) seleccionada(s).',
     selecionarLinha: 'Seleccionar {{nome}}',
     excluirEmpresa: 'Eliminar {{nome}}',
+    analisarCadastro: 'Revisar el registro de {{nome}}',
+    confirmarExclusao: {
+      titulo: 'Eliminar empresa',
+      descricao: '¿Seguro que deseas eliminar {{nome}}?',
+    },
     vazio: 'No se encontraron empresas.',
   },
   painelControle: {
+    administradora: 'Administradora',
+    subtituloAdmin: 'Aquí está el panorama de Creed hoy',
     titulo: 'Panel de control',
     subtitulo: 'Aquí está el panorama de tu organización hoy',
     gerenciar: 'Gestionar cuestionario',

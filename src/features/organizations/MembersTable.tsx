@@ -1,16 +1,20 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Popover } from 'radix-ui';
+import { CenterCell } from '@/components/table/centerCell';
+import { ConfirmDeleteDialog } from '@/components/table/confirmDeleteDialog';
+import { SortableHead } from '@/components/table/sortableHead';
+import { TableFooter } from '@/components/table/tableFooter';
 import {
-  ArrowDownIcon,
-  ArrowUpDownIcon,
-  ArrowUpIcon,
-  ChevronDownIcon,
-  Trash2Icon,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+  DeleteRowButton,
+  RowActionButton,
+  StatusPill,
+} from '@/components/table/tablePills';
+import {
+  tableHeadClass,
+  tableHeadDangerClass,
+} from '@/components/table/tableStyles';
+import { TableToolbar } from '@/components/table/tableToolbar';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -20,26 +24,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
-import type { Member, MemberStatus, MemberTag } from '@/types/api';
-
-const PAGE_SIZE = 5;
+import { useRowSelection } from '@/hooks/useRowSelection';
+import { useTablePage } from '@/hooks/useTablePage';
+import { useTableSort } from '@/hooks/useTableSort';
+import { cn, normalizeForSearch } from '@/lib/utils';
+import type { Member, MemberTag } from '@/types/api';
 
 const OPTIONAL_COLUMNS = [
   'email',
@@ -50,12 +45,16 @@ const OPTIONAL_COLUMNS = [
 ] as const;
 
 type OptionalColumn = (typeof OPTIONAL_COLUMNS)[number];
-type SortableColumn = 'email' | 'updatedAt';
-type SortDirection = 'asc' | 'desc';
+type SortableColumn = 'name' | 'updatedAt';
 
 interface MembersTableProps {
   members: Member[];
   onDelete: (id: string) => Promise<void>;
+  // Caixas de seleção na primeira coluna. Desligadas por padrão: nenhuma ação
+  // usa a seleção ainda.
+  // > 🟡 Premissa — o Figma tem as caixas (exportar resultados no futuro), mas
+  // > nada está especificado. O código fica, e volta ligando esta prop.
+  selectable?: boolean;
 }
 
 function formatDate(iso: string, language: string) {
@@ -64,38 +63,37 @@ function formatDate(iso: string, language: string) {
   );
 }
 
-function statusBadgeClass(status: MemberStatus) {
-  return status === 'ativo' ? 'bg-[#4E8F67]' : 'bg-[#C88C32]';
-}
-
 function tagBadgeClass(tag: MemberTag) {
   if (tag === 'marketing') return 'bg-[#009E4F]';
   if (tag === 'vendas') return 'bg-[#008AC9]';
   return 'bg-[#8B1E8B]';
 }
 
-export function MembersTable({ members, onDelete }: MembersTableProps) {
+export function MembersTable({
+  members,
+  onDelete,
+  selectable = false,
+}: MembersTableProps) {
   const { t, i18n } = useTranslation(['comum', 'organizations']);
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [sorting, setSorting] = useState<{
-    column: SortableColumn;
-    direction: SortDirection;
-  } | null>(null);
+  const {
+    sorting,
+    toggle: toggleSort,
+    directionOf,
+  } = useTableSort<SortableColumn>();
   const [visibleColumns, setVisibleColumns] = useState<Set<OptionalColumn>>(
     () => new Set(OPTIONAL_COLUMNS),
   );
-  const [columnsMenuOpen, setColumnsMenuOpen] = useState(false);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const selection = useRowSelection();
   const [details, setDetails] = useState<Member | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState(false);
 
   const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
+    const term = normalizeForSearch(search);
     const list = term
-      ? members.filter((member) => member.email.toLowerCase().includes(term))
+      ? members.filter((member) =>
+          normalizeForSearch(member.email).includes(term),
+        )
       : [...members];
 
     if (!sorting) return list;
@@ -104,43 +102,15 @@ export function MembersTable({ members, onDelete }: MembersTableProps) {
       const cmp =
         sorting.column === 'updatedAt'
           ? Date.parse(a.updated_at) - Date.parse(b.updated_at)
-          : a.email.localeCompare(b.email, i18n.resolvedLanguage, {
+          : a.name.localeCompare(b.name, i18n.resolvedLanguage, {
               sensitivity: 'base',
             });
       return sorting.direction === 'asc' ? cmp : -cmp;
     });
   }, [search, members, sorting, i18n.resolvedLanguage]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageMembers = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
-
-  function toggleSorting(column: SortableColumn) {
-    setPage(1);
-    setSorting((current) => {
-      if (current?.column !== column) {
-        return { column, direction: 'asc' };
-      }
-      if (current.direction === 'asc') {
-        return { column, direction: 'desc' };
-      }
-      return null;
-    });
-  }
-
-  function sortIcon(column: SortableColumn) {
-    if (sorting?.column !== column) {
-      return <ArrowUpDownIcon className="size-3.5 opacity-70" />;
-    }
-    return sorting.direction === 'asc' ? (
-      <ArrowUpIcon className="size-3.5" />
-    ) : (
-      <ArrowDownIcon className="size-3.5" />
-    );
-  }
+  const pagination = useTablePage(filtered);
+  const pageMembers = pagination.pageItems;
 
   function isVisible(column: OptionalColumn) {
     return visibleColumns.has(column);
@@ -159,197 +129,89 @@ export function MembersTable({ members, onDelete }: MembersTableProps) {
   }
 
   const pageIds = pageMembers.map((member) => member.id);
+  const selectedOnPage = pageIds.filter((id) => selection.isSelected(id));
   const allSelected =
-    pageIds.length > 0 && pageIds.every((id) => selected.has(id));
-  const someSelected = pageIds.some((id) => selected.has(id)) && !allSelected;
-
-  function toggleAll(checked: boolean) {
-    setSelected((current) => {
-      const next = new Set(current);
-      if (checked) {
-        pageIds.forEach((id) => {
-          next.add(id);
-        });
-      } else {
-        pageIds.forEach((id) => {
-          next.delete(id);
-        });
-      }
-      return next;
-    });
-  }
-
-  function toggleRow(id: string, checked: boolean) {
-    setSelected((current) => {
-      const next = new Set(current);
-      if (checked) {
-        next.add(id);
-      } else {
-        next.delete(id);
-      }
-      return next;
-    });
-  }
-
-  async function confirmDelete() {
-    if (!deleteTarget || deleting) return;
-    setDeleting(true);
-    setDeleteError(false);
-    try {
-      await onDelete(deleteTarget.id);
-      setSelected((current) => {
-        const next = new Set(current);
-        next.delete(deleteTarget.id);
-        return next;
-      });
-      setDeleteTarget(null);
-    } catch {
-      setDeleteError(true);
-    } finally {
-      setDeleting(false);
-    }
-  }
-
-  const searchActive = search.trim().length > 0;
-  const selectedOnPage = pageMembers.filter((member) =>
-    selected.has(member.id),
-  );
+    pageIds.length > 0 && selectedOnPage.length === pageIds.length;
+  const someSelected = selectedOnPage.length > 0 && !allSelected;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Input
-          id="member-email-search"
-          type="search"
-          value={search}
-          onChange={(event) => {
-            setSearch(event.target.value);
-            setPage(1);
-          }}
-          placeholder={t('organizations:members.searchEmail')}
-          aria-label={t('organizations:members.searchEmail')}
-          className="h-10 w-full max-w-xs rounded-lg border border-[#7C50B0] bg-card px-3 text-sm placeholder:text-[#8A8794] focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20"
-        />
+    <div className="flex flex-col gap-4">
+      <TableToolbar
+        search={search}
+        onSearchChange={(value) => {
+          setSearch(value);
+          pagination.reset();
+        }}
+        searchLabel={t('organizations:members.searchEmail')}
+        searchPlaceholder={t('organizations:members.searchEmail')}
+        columns={OPTIONAL_COLUMNS.map((column) => ({
+          key: column,
+          label: t(`organizations:members.columnNames.${column}`),
+          visible: isVisible(column),
+        }))}
+        onToggleColumn={(key, visible) => {
+          toggleColumn(key as OptionalColumn, visible);
+        }}
+      />
 
-        <Popover.Root open={columnsMenuOpen} onOpenChange={setColumnsMenuOpen}>
-          <Popover.Trigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 rounded-lg border-zinc-200 bg-card px-3.5 text-sm font-medium hover:bg-zinc-50"
-            >
-              {t('organizations:members.columns')}
-              <ChevronDownIcon className="ml-1 size-4" />
-            </Button>
-          </Popover.Trigger>
-          <Popover.Portal>
-            <Popover.Content
-              align="end"
-              sideOffset={6}
-              aria-label={t('organizations:members.columnsMenu')}
-              className="z-30 w-48 rounded-lg border border-border bg-card p-2 shadow-lg"
-            >
-              {OPTIONAL_COLUMNS.map((column) => (
-                <label
-                  key={column}
-                  className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-1.5 text-sm hover:bg-accent"
-                >
-                  <Checkbox
-                    checked={isVisible(column)}
-                    onCheckedChange={(value) => {
-                      toggleColumn(column, value === true);
-                    }}
-                  />
-                  <span>
-                    {t(`organizations:members.columnNames.${column}`)}
-                  </span>
-                </label>
-              ))}
-            </Popover.Content>
-          </Popover.Portal>
-        </Popover.Root>
-      </div>
-
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-x-auto">
         <Table aria-label={t('organizations:members.table')}>
           <TableHeader>
-            <TableRow className="border-b border-border/60 hover:bg-transparent">
-              <TableHead className="w-10 pl-2">
-                <Checkbox
-                  checked={someSelected ? 'indeterminate' : allSelected}
-                  onCheckedChange={(value) => {
-                    toggleAll(value === true);
-                  }}
-                  aria-label={t('organizations:members.selectPage')}
-                  disabled={pageMembers.length === 0}
-                />
-              </TableHead>
-              <TableHead className="font-heading text-sm font-bold text-heading">
-                {t('organizations:members.columnNames.name')}
-              </TableHead>
-              {isVisible('email') && (
-                <TableHead
-                  aria-sort={
-                    sorting?.column === 'email'
-                      ? sorting.direction === 'asc'
-                        ? 'ascending'
-                        : 'descending'
-                      : 'none'
-                  }
-                >
-                  <button
-                    type="button"
-                    className="inline-flex cursor-pointer items-center gap-1 font-heading text-sm font-bold text-heading"
-                    onClick={() => {
-                      toggleSorting('email');
+            <TableRow className="hover:bg-transparent">
+              {selectable && (
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={someSelected ? 'indeterminate' : allSelected}
+                    onCheckedChange={(value) => {
+                      selection.toggle(pageIds, value === true);
                     }}
-                    aria-label={t('organizations:members.sortByEmail')}
-                  >
-                    {t('organizations:members.columnNames.email')}
-                    {sortIcon('email')}
-                  </button>
+                    aria-label={t('organizations:members.selectPage')}
+                    disabled={pageMembers.length === 0}
+                  />
+                </TableHead>
+              )}
+              <SortableHead
+                label={t('organizations:members.columnNames.name')}
+                ariaLabel={t('comum:tabela.ordenarPorNome')}
+                direction={directionOf('name')}
+                onToggle={() => {
+                  pagination.reset();
+                  toggleSort('name');
+                }}
+              />
+              {isVisible('email') && (
+                <TableHead className={tableHeadClass}>
+                  {t('organizations:members.columnNames.email')}
                 </TableHead>
               )}
               {isVisible('action') && (
-                <TableHead className="text-center font-heading text-sm font-bold text-heading">
+                <TableHead className={cn(tableHeadClass, 'text-center')}>
                   {t('organizations:members.columnNames.action')}
                 </TableHead>
               )}
               {isVisible('status') && (
-                <TableHead className="text-center font-heading text-sm font-bold text-heading">
+                <TableHead className={cn(tableHeadClass, 'text-center')}>
                   {t('organizations:members.columnNames.status')}
                 </TableHead>
               )}
               {isVisible('tag') && (
-                <TableHead className="text-center font-heading text-sm font-bold text-heading">
+                <TableHead className={cn(tableHeadClass, 'text-center')}>
                   {t('organizations:members.columnNames.tag')}
                 </TableHead>
               )}
               {isVisible('updatedAt') && (
-                <TableHead
+                <SortableHead
                   className="text-center"
-                  aria-sort={
-                    sorting?.column === 'updatedAt'
-                      ? sorting.direction === 'asc'
-                        ? 'ascending'
-                        : 'descending'
-                      : 'none'
-                  }
-                >
-                  <button
-                    type="button"
-                    className="inline-flex cursor-pointer items-center justify-center gap-1 font-heading text-sm font-bold text-heading"
-                    onClick={() => {
-                      toggleSorting('updatedAt');
-                    }}
-                    aria-label={t('organizations:members.sortByDate')}
-                  >
-                    {t('organizations:members.columnNames.updatedAt')}
-                    {sortIcon('updatedAt')}
-                  </button>
-                </TableHead>
+                  label={t('organizations:members.columnNames.updatedAt')}
+                  ariaLabel={t('organizations:members.sortByDate')}
+                  direction={directionOf('updatedAt')}
+                  onToggle={() => {
+                    pagination.reset();
+                    toggleSort('updatedAt');
+                  }}
+                />
               )}
-              <TableHead className="text-center font-heading text-sm font-semibold text-destructive">
+              <TableHead className={tableHeadDangerClass}>
                 {t('organizations:members.columnNames.delete')}
               </TableHead>
             </TableRow>
@@ -358,37 +220,35 @@ export function MembersTable({ members, onDelete }: MembersTableProps) {
             {pageMembers.length === 0 && (
               <TableRow className="hover:bg-transparent">
                 <TableCell
-                  colSpan={3 + visibleColumns.size}
+                  colSpan={(selectable ? 3 : 2) + visibleColumns.size}
                   className="py-10 text-center text-muted-foreground"
                 >
-                  {searchActive
+                  {search.trim()
                     ? t('organizations:members.emptySearch')
                     : t('organizations:members.empty')}
                 </TableCell>
               </TableRow>
             )}
             {pageMembers.map((member) => {
-              const checked = selected.has(member.id);
-              const isActive = member.status === 'ativo';
+              const checked = selection.isSelected(member.id);
 
               return (
                 <TableRow
                   key={member.id}
                   data-state={checked ? 'selected' : undefined}
-                  className="border-b border-border/30 transition-colors hover:bg-muted/30"
                 >
-                  <TableCell className="pl-2">
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={(value) => {
-                        toggleRow(member.id, value === true);
-                      }}
-                      aria-label={member.name}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium text-foreground">
-                    {member.name}
-                  </TableCell>
+                  {selectable && (
+                    <TableCell>
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(value) => {
+                          selection.toggle([member.id], value === true);
+                        }}
+                        aria-label={member.name}
+                      />
+                    </TableCell>
+                  )}
+                  <TableCell className="font-medium">{member.name}</TableCell>
                   {isVisible('email') && (
                     <TableCell
                       title={member.email}
@@ -398,65 +258,46 @@ export function MembersTable({ members, onDelete }: MembersTableProps) {
                     </TableCell>
                   )}
                   {isVisible('action') && (
-                    <TableCell className="text-center">
-                      <button
-                        type="button"
+                    <CenterCell>
+                      <RowActionButton
+                        muted={member.status !== 'ativo'}
                         onClick={() => {
                           setDetails(member);
                         }}
-                        className={cn(
-                          'inline-flex cursor-pointer items-center justify-center rounded-full px-4 py-1 text-xs font-semibold shadow-none transition-colors select-none',
-                          isActive
-                            ? 'bg-[#532B88] text-white hover:bg-[#6438A0]'
-                            : 'bg-[#E2D8F3] text-[#7C50B0] hover:bg-[#D7C8EE]',
-                        )}
                       >
                         {t('organizations:members.view')}
-                      </button>
-                    </TableCell>
+                      </RowActionButton>
+                    </CenterCell>
                   )}
                   {isVisible('status') && (
-                    <TableCell className="text-center">
-                      <span
-                        className={cn(
-                          'inline-flex items-center justify-center rounded-full px-3.5 py-0.5 text-xs font-medium text-white shadow-none select-none',
-                          statusBadgeClass(member.status),
-                        )}
+                    <CenterCell>
+                      <StatusPill
+                        tone={member.status === 'ativo' ? 'success' : 'warning'}
                       >
                         {t(`organizations:members.status.${member.status}`)}
-                      </span>
-                    </TableCell>
+                      </StatusPill>
+                    </CenterCell>
                   )}
                   {isVisible('tag') && (
-                    <TableCell className="text-center">
-                      <span
-                        className={cn(
-                          'inline-flex items-center justify-center rounded-full px-3.5 py-0.5 text-xs font-medium text-white shadow-none select-none',
-                          tagBadgeClass(member.tag),
-                        )}
-                      >
+                    <CenterCell>
+                      <StatusPill className={tagBadgeClass(member.tag)}>
                         {t(`organizations:members.tags.${member.tag}`)}
-                      </span>
-                    </TableCell>
+                      </StatusPill>
+                    </CenterCell>
                   )}
                   {isVisible('updatedAt') && (
-                    <TableCell className="text-center text-sm text-muted-foreground">
+                    <CenterCell className="text-sm text-muted-foreground">
                       {formatDate(member.updated_at, i18n.language)}
-                    </TableCell>
+                    </CenterCell>
                   )}
-                  <TableCell className="text-center">
-                    <button
-                      type="button"
-                      className="inline-flex cursor-pointer items-center justify-center rounded-lg p-1.5 text-[#DC5548] transition-colors hover:bg-destructive/10 hover:text-[#B83E34]"
-                      aria-label={`${t('organizations:members.delete')} ${member.name}`}
+                  <CenterCell>
+                    <DeleteRowButton
+                      label={`${t('organizations:members.delete')} ${member.name}`}
                       onClick={() => {
-                        setDeleteError(false);
                         setDeleteTarget(member);
                       }}
-                    >
-                      <Trash2Icon className="size-4" />
-                    </button>
-                  </TableCell>
+                    />
+                  </CenterCell>
                 </TableRow>
               );
             })}
@@ -464,49 +305,14 @@ export function MembersTable({ members, onDelete }: MembersTableProps) {
         </Table>
       </div>
 
-      <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted-foreground">
-          {t('organizations:members.selected', {
-            count: selectedOnPage.length,
-            total: pageMembers.length,
-          })}
-        </p>
-        <nav
-          aria-label={t('organizations:members.pagination')}
-          className="flex items-center gap-2"
-        >
-          <p className="text-sm text-muted-foreground" aria-live="polite">
-            {t('organizations:members.page', {
-              current: currentPage,
-              total: totalPages,
-            })}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={currentPage <= 1}
-            onClick={() => {
-              setPage(Math.max(1, currentPage - 1));
-            }}
-            className="rounded-lg text-sm"
-          >
-            {t('organizations:members.previous')}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={currentPage >= totalPages}
-            onClick={() => {
-              setPage(currentPage + 1);
-            }}
-            className="rounded-lg text-sm"
-          >
-            {t('organizations:members.next')}
-          </Button>
-        </nav>
-      </div>
+      <TableFooter
+        selected={selectable ? selectedOnPage.length : undefined}
+        total={pageMembers.length}
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        onPrevious={pagination.previous}
+        onNext={pagination.next}
+      />
 
       <Dialog
         open={details !== null}
@@ -534,14 +340,11 @@ export function MembersTable({ members, onDelete }: MembersTableProps) {
                   {t('organizations:members.columnNames.status')}
                 </dt>
                 <dd>
-                  <span
-                    className={cn(
-                      'inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white',
-                      statusBadgeClass(details.status),
-                    )}
+                  <StatusPill
+                    tone={details.status === 'ativo' ? 'success' : 'warning'}
                   >
                     {t(`organizations:members.status.${details.status}`)}
-                  </span>
+                  </StatusPill>
                 </dd>
               </div>
               <div>
@@ -549,14 +352,9 @@ export function MembersTable({ members, onDelete }: MembersTableProps) {
                   {t('organizations:members.columnNames.tag')}
                 </dt>
                 <dd>
-                  <span
-                    className={cn(
-                      'inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white',
-                      tagBadgeClass(details.tag),
-                    )}
-                  >
+                  <StatusPill className={tagBadgeClass(details.tag)}>
                     {t(`organizations:members.tags.${details.tag}`)}
-                  </span>
+                  </StatusPill>
                 </dd>
               </div>
               <div>
@@ -572,49 +370,22 @@ export function MembersTable({ members, onDelete }: MembersTableProps) {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog
+      <ConfirmDeleteDialog
         open={deleteTarget !== null}
-        onOpenChange={(open) => {
-          if (!open && !deleting) {
-            setDeleteTarget(null);
-          }
+        title={t('organizations:members.confirmDeleteTitle')}
+        description={t('organizations:members.confirmDeleteDescription', {
+          name: deleteTarget?.name ?? '',
+        })}
+        errorMessage={t('organizations:members.deleteError')}
+        onConfirm={async () => {
+          if (!deleteTarget) return;
+          await onDelete(deleteTarget.id);
+          selection.remove(deleteTarget.id);
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('organizations:members.confirmDeleteTitle')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('organizations:members.confirmDeleteDescription', {
-                name: deleteTarget?.name ?? '',
-              })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          {deleteError && (
-            <p role="alert" className="text-sm text-destructive">
-              {t('organizations:members.deleteError')}
-            </p>
-          )}
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>
-              {t('acoes.cancelar')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              disabled={deleting}
-              onClick={(event) => {
-                event.preventDefault();
-                void confirmDelete();
-              }}
-            >
-              {deleting
-                ? t('organizations:members.deleting')
-                : t('organizations:members.delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onClose={() => {
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }

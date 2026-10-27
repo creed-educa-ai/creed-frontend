@@ -223,7 +223,7 @@ export function GerenciarQuestionario({
             type="button"
             variant="default"
             onClick={onConfirmar}
-            className="rounded-full px-6 py-2 hover:bg-primary-hover"
+            className="h-10 px-6"
           >
             {t('painelControle:confirmar')}
           </Button>

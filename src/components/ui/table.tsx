@@ -10,7 +10,10 @@ function Table({ className, ...props }: React.ComponentProps<'table'>) {
       <table
         data-slot="table"
         className={cn(
-          'w-full caption-bottom border-collapse text-left text-sm',
+          // border-separate: com border-collapse o navegador ignora o
+          // border-radius das células, e o design system pede cantos
+          // arredondados no cabeçalho e no hover.
+          'w-full caption-bottom border-separate border-spacing-0 text-left text-sm',
           className,
         )}
         {...props}
@@ -24,7 +27,8 @@ function TableHeader({ className, ...props }: React.ComponentProps<'thead'>) {
     <thead
       data-slot="table-header"
       className={cn(
-        'bg-muted text-xs font-semibold text-muted-foreground [&_tr]:border-b',
+        // O fundo vai nas células, para a primeira e a última arredondarem.
+        'text-xs font-semibold text-muted-foreground [&_th]:bg-muted [&_th:first-child]:rounded-l-lg [&_th:last-child]:rounded-r-lg',
         className,
       )}
       {...props}
@@ -36,7 +40,7 @@ function TableBody({ className, ...props }: React.ComponentProps<'tbody'>) {
   return (
     <tbody
       data-slot="table-body"
-      className={cn('[&_tr:last-child]:border-0', className)}
+      className={cn('[&>tr:last-child>td]:border-b-0', className)}
       {...props}
     />
   );
@@ -60,7 +64,10 @@ function TableRow({ className, ...props }: React.ComponentProps<'tr'>) {
     <tr
       data-slot="table-row"
       className={cn(
-        'border-b transition-colors hover:bg-accent has-aria-expanded:bg-accent data-[state=selected]:bg-muted',
+        // Com border-separate a linha não tem borda nem fundo próprios: os dois
+        // vão nas células. No hover e na seleção as pontas arredondam e a
+        // linha de baixo some, para o destaque não ficar com o traço torto.
+        '[&:has([aria-expanded=true])>td]:bg-accent [&:hover>td]:border-transparent [&:hover>td]:bg-accent [&:hover>td:first-child]:rounded-l-lg [&:hover>td:last-child]:rounded-r-lg [&>td]:border-b [&>td]:transition-colors [&[data-state=selected]>td]:border-transparent [&[data-state=selected]>td]:bg-muted [&[data-state=selected]>td:first-child]:rounded-l-lg [&[data-state=selected]>td:last-child]:rounded-r-lg',
         className,
       )}
       {...props}

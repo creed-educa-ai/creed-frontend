@@ -1,7 +1,7 @@
-import { useId, useState } from 'react';
+import { useId } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronDown, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import {
@@ -24,8 +24,6 @@ interface AdicionarMentorandoProps {
 
 export function AdicionarMentorando({ onSubmit }: AdicionarMentorandoProps) {
   const { t } = useTranslation(['adicionarMentorando']);
-  const [isOpen, setIsOpen] = useState(true);
-  const conteudoId = useId();
   const emailId = useId();
 
   const {
@@ -54,74 +52,41 @@ export function AdicionarMentorando({ onSubmit }: AdicionarMentorandoProps) {
   }
 
   return (
-    <section className="w-full">
-      {/* HEADER */}
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            setIsOpen((prev) => !prev);
-          }}
-          aria-expanded={isOpen}
-          aria-controls={conteudoId}
-          className="flex cursor-pointer items-center gap-2 text-heading"
-        >
-          <ChevronDown
-            size={20}
-            className={`transition-transform duration-200 ${
-              isOpen ? 'rotate-0' : '-rotate-90'
-            }`}
-          />
-          <h2 className="text-xl font-bold">
-            {t('adicionarMentorando:titulo')}
-          </h2>
-        </button>
-        <div className="h-px flex-1 bg-primary" aria-hidden="true" />
-      </div>
-
-      {isOpen && (
-        <div
-          id={conteudoId}
-          className="mt-4 max-w-100 rounded-2xl bg-card p-5 shadow-sm"
-        >
-          <form
-            noValidate
-            onSubmit={(event) => void handleSubmit(submit)(event)}
-          >
-            <Field data-invalid={Boolean(errors.email)}>
-              <FieldLabel htmlFor={emailId} className="sr-only">
-                {t('adicionarMentorando:email.label')}
-              </FieldLabel>
-              <InputGroup className="h-10 border-primary">
-                <InputGroupAddon
-                  align="inline-start"
-                  className="p-0 has-[>button]:ml-0"
-                >
-                  <InputGroupButton
-                    type="submit"
-                    variant="default"
-                    size="icon-sm"
-                    className="size-10 rounded-r-none"
-                    disabled={isSubmitting}
-                    aria-label={t('adicionarMentorando:adicionar')}
-                  >
-                    <Plus />
-                  </InputGroupButton>
-                </InputGroupAddon>
-                <InputGroupInput
-                  id={emailId}
-                  type="email"
-                  className="h-10"
-                  placeholder={t('adicionarMentorando:email.placeholder')}
-                  aria-invalid={Boolean(errors.email)}
-                  {...register('email')}
-                />
-              </InputGroup>
-              <FieldError errors={[translateError(errors.email?.message)]} />
-            </Field>
-          </form>
-        </div>
-      )}
+    // O título da seção ("Adicionar mentorando") é de quem usa o componente.
+    <section className="h-full w-full rounded-2xl bg-card p-5 shadow-sm">
+      <form noValidate onSubmit={(event) => void handleSubmit(submit)(event)}>
+        <Field data-invalid={Boolean(errors.email)}>
+          <FieldLabel htmlFor={emailId} className="sr-only">
+            {t('adicionarMentorando:email.label')}
+          </FieldLabel>
+          <InputGroup className="h-10 border-primary">
+            <InputGroupAddon
+              align="inline-start"
+              className="p-0 has-[>button]:ml-0"
+            >
+              <InputGroupButton
+                type="submit"
+                variant="default"
+                size="icon-sm"
+                className="size-10 rounded-r-none"
+                disabled={isSubmitting}
+                aria-label={t('adicionarMentorando:adicionar')}
+              >
+                <Plus />
+              </InputGroupButton>
+            </InputGroupAddon>
+            <InputGroupInput
+              id={emailId}
+              type="email"
+              className="h-10"
+              placeholder={t('adicionarMentorando:email.placeholder')}
+              aria-invalid={Boolean(errors.email)}
+              {...register('email')}
+            />
+          </InputGroup>
+          <FieldError errors={[translateError(errors.email?.message)]} />
+        </Field>
+      </form>
     </section>
   );
 }

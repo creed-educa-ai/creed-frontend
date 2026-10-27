@@ -17,25 +17,14 @@ const botaoAdicionar = () =>
     name: i18n.t('adicionarMentorando:adicionar'),
   });
 
-const botaoSecao = () =>
-  screen.getByRole('button', {
-    name: i18n.t('adicionarMentorando:titulo'),
-  });
-
 describe('AdicionarMentorando', () => {
   beforeEach(async () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
-  it('should render the section title and the email field with its prompt', () => {
+  it('should render the email field with its prompt', () => {
     render(<AdicionarMentorando onSubmit={vi.fn()} />);
 
-    expect(
-      screen.getByRole('heading', {
-        level: 2,
-        name: i18n.t('adicionarMentorando:titulo'),
-      }),
-    ).toBeInTheDocument();
     expect(campoEmail()).toHaveAttribute(
       'placeholder',
       i18n.t('adicionarMentorando:email.placeholder'),
@@ -133,46 +122,11 @@ describe('AdicionarMentorando', () => {
     expect(campoEmail()).toHaveValue('ana@exemplo.com');
   });
 
-  it('should collapse and expand the section when clicking its title', async () => {
-    const user = userEvent.setup();
-    render(<AdicionarMentorando onSubmit={vi.fn()} />);
-
-    expect(botaoSecao()).toHaveAttribute('aria-expanded', 'true');
-
-    await user.click(botaoSecao());
-
-    expect(botaoSecao()).toHaveAttribute('aria-expanded', 'false');
-    expect(
-      screen.queryByRole('textbox', {
-        name: i18n.t('adicionarMentorando:email.label'),
-      }),
-    ).not.toBeInTheDocument();
-
-    await user.click(botaoSecao());
-
-    expect(botaoSecao()).toHaveAttribute('aria-expanded', 'true');
-    expect(campoEmail()).toBeInTheDocument();
-  });
-
-  it('should keep the typed email while the section is collapsed', async () => {
-    const user = userEvent.setup();
-    render(<AdicionarMentorando onSubmit={vi.fn()} />);
-
-    await user.type(campoEmail(), 'ana@exemplo.com');
-    await user.click(botaoSecao());
-    await user.click(botaoSecao());
-
-    expect(campoEmail()).toHaveValue('ana@exemplo.com');
-  });
-
-  it('should translate the section and the errors to English', async () => {
+  it('should translate the field and the errors to English', async () => {
     await i18n.changeLanguage('en');
     const user = userEvent.setup();
     render(<AdicionarMentorando onSubmit={vi.fn()} />);
 
-    expect(
-      screen.getByRole('heading', { level: 2, name: 'Add mentee' }),
-    ).toBeInTheDocument();
     expect(campoEmail()).toHaveAttribute('placeholder', 'Enter an email');
 
     await user.click(botaoAdicionar());

@@ -60,14 +60,14 @@ describe('MembersTable', () => {
     ).toBeInTheDocument();
   });
 
-  it('ordena e-mails nos dois sentidos e restaura a ordem original', async () => {
+  it('ordena nomes nos dois sentidos e restaura a ordem original', async () => {
     render(<MembersTable members={itens} onDelete={vi.fn()} />);
-    const ordenar = screen.getByRole('button', { name: 'Ordenar por e-mail' });
+    const ordenar = screen.getByRole('button', { name: 'Ordenar por nome' });
     await userEvent.click(ordenar);
-    expect(linhas()[0]).toHaveTextContent('Maurides Cambalhota');
+    expect(linhas()[0]).toHaveTextContent('Ana Souza');
     expect(ordenar.closest('th')).toHaveAttribute('aria-sort', 'ascending');
     await userEvent.click(ordenar);
-    expect(linhas()[0]).toHaveTextContent('Enner Valência');
+    expect(linhas()[0]).toHaveTextContent('Wilson Mathias');
     expect(ordenar.closest('th')).toHaveAttribute('aria-sort', 'descending');
     await userEvent.click(ordenar);
     expect(linhas()[0]).toHaveTextContent('Enner Valência');
@@ -90,8 +90,14 @@ describe('MembersTable', () => {
     expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
   });
 
-  it('seleciona apenas a página atual e mantém a seleção ao navegar', async () => {
+  it('não mostra caixas de seleção nem o texto de seleção por padrão', () => {
     render(<MembersTable members={itens} onDelete={vi.fn()} />);
+    expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+    expect(screen.queryByText(/selecionada\(s\)/)).not.toBeInTheDocument();
+  });
+
+  it('seleciona apenas a página atual e mantém a seleção ao navegar', async () => {
+    render(<MembersTable members={itens} onDelete={vi.fn()} selectable />);
     const selecionar = () =>
       screen.getByRole('checkbox', {
         name: 'Selecionar todos os membros desta página',
@@ -137,15 +143,16 @@ describe('MembersTable', () => {
     render(<MembersTable members={itens} onDelete={vi.fn()} />);
     const botao = screen.getByRole('button', { name: 'Colunas' });
     await userEvent.click(botao);
-    const seletor = screen.getByRole('dialog', { name: 'Exibir colunas' });
-    for (const checkbox of within(seletor).getAllByRole('checkbox')) {
-      await userEvent.click(checkbox);
+    const seletor = screen.getByRole('menu');
+    for (const opcao of within(seletor).getAllByRole('menuitemcheckbox')) {
+      await userEvent.click(opcao);
     }
+    // O menu é modal: com ele aberto, a tabela fica fora da árvore acessível.
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     expect(
       within(screen.getByRole('table')).getAllByRole('columnheader'),
-    ).toHaveLength(3);
-    await userEvent.keyboard('{Escape}');
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    ).toHaveLength(2);
     expect(botao).toHaveFocus();
   });
 

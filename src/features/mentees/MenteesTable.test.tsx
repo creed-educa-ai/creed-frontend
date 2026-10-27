@@ -52,13 +52,10 @@ describe('MenteesTable', () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
-  it('mostra título, busca, colunas e uma linha por mentorando', () => {
+  it('mostra busca, colunas e uma linha por mentorando', () => {
     renderTable();
     const table = screen.getByRole('table');
 
-    expect(
-      screen.getByRole('heading', { name: 'Mentorandos' }),
-    ).toBeInTheDocument();
     expect(
       screen.getByRole('searchbox', { name: 'Pesquisar mentorandos' }),
     ).toBeInTheDocument();
@@ -239,9 +236,16 @@ describe('MenteesTable', () => {
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
 
+  it('não mostra caixas de seleção por padrão', () => {
+    renderTable();
+    expect(
+      within(screen.getByRole('table')).queryAllByRole('checkbox'),
+    ).toHaveLength(0);
+  });
+
   it('marca e desmarca linhas, e a caixa do cabeçalho marca todas', async () => {
     const user = userEvent.setup();
-    renderTable();
+    renderTable({ selectable: true });
     const table = screen.getByRole('table');
     const todas = within(table).getByRole('checkbox', {
       name: 'Selecionar todos',
@@ -267,7 +271,7 @@ describe('MenteesTable', () => {
 
   it('a caixa do cabeçalho marca só as linhas que a busca deixa visíveis', async () => {
     const user = userEvent.setup();
-    renderTable();
+    renderTable({ selectable: true });
     const busca = screen.getByRole('searchbox', {
       name: 'Pesquisar mentorandos',
     });
@@ -294,9 +298,6 @@ describe('MenteesTable', () => {
     renderTable();
     const table = screen.getByRole('table');
 
-    expect(
-      screen.getByRole('heading', { name: 'Mentees' }),
-    ).toBeInTheDocument();
     expect(
       within(table).getByRole('button', {
         name: 'Edit questionnaire for Enner Valência',
