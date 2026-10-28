@@ -17,8 +17,6 @@ import { RevisaoRespostasRoute } from '@/features/responses/RevisaoRespostasRout
 import { SubmissionConfirmationView } from '@/features/responses/SubmissionConfirmationView';
 import { UserDashboardView } from '@/features/dashboards/UserDashboardView';
 import { CompanyDashboardView } from '@/features/dashboards/CompanyDashboardView';
-import { OrganizationsAdminView } from '@/features/organizations-admin/OrganizationsAdminView';
-import { MembersView } from '@/features/organizations/MembersView';
 import { PainelControleView } from '@/features/painel-de-controle/PainelControleView';
 import { PainelControleSuperView } from '@/features/superadm/PainelControleSuperView';
 
@@ -31,42 +29,43 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     // Com o login desligado, o botão "Entrar" das boas-vindas pula direto para
-    // a área logada em vez de cair numa rota inexistente.
+    // a área logada em vez de cair numa rota inexistente. Sem sessão não há
+    // papel: vai para o dashboard individual (P-054).
     element: loginHabilitado ? (
       <LoginView />
     ) : (
-      <Navigate to="/onboard-quest" replace />
+      <Navigate to="/dashboard" replace />
     ),
   },
   {
     element: <ProtectedRoute enabled={loginHabilitado} />,
     // Os dados demográficos ficam atrás da mesma guarda da área logada: só
     // quem entrou e aceitou o termo chega neles (fluxo em fluxoDemograficos).
+    // Os dashboards e os painéis também: o login leva ao dashboard, e é a
+    // guarda que mostra o termo no primeiro acesso.
     children: [
-      { path: '/demograficos-1', element: <Demograficos1Etapa /> },
-      { path: '/demograficos-2', element: <Demograficos2Etapa /> },
-      { path: '/demograficos-3', element: <Demograficos3Etapa /> },
-      { path: '/onboard-quest', element: <OnboardQuestionarioView /> },
-      { path: '/form', element: <FormView /> },
+      { path: '/dashboard', element: <UserDashboardView /> },
+      { path: '/dashboard/company', element: <CompanyDashboardView /> },
+      { path: '/control-panel', element: <PainelControleView /> },
+      { path: '/control-panel/admin', element: <PainelControleSuperView /> },
+      { path: '/demographics/step-1', element: <Demograficos1Etapa /> },
+      { path: '/demographics/step-2', element: <Demograficos2Etapa /> },
+      { path: '/demographics/step-3', element: <Demograficos3Etapa /> },
+      { path: '/questionnaire', element: <OnboardQuestionarioView /> },
+      { path: '/questionnaire/questions', element: <FormView /> },
       {
-        path: '/questionario/revisao',
+        path: '/questionnaire/review',
         element: <RevisaoRespostasRoute />,
       },
       {
-        path: '/questionario/enviado',
+        path: '/questionnaire/submitted',
         element: <SubmissionConfirmationView />,
       },
     ],
   },
-  { path: '/dashboard', element: <UserDashboardView /> },
-  { path: '/dashboard/company', element: <CompanyDashboardView /> },
-  { path: '/control-panel', element: <PainelControleView /> },
-  { path: '/control-panel/admin', element: <PainelControleSuperView /> },
-  { path: '/sobre', element: <SobreView /> },
-  { path: '/cadastro', element: <CadastroView /> },
-  { path: '/primeiro-acesso', element: <AlterarSenhaView /> },
-  { path: '/aguarde-confirmacao', element: <AguardeConfirmacaoView /> },
-  { path: '/recuperar-senha', element: <AlterarSenhaView /> },
-  { path: '/organizations-admin', element: <OrganizationsAdminView /> },
-  { path: '/membros', element: <MembersView /> },
+  { path: '/about', element: <SobreView /> },
+  { path: '/sign-up', element: <CadastroView /> },
+  { path: '/first-access', element: <AlterarSenhaView /> },
+  { path: '/awaiting-confirmation', element: <AguardeConfirmacaoView /> },
+  { path: '/reset-password', element: <AlterarSenhaView /> },
 ]);

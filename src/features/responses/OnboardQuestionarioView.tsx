@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import CreedSymbol from '@/components/logos/logo';
-import wordmark from '@/components/logos/wordmark-dark.svg';
-import { Info, LogOut, LayoutDashboard, ClipboardPen } from 'lucide-react';
+import { PageHeader } from '@/components/layout/pageHeader';
 import { ModalInfo } from '@/features/responses/ModalInfo';
+import { screenEnterClassName } from '@/lib/animations';
+import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,52 +13,28 @@ export function OnboardQuestionarioView() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-brand flex min-h-svh flex-col overflow-hidden">
-      <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-6 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-sm font-bold text-primary-foreground">
-            João Silva
-          </p>
-          <h1 className="text-center text-3xl font-bold text-primary-foreground sm:text-left">
-            {t('onboardQuestionario:titulo')}
-          </h1>
-        </div>
-        {/* navbar placeholder: os botões ainda não navegam */}
-        <div className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-background p-2 sm:justify-end">
-          <button
-            type="button"
-            aria-label={t('onboardQuestionario:menuPainel')}
-            className="text-brand p-2 transition-colors hover:opacity-80"
-          >
-            <LayoutDashboard size={24} />
-          </button>
-          <button
-            type="button"
-            aria-label={t('onboardQuestionario:menuFormulario')}
-            className="text-brand p-2 transition-colors hover:opacity-80"
-          >
-            <ClipboardPen size={24} />
-          </button>
-          <button
-            type="button"
-            aria-label={t('onboardQuestionario:menuInformacoes')}
-            className="text-brand p-2 transition-colors hover:opacity-80"
-          >
-            <Info size={24} />
-          </button>
-          <CreedSymbol className="size-6" />
-          <img src={wordmark} alt="CREED.ai" className="w-24" />
-          <button
-            type="button"
-            aria-label={t('onboardQuestionario:menuSair')}
-            className="text-brand p-2 transition-colors hover:opacity-80"
-          >
-            <LogOut size={24} />
-          </button>
-        </div>
-      </header>
+    // isolate: a camada do fundo (-z-10) fica atrás do conteúdo, mas dentro
+    // desta tela, sem cair para trás do body.
+    <div className="relative isolate flex min-h-svh flex-col overflow-hidden">
+      {/* O roxo é uma camada própria para dissolver sozinho, como nas outras
+          telas da marca: com o fade na tela inteira, o card dissolveria junto
+          em vez de subir. */}
+      <div
+        aria-hidden="true"
+        className="bg-brand absolute inset-0 -z-10 animate-in duration-700 ease-out fade-in motion-reduce:animate-none"
+      />
+      <PageHeader
+        eyebrow="João Silva"
+        title={t('onboardQuestionario:titulo')}
+        tone="brand"
+      />
       <div className="flex flex-1 flex-col overflow-hidden p-6 lg:p-8">
-        <div className="mx-auto my-auto flex w-full max-w-xl flex-col items-center justify-center gap-6 py-6">
+        <div
+          className={cn(
+            'mx-auto my-auto flex w-full max-w-xl flex-col items-center justify-center gap-6 py-6',
+            screenEnterClassName,
+          )}
+        >
           <div className="w-full rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex flex-col items-start justify-start gap-1 rounded-xl bg-primary p-8 text-primary-foreground">
               <h2 className="text-xl font-bold text-balance">
@@ -93,10 +69,10 @@ export function OnboardQuestionarioView() {
         open={infoOpen}
         onOpenChange={setInfoOpen}
         onReview={() => {
-          navigate('/demograficos-1');
+          navigate('/demographics/step-1');
         }}
         onStart={() => {
-          navigate('/form');
+          navigate('/questionnaire/questions');
         }}
       />
     </div>

@@ -45,7 +45,7 @@ export function BoasVindasView() {
           <Button
             variant="default"
             onClick={() => {
-              navigate('/cadastro');
+              navigate('/sign-up');
             }}
           >
             {t('boasVindas:criarConta.acao')}
@@ -56,7 +56,7 @@ export function BoasVindasView() {
           <Button
             variant="outline"
             onClick={() => {
-              navigate('/sobre');
+              navigate('/about');
             }}
           >
             {t('boasVindas:saibaMais')}

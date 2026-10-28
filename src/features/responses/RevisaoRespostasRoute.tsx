@@ -49,7 +49,7 @@ export function RevisaoRespostasRoute() {
         ).unwrap();
         // replace: a seta de voltar não reabre a revisão de um questionário
         // já enviado.
-        navigate('/questionario/enviado', { replace: true });
+        navigate('/questionnaire/submitted', { replace: true });
       }}
     />
   );

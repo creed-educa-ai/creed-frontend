@@ -20,10 +20,10 @@ function renderizarNa(rota: string) {
     <Provider store={store}>
       <MemoryRouter initialEntries={[rota]}>
         <Routes>
-          <Route path="/demograficos-1" element={<Demograficos1Etapa />} />
-          <Route path="/demograficos-2" element={<Demograficos2Etapa />} />
-          <Route path="/demograficos-3" element={<Demograficos3Etapa />} />
-          <Route path="/onboard-quest" element={<p>onboarding</p>} />
+          <Route path="/demographics/step-1" element={<Demograficos1Etapa />} />
+          <Route path="/demographics/step-2" element={<Demograficos2Etapa />} />
+          <Route path="/demographics/step-3" element={<Demograficos3Etapa />} />
+          <Route path="/questionnaire" element={<p>onboarding</p>} />
         </Routes>
       </MemoryRouter>
     </Provider>,
@@ -37,7 +37,7 @@ describe('fluxo dos dados demográficos', () => {
 
   it('percorre as três etapas até o onboarding do questionário', async () => {
     const user = userEvent.setup();
-    renderizarNa('/demograficos-1');
+    renderizarNa('/demographics/step-1');
 
     await user.type(screen.getByRole('textbox', { name: 'Nome' }), 'Ana');
     await user.click(screen.getByRole('button', { name: 'Avançar' }));
@@ -51,7 +51,7 @@ describe('fluxo dos dados demográficos', () => {
 
   it('avançar na etapa 2 leva à etapa 3', async () => {
     const user = userEvent.setup();
-    const { container } = renderizarNa('/demograficos-2');
+    const { container } = renderizarNa('/demographics/step-2');
     const tituloEtapa2 = container.querySelector('h1')?.textContent;
 
     await user.click(screen.getByRole('button', { name: 'Avançar' }));

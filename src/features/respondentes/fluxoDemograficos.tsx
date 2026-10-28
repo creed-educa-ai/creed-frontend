@@ -16,7 +16,7 @@ export function Demograficos1Etapa() {
   return (
     <Demograficos1View
       onContinue={() => {
-        navigate('/demograficos-2');
+        navigate('/demographics/step-2');
       }}
     />
   );
@@ -25,7 +25,7 @@ export function Demograficos1Etapa() {
 export function Demograficos2Etapa() {
   const navigate = useNavigate();
   const irParaEtapa3 = () => {
-    navigate('/demograficos-3');
+    navigate('/demographics/step-3');
   };
   return <Demograficos2View onContinue={irParaEtapa3} onSkip={irParaEtapa3} />;
 }
@@ -33,7 +33,7 @@ export function Demograficos2Etapa() {
 export function Demograficos3Etapa() {
   const navigate = useNavigate();
   const concluir = () => {
-    navigate('/onboard-quest');
+    navigate('/questionnaire');
   };
   return <Demograficos3View onContinue={concluir} onSkip={concluir} />;
 }

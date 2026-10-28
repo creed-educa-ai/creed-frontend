@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { PanelHeader } from '@/components/layout/panelHeader';
+import { PageHeader } from '@/components/layout/pageHeader';
 import { SectionHeader } from '@/components/layout/sectionHeader';
 import { MenteesSection } from '@/features/mentees/MenteesSection';
 import { CompaniesSection } from '@/features/organizations-admin/CompaniesSection';
@@ -18,10 +18,9 @@ export function PainelControleSuperView() {
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
-      <PanelHeader
+      <PageHeader
         eyebrow={t('painelControle:administradora')}
         title={t('painelControle:titulo')}
-        subtitle={t('painelControle:subtituloAdmin')}
       />
 
       {/* Tudo em uma coluna, na largura toda: "Adicionar" e as duas tabelas,

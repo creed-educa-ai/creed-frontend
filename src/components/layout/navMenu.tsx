@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   ClipboardPen,
   Info,
@@ -7,76 +8,140 @@ import {
   LogOut,
   SlidersHorizontal,
 } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
+import { Separator } from '@/components/ui/separator';
+import { logout } from '@/features/authentication/authenticationSlice';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { dashboardPath } from '@/lib/dashboardPath';
 import { cn } from '@/lib/utils';
 
-type NavMenuPage = 'dashboard' | 'controlPanel';
+const itemClassName =
+  'rounded-lg p-2 text-brand transition-colors hover:opacity-80';
 
-interface NavMenuProps {
-  // Tela atual: o ícone dela fica destacado.
-  active?: NavMenuPage;
-  // Painel de controle: só empresa e super adm têm.
-  showControlPanel?: boolean;
-}
+// O destaque do item atual sai do aria-current="page" que o próprio NavLink
+// põe, e não de uma className em função: o TooltipTrigger (asChild) junta as
+// classes como texto e a função viraria string no atributo class.
+const activeClassName =
+  'aria-[current=page]:bg-primary aria-[current=page]:text-primary-foreground aria-[current=page]:hover:opacity-100';
 
-function NavMenuButton({
+// O ícone sozinho não diz para onde leva: a dica repete o nome do item. Abre
+// embaixo porque o menu fica no topo da tela.
+function NavMenuHint({
   label,
-  isActive = false,
   children,
 }: {
   label: string;
-  isActive?: boolean;
   children: ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      aria-current={isActive ? 'page' : undefined}
-      className={cn(
-        'rounded-lg p-2 transition-colors',
-        isActive
-          ? 'bg-primary text-primary-foreground'
-          : 'text-brand hover:opacity-80',
-      )}
-    >
-      {children}
-    </button>
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side="bottom" sideOffset={4}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
-// Menu do topo das telas logadas (dashboards e painéis de controle).
-export function NavMenu({ active, showControlPanel = false }: NavMenuProps) {
+function NavMenuLink({
+  to,
+  label,
+  children,
+}: {
+  to: string;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <NavMenuHint label={label}>
+      <NavLink
+        to={to}
+        aria-label={label}
+        className={cn(itemClassName, activeClassName)}
+      >
+        {children}
+      </NavLink>
+    </NavMenuHint>
+  );
+}
+
+// Menu do topo das telas logadas. Os destinos saem do papel de quem está na
+// sessão; sem sessão (login desligado), vale o menor acesso: o de respondente.
+export function NavMenu() {
   const { t } = useTranslation(['formulario']);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const role = useAppSelector((state) => state.authentication.user?.role);
+
+  // 🟡 P-055: só o admin tem o painel de controle. O do super adm
+  // (/control-panel/admin) fica fora do menu até o backend dizer quem é super adm.
+  const seesControlPanel = role === 'admin';
+
+  function handleLogout() {
+    dispatch(logout());
+    navigate('/', { replace: true });
+  }
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-background p-2 sm:justify-end">
-      <NavMenuButton
-        label={t('formulario:menuPainel')}
-        isActive={active === 'dashboard'}
+    <TooltipProvider>
+      <nav
+        aria-label={t('formulario:menuNavegacao')}
+        className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-background p-2 sm:justify-end"
       >
-        <LayoutDashboard size={24} />
-      </NavMenuButton>
-      {showControlPanel && (
-        <NavMenuButton
-          label={t('formulario:menuPainelControle')}
-          isActive={active === 'controlPanel'}
+        {/* A marca abre o menu; o Sair fecha, separado dos destinos por ser
+            uma ação, não uma tela. */}
+        <div className="mr-4 flex items-center gap-1.5">
+          {/* Ajuste ótico, medido em print: centrado na caixa do wordmark o
+              símbolo parece alto (a haste do "d" puxa o centro para cima, e o
+              corpo das letras fica ~3px abaixo); alinhado ao corpo, parece
+              baixo. Metade do caminho é o que lê como centralizado. */}
+          <CreedSymbol className="size-8 translate-y-[1.5px] text-primary" />
+          <img src={wordmark} alt="CREED.ai" className="h-5" />
+        </div>
+        <NavMenuLink
+          to={dashboardPath(role)}
+          label={t('formulario:menuPainel')}
         >
-          <SlidersHorizontal size={24} />
-        </NavMenuButton>
-      )}
-      <NavMenuButton label={t('formulario:menuFormulario')}>
-        <ClipboardPen size={24} />
-      </NavMenuButton>
-      <NavMenuButton label={t('formulario:menuInformacoes')}>
-        <Info size={24} />
-      </NavMenuButton>
-      <CreedSymbol className="size-6" />
-      <img src={wordmark} alt="CREED.ai" className="w-24" />
-      <NavMenuButton label={t('formulario:menuSair')}>
-        <LogOut size={24} />
-      </NavMenuButton>
-    </div>
+          <LayoutDashboard size={24} />
+        </NavMenuLink>
+        {seesControlPanel && (
+          <NavMenuLink
+            to="/control-panel"
+            label={t('formulario:menuPainelControle')}
+          >
+            <SlidersHorizontal size={24} />
+          </NavMenuLink>
+        )}
+        <NavMenuLink to="/questionnaire" label={t('formulario:menuFormulario')}>
+          <ClipboardPen size={24} />
+        </NavMenuLink>
+        <NavMenuLink to="/about" label={t('formulario:menuInformacoes')}>
+          <Info size={24} />
+        </NavMenuLink>
+        {/* self-center: o primitivo estica (self-stretch), o que com altura
+            fixa prendia o separador no topo da linha. */}
+        <Separator
+          orientation="vertical"
+          className="mx-2 h-8 data-vertical:w-0.5 data-vertical:self-center"
+        />
+        <NavMenuHint label={t('formulario:menuSair')}>
+          <button
+            type="button"
+            aria-label={t('formulario:menuSair')}
+            onClick={handleLogout}
+            className={itemClassName}
+          >
+            <LogOut size={24} />
+          </button>
+        </NavMenuHint>
+      </nav>
+    </TooltipProvider>
   );
 }

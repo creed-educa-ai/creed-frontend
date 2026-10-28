@@ -3,20 +3,42 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import { MemoryRouter } from 'react-router-dom';
 import { PainelControleView } from './PainelControleView';
+import authenticationReducer from '@/features/authentication/authenticationSlice';
 import organizationsReducer from '@/features/organizations/organizationsSlice';
 import { resetMembersMock } from '@/features/organizations/organizationsApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
-// A seção de membros lê e carrega a lista pelo slice de organizations.
+// A seção de membros lê e carrega a lista pelo slice de organizations; o menu
+// do topo lê o papel na sessão (admin, o único que tem o painel).
 function renderizar() {
   const store = configureStore({
-    reducer: { organizations: organizationsReducer },
+    reducer: {
+      authentication: authenticationReducer,
+      organizations: organizationsReducer,
+    },
+    preloadedState: {
+      authentication: {
+        user: {
+          id: 'usuario-1',
+          email: 'dev@creed.example.com',
+          role: 'admin',
+          link_id: null,
+          organization_id: null,
+          organization_name: null,
+        },
+        status: 'authenticated' as const,
+        error: null,
+      },
+    },
   });
 
   return render(
     <Provider store={store}>
-      <PainelControleView />
+      <MemoryRouter initialEntries={['/control-panel']}>
+        <PainelControleView />
+      </MemoryRouter>
     </Provider>,
   );
 }
@@ -87,9 +109,6 @@ describe('PainelControleView', () => {
     renderizar();
 
     expect(await screen.findByText('Acme Inc.')).toBeInTheDocument();
-    expect(
-      screen.getByText(i18n.t('painelControle:subtitulo')),
-    ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', {
         level: 1,
@@ -399,12 +418,12 @@ describe('PainelControleView', () => {
     renderizar();
 
     expect(
-      screen.getByRole('button', {
+      screen.getByRole('link', {
         name: i18n.t('formulario:menuPainelControle'),
       }),
     ).toHaveAttribute('aria-current', 'page');
     expect(
-      screen.getByRole('button', { name: i18n.t('formulario:menuPainel') }),
+      screen.getByRole('link', { name: i18n.t('formulario:menuPainel') }),
     ).not.toHaveAttribute('aria-current');
   });
 });

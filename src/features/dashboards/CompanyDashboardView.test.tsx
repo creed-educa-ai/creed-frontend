@@ -1,8 +1,41 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import authenticationReducer from '@/features/authentication/authenticationSlice';
 import { CompanyDashboardView } from './CompanyDashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+
+// O menu do topo lê o papel na sessão e marca o item da rota atual.
+function renderizar() {
+  const store = configureStore({
+    reducer: { authentication: authenticationReducer },
+    preloadedState: {
+      authentication: {
+        user: {
+          id: 'usuario-1',
+          email: 'dev@creed.example.com',
+          role: 'admin',
+          link_id: null,
+          organization_id: null,
+          organization_name: null,
+        },
+        status: 'authenticated' as const,
+        error: null,
+      },
+    },
+  });
+
+  return render(
+    <Provider store={store}>
+      <MemoryRouter initialEntries={['/dashboard/company']}>
+        <CompanyDashboardView />
+      </MemoryRouter>
+    </Provider>,
+  );
+}
 
 describe('CompanyDashboardView', () => {
   beforeEach(async () => {
@@ -10,7 +43,7 @@ describe('CompanyDashboardView', () => {
   });
 
   it('should render the page title with the company name', () => {
-    render(<CompanyDashboardView />);
+    renderizar();
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Dashboard' }),
@@ -19,7 +52,7 @@ describe('CompanyDashboardView', () => {
   });
 
   it('should render the summary title with the company name', () => {
-    render(<CompanyDashboardView />);
+    renderizar();
 
     expect(
       screen.getByRole('button', {
@@ -29,7 +62,7 @@ describe('CompanyDashboardView', () => {
   });
 
   it('should render the completion rate card', () => {
-    render(<CompanyDashboardView />);
+    renderizar();
 
     expect(
       screen.getByText(i18n.t('resultado:taxaConclusao')),
@@ -43,7 +76,7 @@ describe('CompanyDashboardView', () => {
   });
 
   it('should render the highlight, opportunity and most common cards', () => {
-    render(<CompanyDashboardView />);
+    renderizar();
 
     expect(
       screen.getByText(`${i18n.t('resultado:destaque')} - 79`),
@@ -69,7 +102,7 @@ describe('CompanyDashboardView', () => {
 
   it('should collapse and expand the company summary when clicking its title', async () => {
     const user = userEvent.setup();
-    render(<CompanyDashboardView />);
+    renderizar();
 
     const resumo = screen.getByRole('button', {
       name: i18n.t('resultado:resumoEmpresa', { empresa: 'Acme Inc.' }),
@@ -94,7 +127,7 @@ describe('CompanyDashboardView', () => {
   });
 
   it('should render the overview data section with the prisma and evolution charts', () => {
-    render(<CompanyDashboardView />);
+    renderizar();
 
     expect(
       screen.getByRole('button', {
@@ -105,7 +138,7 @@ describe('CompanyDashboardView', () => {
   });
 
   it('should render the recommendation card in the Creed.ai summary', () => {
-    render(<CompanyDashboardView />);
+    renderizar();
 
     expect(
       screen.getByRole('heading', { name: 'Recomendação' }),
@@ -113,7 +146,7 @@ describe('CompanyDashboardView', () => {
   });
 
   it('should start the view selector on the overview', () => {
-    render(<CompanyDashboardView />);
+    renderizar();
 
     expect(
       screen.getByRole('button', { name: 'Visão Geral' }),
@@ -122,7 +155,7 @@ describe('CompanyDashboardView', () => {
 
   it('should change the view label when selecting a group', async () => {
     const user = userEvent.setup();
-    render(<CompanyDashboardView />);
+    renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
     await user.click(screen.getByRole('menuitemradio', { name: 'Gerentes' }));
@@ -134,7 +167,7 @@ describe('CompanyDashboardView', () => {
 
   it('should select a specific employee from the submenu', async () => {
     const user = userEvent.setup();
-    render(<CompanyDashboardView />);
+    renderizar();
 
     // Guarda a referência do botão de visão ANTES de abrir o menu
     const viewTrigger = screen.getByRole('button', { name: 'Visão Geral' });
@@ -159,7 +192,7 @@ describe('CompanyDashboardView', () => {
 
   it('should list PDF and CSV in the download menu', async () => {
     const user = userEvent.setup();
-    render(<CompanyDashboardView />);
+    renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Baixar' }));
 
@@ -169,7 +202,7 @@ describe('CompanyDashboardView', () => {
 
   it('should translate the summary and the company-only items to English', async () => {
     await i18n.changeLanguage('en');
-    render(<CompanyDashboardView />);
+    renderizar();
 
     expect(
       screen.getByRole('button', { name: 'Creed.ai Summary' }),
@@ -185,7 +218,7 @@ describe('CompanyDashboardView', () => {
   it('should translate the view menu to English', async () => {
     await i18n.changeLanguage('en');
     const user = userEvent.setup();
-    render(<CompanyDashboardView />);
+    renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Overview' }));
 

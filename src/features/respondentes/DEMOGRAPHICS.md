@@ -73,5 +73,5 @@ etapas e a limpeza da sessão.
 No navegador, conferir as três rotas em 375, 768 e 1280 px — elas agora exigem
 sessão, então entre primeiro e aceite o termo. Na tela 2, testar opções longas,
 navegação pelo teclado, busca por “portuguesa” e “Candomblé”, mudança de
-nacionalidade e seleção em inglês. Conferir também que `/login`, `/sobre`, `/`
+nacionalidade e seleção em inglês. Conferir também que `/login`, `/about`, `/`
 (boas-vindas) e a guarda de `/respondentes` seguem disponíveis conforme `dev`.

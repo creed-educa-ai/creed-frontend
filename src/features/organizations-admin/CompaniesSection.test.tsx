@@ -2,7 +2,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
-import { OrganizationsAdminView } from './OrganizationsAdminView';
+import { CompaniesSection } from './CompaniesSection';
 
 async function confirmarExclusao(user: ReturnType<typeof userEvent.setup>) {
   await user.click(
@@ -15,14 +15,14 @@ async function confirmarExclusao(user: ReturnType<typeof userEvent.setup>) {
   });
 }
 
-describe('OrganizationsAdminView', () => {
+describe('CompaniesSection', () => {
   beforeEach(async () => {
     window.localStorage.clear();
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
   it('renderiza o título da seção e a lista de empresas', () => {
-    render(<OrganizationsAdminView />);
+    render(<CompaniesSection />);
 
     expect(
       screen.getByRole('heading', { name: 'Empresas' }),
@@ -35,7 +35,7 @@ describe('OrganizationsAdminView', () => {
 
   it('altera o status da empresa para Ativo quando a aprovação é confirmada', async () => {
     const user = userEvent.setup();
-    render(<OrganizationsAdminView />);
+    render(<CompaniesSection />);
 
     await user.click(
       screen.getByRole('button', { name: 'Analisar o cadastro de Acme Inc.' }),
@@ -64,7 +64,7 @@ describe('OrganizationsAdminView', () => {
 
   it('remove a empresa da lista quando a solicitação é rejeitada', async () => {
     const user = userEvent.setup();
-    render(<OrganizationsAdminView />);
+    render(<CompaniesSection />);
 
     await user.click(
       screen.getByRole('button', { name: 'Analisar o cadastro de Acme Inc.' }),
@@ -85,7 +85,7 @@ describe('OrganizationsAdminView', () => {
 
   it('remove a empresa da lista quando ela é excluída', async () => {
     const user = userEvent.setup();
-    render(<OrganizationsAdminView />);
+    render(<CompaniesSection />);
 
     await user.click(
       screen.getByRole('button', { name: 'Excluir Tech Solutions' }),
@@ -99,7 +99,7 @@ describe('OrganizationsAdminView', () => {
 
   it('mantém as demais empresas quando uma delas é excluída', async () => {
     const user = userEvent.setup();
-    render(<OrganizationsAdminView />);
+    render(<CompaniesSection />);
 
     await user.click(screen.getByRole('button', { name: 'Excluir Acme Inc.' }));
     await confirmarExclusao(user);

@@ -40,7 +40,7 @@ export function AguardeConfirmacaoView() {
         variant="outline"
         className="w-full max-w-xs bg-card text-primary"
       >
-        <Link to="/sobre">{t('aguardeConfirmacao:saibaMais')}</Link>
+        <Link to="/about">{t('aguardeConfirmacao:saibaMais')}</Link>
       </Button>
     </div>
   );
