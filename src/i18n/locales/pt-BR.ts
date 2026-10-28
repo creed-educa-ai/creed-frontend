@@ -242,7 +242,6 @@ export const ptBR = {
   },
   sobre: {
     titulo: 'Sobre',
-    subtitulo: 'Mais informações sobre o Creed.ai',
     // TODO placeholder: texto institucional definitivo ainda não definido com a cliente.
     texto:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
@@ -393,10 +392,11 @@ export const ptBR = {
     fimDasPerguntasTitulo: 'Você chegou ao fim das perguntas',
     concluidoMensagem: 'Revise suas respostas antes de enviar.',
     revisarEEnviar: 'Revisar e enviar',
-    menuPainel: 'Painel',
+    menuNavegacao: 'Navegação',
+    menuPainel: 'Dashboard',
     menuPainelControle: 'Painel de controle',
-    menuFormulario: 'Formulário',
-    menuInformacoes: 'Informações',
+    menuFormulario: 'Questionário',
+    menuInformacoes: 'Sobre',
     menuSair: 'Sair',
     erros: {
       naoEncontrado: 'Questionário não encontrado.',
@@ -406,7 +406,7 @@ export const ptBR = {
     },
   },
   onboardQuestionario: {
-    titulo: 'FORMULÁRIO',
+    titulo: 'Formulário',
     start: 'Vamos começar?',
     subtitulo: 'Você tem um questionário disponível',
     // TODO: "seu progresso ficará salvo" não é verdade hoje. As respostas só
@@ -417,10 +417,6 @@ export const ptBR = {
     tempo: '~15 minutos',
     secao: '4 seções',
     iniciar: 'Iniciar',
-    menuPainel: 'Painel',
-    menuFormulario: 'Formulário',
-    menuInformacoes: 'Informações',
-    menuSair: 'Sair',
   },
   onboardQuestionarioInfo: {
     titulo: 'Atualizar Informações',
@@ -442,6 +438,7 @@ export const ptBR = {
     evolucao: 'Evolução',
   },
   dashboard: {
+    titulo: 'Dashboard',
     Geral: 'Visão Geral',
     Gerentes: 'Gerentes',
     Colaboradores: 'Colaboradores',
@@ -545,9 +542,7 @@ export const ptBR = {
   },
   painelControle: {
     administradora: 'Administradora',
-    subtituloAdmin: 'Aqui está o panorama do Creed hoje',
     titulo: 'Painel de Controle',
-    subtitulo: 'Aqui está o panorama da sua organização hoje',
     gerenciar: 'Gerenciar Questionário',
     adicionarMembro: 'Adicionar Membro',
     inicio: 'Início',

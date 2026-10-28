@@ -5,6 +5,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { FormView } from './FormView';
+import authenticationReducer from '@/features/authentication/authenticationSlice';
 import { responsesApi } from '@/features/responses/responsesApi';
 import responsesReducer, {
   DEMO_FORM_ID,
@@ -91,14 +92,19 @@ describe('FormView', () => {
   }
 
   function renderizar() {
-    const store = configureStore({ reducer: { responses: responsesReducer } });
+    const store = configureStore({
+      reducer: {
+        authentication: authenticationReducer,
+        responses: responsesReducer,
+      },
+    });
     return render(
       <Provider store={store}>
-        <MemoryRouter initialEntries={['/form']}>
+        <MemoryRouter initialEntries={['/questionnaire/questions']}>
           <Routes>
-            <Route path="/form" element={<FormView />} />
+            <Route path="/questionnaire/questions" element={<FormView />} />
             <Route
-              path="/questionario/revisao"
+              path="/questionnaire/review"
               element={<ReviewRouteProbe />}
             />
           </Routes>
@@ -332,16 +338,14 @@ describe('FormView', () => {
     expect(screen.getByText('Form')).toBeInTheDocument();
   });
 
-  it('should render icon buttons in header with accessible names', async () => {
+  it('should render the header menu items with accessible names', async () => {
     await renderizarCarregado();
 
-    expect(screen.getByRole('button', { name: 'Painel' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Formulário' }),
+      screen.getByRole('link', { name: 'Questionário' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Informações' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sobre' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
     expect(screen.getByAltText('CREED.ai')).toBeInTheDocument();
   });

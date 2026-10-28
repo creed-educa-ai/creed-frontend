@@ -242,7 +242,6 @@ export const es: typeof ptBR = {
   },
   sobre: {
     titulo: 'Acerca de',
-    subtitulo: 'Más información sobre Creed.ai',
     // TODO placeholder: texto institucional definitivo ainda não definido com a cliente.
     texto:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
@@ -394,10 +393,11 @@ export const es: typeof ptBR = {
     fimDasPerguntasTitulo: 'Has llegado al final de las preguntas',
     concluidoMensagem: 'Revisa tus respuestas antes de enviarlas.',
     revisarEEnviar: 'Revisar y enviar',
-    menuPainel: 'Panel',
+    menuNavegacao: 'Navegación',
+    menuPainel: 'Dashboard',
     menuPainelControle: 'Panel de control',
-    menuFormulario: 'Formulario',
-    menuInformacoes: 'Información',
+    menuFormulario: 'Cuestionario',
+    menuInformacoes: 'Acerca de',
     menuSair: 'Cerrar sesión',
     erros: {
       naoEncontrado: 'Cuestionario no encontrado.',
@@ -407,7 +407,7 @@ export const es: typeof ptBR = {
     },
   },
   onboardQuestionario: {
-    titulo: 'FORMULARIO',
+    titulo: 'Formulario',
     start: '¿Comenzamos?',
     subtitulo: 'Tienes un cuestionario disponible',
     mensagem:
@@ -415,10 +415,6 @@ export const es: typeof ptBR = {
     tempo: '~15 minutos',
     secao: '4 secciones',
     iniciar: 'Comenzar',
-    menuPainel: 'Panel',
-    menuFormulario: 'Formulario',
-    menuInformacoes: 'Información',
-    menuSair: 'Cerrar sesión',
   },
   onboardQuestionarioInfo: {
     titulo: 'Actualizar información',
@@ -440,6 +436,7 @@ export const es: typeof ptBR = {
     evolucao: 'Evolución',
   },
   dashboard: {
+    titulo: 'Dashboard',
     Geral: 'Visión general',
     Gerentes: 'Gerentes',
     Colaboradores: 'Colaboradores',
@@ -543,9 +540,7 @@ export const es: typeof ptBR = {
   },
   painelControle: {
     administradora: 'Administradora',
-    subtituloAdmin: 'Aquí está el panorama de Creed hoy',
     titulo: 'Panel de control',
-    subtitulo: 'Aquí está el panorama de tu organización hoy',
     gerenciar: 'Gestionar cuestionario',
     adicionarMembro: 'Agregar Miembro',
     inicio: 'Inicio',

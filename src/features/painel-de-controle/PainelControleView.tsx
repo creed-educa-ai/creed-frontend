@@ -2,11 +2,13 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppSelector } from '@/app/hooks';
-import { PanelHeader } from '@/components/layout/panelHeader';
+import { PageHeader } from '@/components/layout/pageHeader';
 import { SectionHeader } from '@/components/layout/sectionHeader';
 import { AddMemberForm } from '@/features/organizations/AddMemberForm';
 import type { AddMemberValues } from '@/features/organizations/addMemberSchema';
 import { MembersSection } from '@/features/organizations/MembersSection';
+import { screenEnterClassName } from '@/lib/animations';
+import { cn } from '@/lib/utils';
 import {
   gerenciarQuestionarioSchema,
   type GerenciarQuestionarioFormValues,
@@ -48,16 +50,14 @@ export function PainelControleView() {
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
-      <PanelHeader
-        eyebrow={organization}
-        title={t('painelControle:titulo')}
-        subtitle={t('painelControle:subtitulo')}
-      />
+      <PageHeader eyebrow={organization} title={t('painelControle:titulo')} />
 
       {/* Ações lado a lado (adicionar membro, período do questionário) e a
           tabela de membros embaixo, na largura toda. No celular, tudo numa
           coluna, nessa ordem. */}
-      <main className="flex flex-col gap-8 px-6 pb-10">
+      <main
+        className={cn('flex flex-col gap-8 px-6 pb-10', screenEnterClassName)}
+      >
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Sem recolher, ao contrário do dashboard: o painel é curto e as
               seções são as ações da tela. flex-1 nivela os cards da linha. */}

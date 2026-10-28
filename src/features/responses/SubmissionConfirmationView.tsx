@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAppSelector } from '@/app/hooks';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-light.svg';
 import { Button } from '@/components/ui/button';
 import { useAtrasoDaAnimacaoMarca } from '@/hooks/useAtrasoDaAnimacaoMarca';
+import { dashboardPath } from '@/lib/dashboardPath';
 
 // Tela de "respostas enviadas", depois de confirmar o envio na revisão.
 // Copiada da AguardeConfirmacaoView: mesmo fundo da marca girando e mesmo
@@ -11,6 +13,7 @@ import { useAtrasoDaAnimacaoMarca } from '@/hooks/useAtrasoDaAnimacaoMarca';
 export function SubmissionConfirmationView() {
   const { t } = useTranslation(['respostasEnviadas']);
   const atrasoDaAnimacao = useAtrasoDaAnimacaoMarca();
+  const role = useAppSelector((state) => state.authentication.user?.role);
 
   return (
     // A tela roxa aparece com fade-in. Fica num div por fora porque o fade e
@@ -36,7 +39,8 @@ export function SubmissionConfirmationView() {
         </div>
 
         <Button asChild className="w-full max-w-xs">
-          <Link to="/onboard-quest">{t('respostasEnviadas:voltar')}</Link>
+          {/* Respondido o questionário, a pessoa volta para o dashboard. */}
+          <Link to={dashboardPath(role)}>{t('respostasEnviadas:voltar')}</Link>
         </Button>
       </div>
     </div>

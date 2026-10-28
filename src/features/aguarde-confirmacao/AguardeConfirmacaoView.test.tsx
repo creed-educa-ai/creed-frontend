@@ -45,6 +45,6 @@ describe('AguardeConfirmacaoView', () => {
 
     expect(
       screen.getByRole('link', { name: 'O que é o método CREED?' }),
-    ).toHaveAttribute('href', '/sobre');
+    ).toHaveAttribute('href', '/about');
   });
 });

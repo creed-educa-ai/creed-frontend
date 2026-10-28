@@ -10,7 +10,7 @@ import {
 } from '@/features/organizations/organizationsSlice';
 
 // Seção "Membros de <organização>": carrega os membros e cobre os estados de
-// carregando, erro e pronto. Usada pelo painel de controle e pelo MembersView.
+// carregando, erro e pronto. Usada pelo painel de controle.
 export function MembersSection() {
   const { t } = useTranslation(['comum', 'organizations']);
   const dispatch = useAppDispatch();

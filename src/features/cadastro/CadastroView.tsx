@@ -35,7 +35,7 @@ export function CadastroView() {
     await new Promise((resolver) => setTimeout(resolver, 1500));
     // viewTransition: o painel roxo cresce até virar a tela de aguarde, que
     // tem o mesmo fundo (ver `transicao-painel-marca` em index.css).
-    navigate('/aguarde-confirmacao', { viewTransition: true });
+    navigate('/awaiting-confirmation', { viewTransition: true });
   }
 
   function erroDoCampo(chave?: string) {

@@ -1,9 +1,9 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MembersView } from '@/features/organizations/MembersView';
+import { MembersSection } from '@/features/organizations/MembersSection';
 import organizationsReducer from '@/features/organizations/organizationsSlice';
 import respondentesReducer from '@/features/respondentes/respondentesSlice';
 import {
@@ -22,12 +22,12 @@ function renderizar() {
 
   return render(
     <Provider store={store}>
-      <MembersView />
+      <MembersSection />
     </Provider>,
   );
 }
 
-describe('MembersView', () => {
+describe('MembersSection', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -114,7 +114,9 @@ describe('MembersView', () => {
   it('traduz a tabela, detalhes e confirmação de exclusão para espanhol', async () => {
     renderizar();
     await screen.findByText('Enner Valência');
-    await userEvent.click(screen.getByRole('button', { name: 'Espanhol' }));
+    await act(async () => {
+      await i18n.changeLanguage('es');
+    });
 
     expect(screen.getByText('Miembros de Acme Inc.')).toBeInTheDocument();
     expect(

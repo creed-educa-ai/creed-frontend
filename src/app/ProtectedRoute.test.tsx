@@ -40,7 +40,7 @@ function renderizarLogado() {
           <Route path="/login" element={<p>tela de login</p>} />
           <Route element={<ProtectedRoute />}>
             <Route
-              path="/demograficos-1"
+              path="/demographics/step-1"
               element={<Link to="/respondentes">etapa 1</Link>}
             />
             <Route path="/respondentes" element={<p>área logada</p>} />

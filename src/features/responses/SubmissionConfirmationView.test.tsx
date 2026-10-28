@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import authenticationReducer from '@/features/authentication/authenticationSlice';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { responsesApi } from './responsesApi';
 import responsesReducer from './responsesSlice';
@@ -17,13 +18,40 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('SubmissionConfirmationView', () => {
-  it('mostra o agradecimento e a confirmação do envio', () => {
-    render(
+// O Voltar leva ao dashboard do papel de quem está na sessão.
+function renderizar(role: string | null = null) {
+  const store = configureStore({
+    reducer: { authentication: authenticationReducer },
+    preloadedState: {
+      authentication: {
+        user: role
+          ? {
+              id: 'usuario-1',
+              email: 'dev@creed.example.com',
+              role,
+              link_id: null,
+              organization_id: null,
+              organization_name: null,
+            }
+          : null,
+        status: role ? ('authenticated' as const) : ('idle' as const),
+        error: null,
+      },
+    },
+  });
+
+  return render(
+    <Provider store={store}>
       <MemoryRouter>
         <SubmissionConfirmationView />
-      </MemoryRouter>,
-    );
+      </MemoryRouter>
+    </Provider>,
+  );
+}
+
+describe('SubmissionConfirmationView', () => {
+  it('mostra o agradecimento e a confirmação do envio', () => {
+    renderizar();
 
     expect(
       screen.getByRole('heading', { name: 'Obrigado por responder' }),
@@ -34,16 +62,21 @@ describe('SubmissionConfirmationView', () => {
     expect(screen.getByAltText('CREED.ai')).toBeInTheDocument();
   });
 
-  it('o botão Voltar leva ao onboarding do questionário', () => {
-    render(
-      <MemoryRouter>
-        <SubmissionConfirmationView />
-      </MemoryRouter>,
-    );
+  it('o botão Voltar leva o respondente ao dashboard individual', () => {
+    renderizar('respondente');
 
     expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute(
       'href',
-      '/onboard-quest',
+      '/dashboard',
+    );
+  });
+
+  it('o botão Voltar leva o admin ao dashboard da organização', () => {
+    renderizar('admin');
+
+    expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute(
+      'href',
+      '/dashboard/company',
     );
   });
 
@@ -72,14 +105,19 @@ describe('SubmissionConfirmationView', () => {
       ...formResponse,
       status: 'submitted',
     });
-    const store = configureStore({ reducer: { responses: responsesReducer } });
+    const store = configureStore({
+      reducer: {
+        authentication: authenticationReducer,
+        responses: responsesReducer,
+      },
+    });
     const user = userEvent.setup();
     render(
       <Provider store={store}>
         <MemoryRouter
           initialEntries={[
             {
-              pathname: '/questionario/revisao',
+              pathname: '/questionnaire/review',
               state: {
                 questions: [
                   {
@@ -98,11 +136,11 @@ describe('SubmissionConfirmationView', () => {
         >
           <Routes>
             <Route
-              path="/questionario/revisao"
+              path="/questionnaire/review"
               element={<RevisaoRespostasRoute />}
             />
             <Route
-              path="/questionario/enviado"
+              path="/questionnaire/submitted"
               element={<SubmissionConfirmationView />}
             />
           </Routes>

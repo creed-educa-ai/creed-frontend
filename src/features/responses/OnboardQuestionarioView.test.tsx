@@ -2,6 +2,9 @@ import { describe, expect, it, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import authenticationReducer from '@/features/authentication/authenticationSlice';
 import { OnboardQuestionarioView } from './OnboardQuestionarioView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
@@ -10,11 +13,17 @@ describe('OnboardQuestionarioView', () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
+  // O menu do topo lê o papel na sessão; vazia, ele mostra o de respondente.
   function renderizar() {
+    const store = configureStore({
+      reducer: { authentication: authenticationReducer },
+    });
     return render(
-      <MemoryRouter>
-        <OnboardQuestionarioView />
-      </MemoryRouter>,
+      <Provider store={store}>
+        <MemoryRouter>
+          <OnboardQuestionarioView />
+        </MemoryRouter>
+      </Provider>,
     );
   }
 
@@ -22,7 +31,9 @@ describe('OnboardQuestionarioView', () => {
     renderizar();
 
     expect(screen.getByText('João Silva')).toBeInTheDocument();
-    expect(screen.getByText('FORMULÁRIO')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Formulário' }),
+    ).toBeInTheDocument();
   });
 
   it('should render questionnaire card with all information', () => {
@@ -48,16 +59,14 @@ describe('OnboardQuestionarioView', () => {
     expect(screen.getByText('4 seções')).toBeInTheDocument();
   });
 
-  it('should render icon buttons in header with accessible names', () => {
+  it('should render the header menu items with accessible names', () => {
     renderizar();
 
-    expect(screen.getByRole('button', { name: 'Painel' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Formulário' }),
+      screen.getByRole('link', { name: 'Questionário' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Informações' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sobre' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
   });
 
@@ -71,13 +80,24 @@ describe('OnboardQuestionarioView', () => {
   });
 
   it('should go to the questionnaire when "Iniciar questionário" is clicked', async () => {
+    const store = configureStore({
+      reducer: { authentication: authenticationReducer },
+    });
     render(
-      <MemoryRouter initialEntries={['/onboard-quest']}>
-        <Routes>
-          <Route path="/onboard-quest" element={<OnboardQuestionarioView />} />
-          <Route path="/form" element={<p>questionário</p>} />
-        </Routes>
-      </MemoryRouter>,
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/questionnaire']}>
+          <Routes>
+            <Route
+              path="/questionnaire"
+              element={<OnboardQuestionarioView />}
+            />
+            <Route
+              path="/questionnaire/questions"
+              element={<p>questionário</p>}
+            />
+          </Routes>
+        </MemoryRouter>
+      </Provider>,
     );
 
     await userEvent.click(screen.getByRole('button', { name: 'Iniciar' }));
@@ -92,7 +112,9 @@ describe('OnboardQuestionarioView', () => {
     await i18n.changeLanguage('en');
     renderizar();
 
-    expect(screen.getByText('FORM')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 1, name: 'Form' }),
+    ).toBeInTheDocument();
     expect(screen.getByText('Shall we get started?')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Start' })).toBeInTheDocument();
   });

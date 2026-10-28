@@ -1,8 +1,41 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import authenticationReducer from '@/features/authentication/authenticationSlice';
 import { UserDashboardView } from './UserDashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+
+// O menu do topo lê o papel na sessão e marca o item da rota atual.
+function renderizar() {
+  const store = configureStore({
+    reducer: { authentication: authenticationReducer },
+    preloadedState: {
+      authentication: {
+        user: {
+          id: 'usuario-1',
+          email: 'dev@creed.example.com',
+          role: 'respondente',
+          link_id: null,
+          organization_id: null,
+          organization_name: null,
+        },
+        status: 'authenticated' as const,
+        error: null,
+      },
+    },
+  });
+
+  return render(
+    <Provider store={store}>
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <UserDashboardView />
+      </MemoryRouter>
+    </Provider>,
+  );
+}
 
 describe('UserDashboardView', () => {
   beforeEach(async () => {
@@ -10,7 +43,7 @@ describe('UserDashboardView', () => {
   });
 
   it('should render the page title and the logo', () => {
-    render(<UserDashboardView />);
+    renderizar();
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Dashboard' }),
@@ -18,17 +51,17 @@ describe('UserDashboardView', () => {
     expect(screen.getByAltText('CREED.ai')).toBeInTheDocument();
   });
 
-  it('should render the header menu buttons by accessible name', () => {
-    render(<UserDashboardView />);
+  it('should render the header menu items by accessible name', () => {
+    renderizar();
 
     expect(
-      screen.getByRole('button', { name: i18n.t('formulario:menuPainel') }),
+      screen.getByRole('link', { name: i18n.t('formulario:menuPainel') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: i18n.t('formulario:menuFormulario') }),
+      screen.getByRole('link', { name: i18n.t('formulario:menuFormulario') }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', {
+      screen.getByRole('link', {
         name: i18n.t('formulario:menuInformacoes'),
       }),
     ).toBeInTheDocument();
@@ -38,7 +71,7 @@ describe('UserDashboardView', () => {
   });
 
   it('should not render the company-only summary, recommendation or view selector', () => {
-    render(<UserDashboardView />);
+    renderizar();
 
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     expect(
@@ -55,7 +88,7 @@ describe('UserDashboardView', () => {
   });
 
   it('should render the overview data section with both prisma charts and the metrics card', () => {
-    render(<UserDashboardView />);
+    renderizar();
 
     expect(
       screen.getByRole('button', {
@@ -74,7 +107,7 @@ describe('UserDashboardView', () => {
 
   it('should collapse and expand the overview data section', async () => {
     const user = userEvent.setup();
-    render(<UserDashboardView />);
+    renderizar();
 
     const secao = screen.getByRole('button', {
       name: i18n.t('resultado:dadosVisaoGeral'),
@@ -99,7 +132,7 @@ describe('UserDashboardView', () => {
 
   it('should collapse and expand the Creed.ai summary', async () => {
     const user = userEvent.setup();
-    render(<UserDashboardView />);
+    renderizar();
 
     const resumo = screen.getByRole('button', {
       name: i18n.t('resultado:resumo'),
@@ -122,7 +155,7 @@ describe('UserDashboardView', () => {
 
   it('should change the period when selecting another option', async () => {
     const user = userEvent.setup();
-    render(<UserDashboardView />);
+    renderizar();
 
     // No jsdom não há CSS: os dois spans (desktop e mobile) entram no nome do botão.
     await user.click(screen.getByRole('button', { name: /2026\/1/ }));
@@ -139,7 +172,7 @@ describe('UserDashboardView', () => {
 
   it('should list PDF and CSV in the download menu', async () => {
     const user = userEvent.setup();
-    render(<UserDashboardView />);
+    renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Baixar' }));
 
@@ -150,7 +183,7 @@ describe('UserDashboardView', () => {
   it('should open the print dialog when choosing PDF', async () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     const user = userEvent.setup();
-    render(<UserDashboardView />);
+    renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Baixar' }));
     await user.click(screen.getByRole('menuitem', { name: 'PDF' }));
@@ -161,7 +194,7 @@ describe('UserDashboardView', () => {
 
   it('should translate the sections and the download button to English', async () => {
     await i18n.changeLanguage('en');
-    render(<UserDashboardView />);
+    renderizar();
 
     expect(
       screen.getByRole('button', { name: 'Creed.ai Summary' }),

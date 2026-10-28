@@ -117,15 +117,15 @@ function renderizar() {
     <Provider store={store}>
       <MemoryRouter
         initialEntries={[
-          { pathname: '/questionario/revisao', state: { questions } },
+          { pathname: '/questionnaire/review', state: { questions } },
         ]}
       >
         <Routes>
           <Route
-            path="/questionario/revisao"
+            path="/questionnaire/review"
             element={<RevisaoRespostasRoute />}
           />
-          <Route path="/questionario/enviado" element={<h1>Enviado</h1>} />
+          <Route path="/questionnaire/submitted" element={<h1>Enviado</h1>} />
         </Routes>
       </MemoryRouter>
     </Provider>,

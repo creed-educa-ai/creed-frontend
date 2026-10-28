@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldLabel, FieldError } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { AuthLayout } from '@/components/layout/authLayout';
+import { dashboardPath } from '@/lib/dashboardPath';
 import { loginSchema, type LoginForm } from '@/lib/validadores';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { login } from '@/features/authentication/authenticationSlice';
@@ -31,7 +32,7 @@ export function LoginView() {
     try {
       // O formulário fala português (`senha`), o contrato da API fala inglês
       // (`password`). A tradução acontece aqui, na borda, e em nenhum outro lugar.
-      await dispatch(
+      const user = await dispatch(
         login({
           email: dados.email,
           password: dados.senha,
@@ -40,7 +41,8 @@ export function LoginView() {
       ).unwrap();
       const origem = (location.state as { from?: { pathname?: string } } | null)
         ?.from?.pathname;
-      navigate(origem ?? '/onboard-quest', { replace: true });
+      // Sem rota de origem, a casa de quem entra é o dashboard do seu papel.
+      navigate(origem ?? dashboardPath(user.role), { replace: true });
     } catch {
       // O erro permanece no estado Redux para a mensagem traduzida da tela.
     }
@@ -112,7 +114,7 @@ export function LoginView() {
             )}
           />
           <Link
-            to="/recuperar-senha"
+            to="/reset-password"
             className="font-medium text-primary hover:underline"
           >
             {t('autenticacao:login.esqueciSenha')}
@@ -130,7 +132,7 @@ export function LoginView() {
         <p className="text-center text-sm text-muted-foreground">
           {t('autenticacao:login.semConta')}{' '}
           <Link
-            to="/cadastro"
+            to="/sign-up"
             className="font-semibold text-primary hover:underline"
           >
             {t('autenticacao:login.criarConta')}

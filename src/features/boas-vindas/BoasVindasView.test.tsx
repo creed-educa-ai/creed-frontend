@@ -43,8 +43,8 @@ describe('BoasVindasView', () => {
         <Routes>
           <Route path="/" element={<BoasVindasView />} />
           <Route path="/login" element={<p>tela de login</p>} />
-          <Route path="/cadastro" element={<p>tela de cadastro</p>} />
-          <Route path="/sobre" element={<p>tela sobre</p>} />
+          <Route path="/sign-up" element={<p>tela de cadastro</p>} />
+          <Route path="/about" element={<p>tela sobre</p>} />
         </Routes>
       </MemoryRouter>,
     );

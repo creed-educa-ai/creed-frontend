@@ -43,10 +43,13 @@ describe('CadastroView', () => {
       .spyOn(console, 'info')
       .mockImplementation(() => undefined);
     render(
-      <MemoryRouter initialEntries={['/cadastro']}>
+      <MemoryRouter initialEntries={['/sign-up']}>
         <Routes>
-          <Route path="/cadastro" element={<CadastroView />} />
-          <Route path="/aguarde-confirmacao" element={<p>tela de aguarde</p>} />
+          <Route path="/sign-up" element={<CadastroView />} />
+          <Route
+            path="/awaiting-confirmation"
+            element={<p>tela de aguarde</p>}
+          />
         </Routes>
       </MemoryRouter>,
     );
