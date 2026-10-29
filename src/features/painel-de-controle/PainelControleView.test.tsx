@@ -23,7 +23,7 @@ function renderizar() {
         user: {
           id: 'usuario-1',
           email: 'dev@creed.example.com',
-          role: 'admin',
+          role: 'gestor',
           link_id: null,
           organization_id: null,
           organization_name: null,

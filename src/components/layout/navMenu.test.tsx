@@ -68,25 +68,24 @@ describe('NavMenu', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should point the admin to the company dashboard and the control panel', () => {
+  it('should point the admin (the client) to the super admin control panel', () => {
     renderizar(usuarioCom('admin'));
+
+    expect(link('menuPainel')).toHaveAttribute('href', '/dashboard/company');
+    expect(link('menuPainelControle')).toHaveAttribute(
+      'href',
+      '/control-panel/admin',
+    );
+  });
+
+  it('should point the manager to the company dashboard and control panel', () => {
+    renderizar(usuarioCom('gestor'));
 
     expect(link('menuPainel')).toHaveAttribute('href', '/dashboard/company');
     expect(link('menuPainelControle')).toHaveAttribute(
       'href',
       '/control-panel',
     );
-  });
-
-  it('should give the manager the company dashboard but not the control panel', () => {
-    renderizar(usuarioCom('gestor'));
-
-    expect(link('menuPainel')).toHaveAttribute('href', '/dashboard/company');
-    expect(
-      screen.queryByRole('link', {
-        name: i18n.t('formulario:menuPainelControle'),
-      }),
-    ).not.toBeInTheDocument();
   });
 
   it('should fall back to the respondent menu when there is no session', () => {
@@ -108,7 +107,7 @@ describe('NavMenu', () => {
   });
 
   it('should mark the item of the current route as the current page', () => {
-    renderizar(usuarioCom('admin'), '/control-panel');
+    renderizar(usuarioCom('gestor'), '/control-panel');
 
     expect(link('menuPainelControle')).toHaveAttribute('aria-current', 'page');
     expect(link('menuPainel')).not.toHaveAttribute('aria-current');
@@ -148,7 +147,7 @@ describe('NavMenu', () => {
   // className em função chegava ao DOM como string — o item perdia padding,
   // hover e o destaque da página atual.
   it('should keep the item styles inside the tooltip trigger', () => {
-    renderizar(usuarioCom('admin'), '/control-panel');
+    renderizar(usuarioCom('gestor'), '/control-panel');
 
     const atual = link('menuPainelControle');
     expect(atual).toHaveClass('p-2', 'aria-[current=page]:bg-primary');
