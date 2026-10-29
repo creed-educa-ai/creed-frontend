@@ -80,9 +80,14 @@ export function NavMenu() {
   const navigate = useNavigate();
   const role = useAppSelector((state) => state.authentication.user?.role);
 
-  // 🟡 P-055: só o admin tem o painel de controle. O do super adm
-  // (/control-panel/admin) fica fora do menu até o backend dizer quem é super adm.
-  const seesControlPanel = role === 'admin';
+  // 🟡 P-055: o admin é a cliente (CREED) e vai ao painel do super adm; o
+  // gestor, ao painel da empresa dele; o respondente não tem painel.
+  const controlPanelPath =
+    role === 'admin'
+      ? '/control-panel/admin'
+      : role === 'gestor'
+        ? '/control-panel'
+        : null;
 
   function handleLogout() {
     dispatch(logout());
@@ -111,9 +116,9 @@ export function NavMenu() {
         >
           <LayoutDashboard size={24} />
         </NavMenuLink>
-        {seesControlPanel && (
+        {controlPanelPath && (
           <NavMenuLink
-            to="/control-panel"
+            to={controlPanelPath}
             label={t('formulario:menuPainelControle')}
           >
             <SlidersHorizontal size={24} />
