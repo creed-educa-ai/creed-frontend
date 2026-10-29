@@ -12,7 +12,9 @@ import tseslint from 'typescript-eslint';
 import prettierConfig from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'node_modules'] },
+  // .claude guarda as worktrees do Claude Code — cópias inteiras do projeto,
+  // fora do tsconfig e por isso sem type information para o parser.
+  { ignores: ['dist', 'coverage', 'node_modules', '.claude'] },
   {
     extends: [
       js.configs.recommended,

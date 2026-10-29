@@ -22,7 +22,7 @@ export function RespondentesView() {
     <section className="p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-prisma-700">
+          <h1 className="text-prisma-700 text-2xl font-semibold">
             {t('respondentes:titulo')}
           </h1>
           {/* O plural fica no dicionário: cada idioma tem as suas regras. */}
