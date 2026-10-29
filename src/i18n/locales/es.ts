@@ -294,24 +294,25 @@ export const es: typeof ptBR = {
       painelDescricao:
         'Evaluación de competencias que muestra a tu equipo con claridad, sin hojas de cálculo y sin conjeturas.',
     },
-    primeiroAcesso: {
-      titulo: 'Cambia tu contraseña',
-      subtitulo: 'Ingresa una nueva contraseña para tu cuenta',
-      campoNovaSenha: 'Ingresa una nueva contraseña',
-      campoConfirmarSenha: 'Confirma tu nueva contraseña',
-      avancar: 'Continuar',
-      boasVindasTitulo: 'Bienvenido',
-      boasVindasMensagem:
-        'Este es tu primer acceso. Para continuar, elige una nueva contraseña.',
+    recuperarSenha: {
+      titulo: '¿Olvidaste tu contraseña?',
+      subtitulo:
+        'Ingresa el correo electrónico de tu cuenta para recibir un enlace de nueva contraseña.',
+      email: { rotulo: 'Correo electrónico', placeholder: 'tu@tuempresa.com' },
+      enviar: 'Enviar enlace',
+      enviado:
+        'Si este correo electrónico tiene acceso, enviamos un enlace para definir una nueva contraseña.',
+      painelTitulo: 'Recuperemos tu acceso.',
+      painelDescricao:
+        'El enlace llega por correo electrónico y abre la página donde defines tu nueva contraseña.',
     },
     erros: {
       emailInvalido: 'Ingresa un correo electrónico válido.',
       loginInvalido: 'No fue posible iniciar sesión con estas credenciales.',
       servicoIndisponivel:
         'El inicio de sesión no está disponible en este momento. Inténtalo de nuevo.',
-      senhaCurta: 'La contraseña debe tener al menos 8 caracteres.',
-      confirmacaoObrigatoria: 'Confirma la nueva contraseña.',
-      senhasDivergentes: 'Las contraseñas no coinciden.',
+      envioIndisponivel:
+        'No fue posible enviar el enlace en este momento. Inténtalo de nuevo.',
     },
   },
 
@@ -446,6 +447,10 @@ export const es: typeof ptBR = {
   },
   organizations: {
     addMember: {
+      name: {
+        label: 'Nombre del miembro',
+        placeholder: 'Ingresa un nombre',
+      },
       email: {
         label: 'Correo del miembro',
         placeholder: 'Ingresa un correo',
@@ -502,6 +507,7 @@ export const es: typeof ptBR = {
       },
     },
     errors: {
+      invalidName: 'Ingresa un nombre de 2 a 200 caracteres.',
       invalidEmail: 'Ingresa un correo válido.',
     },
   },

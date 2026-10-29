@@ -291,24 +291,24 @@ export const en: typeof ptBR = {
       painelDescricao:
         'Competency assessment that shows your team clearly, without spreadsheets and without guesswork.',
     },
-    primeiroAcesso: {
-      titulo: 'Change your password',
-      subtitulo: 'Enter a new password for your account',
-      campoNovaSenha: 'Enter a new password',
-      campoConfirmarSenha: 'Confirm your new password',
-      avancar: 'Continue',
-      boasVindasTitulo: 'Welcome',
-      boasVindasMensagem:
-        'This is your first access. To continue, choose a new password.',
+    recuperarSenha: {
+      titulo: 'Forgot your password?',
+      subtitulo:
+        'Enter your account email to receive a link to set a new password.',
+      email: { rotulo: 'Email', placeholder: 'you@yourcompany.com' },
+      enviar: 'Send link',
+      enviado:
+        'If this email has access, we sent a link to set a new password.',
+      painelTitulo: "Let's get you back in.",
+      painelDescricao:
+        'The link arrives by email and opens the page where you set your new password.',
     },
     erros: {
       emailInvalido: 'Enter a valid email.',
       loginInvalido: 'Unable to sign in with these credentials.',
       servicoIndisponivel:
         'Sign-in is unavailable right now. Please try again.',
-      senhaCurta: 'Password must be at least 8 characters long.',
-      confirmacaoObrigatoria: 'Confirm the new password.',
-      senhasDivergentes: 'Passwords do not match.',
+      envioIndisponivel: 'Unable to send the link right now. Please try again.',
     },
   },
 
@@ -443,6 +443,10 @@ export const en: typeof ptBR = {
   },
   organizations: {
     addMember: {
+      name: {
+        label: 'Member name',
+        placeholder: 'Enter a name',
+      },
       email: {
         label: 'Member email',
         placeholder: 'Enter an email',
@@ -499,6 +503,7 @@ export const en: typeof ptBR = {
       },
     },
     errors: {
+      invalidName: 'Enter a name between 2 and 200 characters.',
       invalidEmail: 'Enter a valid email.',
     },
   },

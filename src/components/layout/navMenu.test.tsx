@@ -28,6 +28,7 @@ function renderizar(user: UserSessionResponse | null, rota = '/dashboard') {
         user,
         status: user ? ('authenticated' as const) : ('idle' as const),
         error: null,
+        passwordReset: { status: 'idle' as const, error: null },
       },
     },
   });
