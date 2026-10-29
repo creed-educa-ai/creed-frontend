@@ -5,7 +5,7 @@ import {
   Demograficos3Etapa,
 } from '@/features/respondentes/fluxoDemograficos';
 import { CadastroView } from '@/features/cadastro/CadastroView';
-import { AlterarSenhaView } from '@/features/authentication/AlterarSenhaView';
+import { RecuperarSenhaView } from '@/features/authentication/RecuperarSenhaView';
 import { SobreView } from '@/features/sobre/SobreView';
 import { BoasVindasView } from '@/features/boas-vindas/BoasVindasView';
 import { AguardeConfirmacaoView } from '@/features/aguarde-confirmacao/AguardeConfirmacaoView';
@@ -65,7 +65,8 @@ export const router = createBrowserRouter([
   },
   { path: '/about', element: <SobreView /> },
   { path: '/sign-up', element: <CadastroView /> },
-  { path: '/first-access', element: <AlterarSenhaView /> },
   { path: '/awaiting-confirmation', element: <AguardeConfirmacaoView /> },
-  { path: '/reset-password', element: <AlterarSenhaView /> },
+  // Sem rota de primeiro acesso: a senha é definida na página do Keycloak,
+  // pelo link do convite (P-012). Aqui só se pede o link de nova senha.
+  { path: '/reset-password', element: <RecuperarSenhaView /> },
 ]);

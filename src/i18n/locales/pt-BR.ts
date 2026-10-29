@@ -294,23 +294,24 @@ export const ptBR = {
       painelDescricao:
         'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
     },
-    primeiroAcesso: {
-      titulo: 'Troque sua senha',
-      subtitulo: 'Insira uma nova senha para sua conta',
-      campoNovaSenha: 'Insira uma nova senha',
-      campoConfirmarSenha: 'Confirme sua nova senha',
-      avancar: 'Avançar',
-      boasVindasTitulo: 'Bem Vindo',
-      boasVindasMensagem:
-        'Este é seu primeiro acesso. Para continuar você deve escolher uma nova senha.',
+    recuperarSenha: {
+      titulo: 'Esqueceu sua senha?',
+      subtitulo:
+        'Informe o e-mail da sua conta para receber um link de nova senha.',
+      email: { rotulo: 'E-mail', placeholder: 'voce@suaempresa.com.br' },
+      enviar: 'Enviar link',
+      enviado:
+        'Se este e-mail tiver acesso, enviamos um link para definir uma nova senha.',
+      painelTitulo: 'Vamos recuperar seu acesso.',
+      painelDescricao:
+        'O link chega por e-mail e abre a página onde você define a nova senha.',
     },
     erros: {
       emailInvalido: 'Digite um e-mail válido.',
       loginInvalido: 'Não foi possível entrar com esses dados.',
       servicoIndisponivel: 'Não foi possível entrar agora. Tente novamente.',
-      senhaCurta: 'A senha precisa ter pelo menos 8 caracteres.',
-      confirmacaoObrigatoria: 'Confirme a nova senha.',
-      senhasDivergentes: 'As senhas não coincidem.',
+      envioIndisponivel:
+        'Não foi possível enviar o link agora. Tente novamente.',
     },
   },
 
@@ -448,6 +449,10 @@ export const ptBR = {
   },
   organizations: {
     addMember: {
+      name: {
+        label: 'Nome do membro',
+        placeholder: 'Insira um nome',
+      },
       email: {
         label: 'E-mail do membro',
         placeholder: 'Insira um e-mail',
@@ -504,6 +509,7 @@ export const ptBR = {
       },
     },
     errors: {
+      invalidName: 'Digite um nome de 2 a 200 caracteres.',
       invalidEmail: 'Digite um e-mail válido.',
     },
   },

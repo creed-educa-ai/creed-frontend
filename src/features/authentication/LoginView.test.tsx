@@ -47,6 +47,9 @@ describe('LoginView', () => {
       'href',
       '/sign-up',
     );
+    expect(
+      screen.getByRole('link', { name: 'Esqueci minha senha' }),
+    ).toHaveAttribute('href', '/reset-password');
   });
 
   it('mostra erro nos campos obrigatórios ao submeter vazio', async () => {

@@ -30,6 +30,7 @@ function renderizar() {
         },
         status: 'authenticated' as const,
         error: null,
+        passwordReset: { status: 'idle' as const, error: null },
       },
     },
   });

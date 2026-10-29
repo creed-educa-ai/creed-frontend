@@ -36,6 +36,7 @@ function renderizar(role: string | null = null) {
           : null,
         status: role ? ('authenticated' as const) : ('idle' as const),
         error: null,
+        passwordReset: { status: 'idle' as const, error: null },
       },
     },
   });
