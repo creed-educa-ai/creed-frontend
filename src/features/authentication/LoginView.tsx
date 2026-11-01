@@ -11,12 +11,21 @@ import { dashboardPath } from '@/lib/dashboardPath';
 import { loginSchema, type LoginForm } from '@/lib/validadores';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { login } from '@/features/authentication/authenticationSlice';
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group';
 
 export function LoginView() {
   const { t } = useTranslation(['autenticacao']);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const loginErro = useAppSelector((state) => state.authentication.error);
   const {
     register,
@@ -89,13 +98,31 @@ export function LoginView() {
           <FieldLabel htmlFor="senha">
             {t('autenticacao:login.senha.rotulo')}
           </FieldLabel>
-          <Input
-            id="senha"
-            type="password"
-            placeholder={t('autenticacao:login.senha.placeholder')}
-            aria-invalid={Boolean(errors.senha)}
-            {...register('senha')}
-          />
+          <InputGroup>
+            <InputGroupInput
+              id="senha"
+              type={mostrarSenha ? 'text' : 'password'}
+              placeholder={t('autenticacao:login.senha.placeholder')}
+              aria-invalid={Boolean(errors.senha)}
+              {...register('senha')}
+            />
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                type="button"
+                size="icon-xs"
+                aria-label={
+                  mostrarSenha
+                    ? t('autenticacao:login.senha.ocultar')
+                    : t('autenticacao:login.senha.mostrar')
+                }
+                onClick={() => {
+                  setMostrarSenha((anterior) => !anterior);
+                }}
+              >
+                {mostrarSenha ? <Eye /> : <EyeOff />}
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
           <FieldError errors={[erroDoCampo(errors.senha?.message)]} />
         </Field>
 
