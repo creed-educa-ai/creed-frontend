@@ -284,7 +284,12 @@ export const es: typeof ptBR = {
       titulo: 'Inicia sesión en tu cuenta',
       subtitulo: 'Usa el correo electrónico registrado por tu empresa.',
       email: { rotulo: 'Correo electrónico', placeholder: 'tu@tuempresa.com' },
-      senha: { rotulo: 'Contraseña', placeholder: 'Ingresa tu contraseña' },
+      senha: {
+        rotulo: 'Contraseña',
+        placeholder: 'Ingresa tu contraseña',
+        mostrar: 'Mostrar contraseña',
+        ocultar: 'Ocultar contraseña',
+      },
       lembrarDeMim: 'Recordarme',
       esqueciSenha: 'Olvidé mi contraseña',
       entrar: 'Iniciar sesión',

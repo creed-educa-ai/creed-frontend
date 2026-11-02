@@ -281,7 +281,12 @@ export const en: typeof ptBR = {
       titulo: 'Sign in to your account',
       subtitulo: 'Use the email registered by your company.',
       email: { rotulo: 'Email', placeholder: 'you@yourcompany.com' },
-      senha: { rotulo: 'Password', placeholder: 'Enter your password' },
+      senha: {
+        rotulo: 'Password',
+        placeholder: 'Enter your password',
+        mostrar: 'Show password',
+        ocultar: 'Hide password',
+      },
       lembrarDeMim: 'Remember me',
       esqueciSenha: 'Forgot my password',
       entrar: 'Sign in',

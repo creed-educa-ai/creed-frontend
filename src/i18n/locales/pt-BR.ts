@@ -284,7 +284,12 @@ export const ptBR = {
       titulo: 'Entre na sua conta',
       subtitulo: 'Acesse com o e-mail cadastrado pela sua empresa.',
       email: { rotulo: 'E-mail', placeholder: 'voce@suaempresa.com.br' },
-      senha: { rotulo: 'Senha', placeholder: 'Digite sua senha' },
+      senha: {
+        rotulo: 'Senha',
+        placeholder: 'Digite sua senha',
+        mostrar: 'Mostrar senha',
+        ocultar: 'Ocultar senha',
+      },
       lembrarDeMim: 'Lembrar de mim',
       esqueciSenha: 'Esqueci minha senha',
       entrar: 'Entrar',
