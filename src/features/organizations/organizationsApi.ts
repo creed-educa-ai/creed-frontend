@@ -1,7 +1,14 @@
 // Chamadas ao backend para a feature organizations.
-// Enquanto o contrato REST não estabiliza, a lista vive em memória — o
-// restante da feature já fala só com esta API (ADR-003, secao 2).
-import type { Member, MemberList } from '@/types/api';
+// Enquanto o contrato REST da lista não estabiliza, ela vive em memória — o
+// restante da feature já fala só com esta API (ADR-003, secao 2). O convite
+// de membro já é chamada de verdade.
+import { apiClient } from '@/lib/apiClient';
+import type {
+  Member,
+  MemberInvite,
+  MemberList,
+  UserResponse,
+} from '@/types/api';
 
 const seed: Member[] = [
   {
@@ -94,4 +101,12 @@ export const organizationsApi = {
     registry = registry.filter((member) => member.id !== id);
     return Promise.resolve();
   },
+
+  // Uma chamada cria participante, vínculo e acesso, e manda o convite por
+  // e-mail. Quem liga esta função à tela é o painel da empresa (CREED-50).
+  inviteMember: (organizationId: string, invite: MemberInvite) =>
+    apiClient.post<UserResponse>(
+      `/organizations/${organizationId}/members`,
+      invite,
+    ),
 };

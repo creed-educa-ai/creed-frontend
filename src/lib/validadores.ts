@@ -22,20 +22,10 @@ export interface LoginForm {
   lembrarDeMim: boolean;
 }
 
-// autenticacao/alterarSenha — ainda não existe domínio de autenticação no
-// creed-backend, então não há contrato definindo a política de senha.
-// > 🟡 Premissa P-004 — mínimo de 8 caracteres, sem regra extra de
-// complexidade. Confirmar com o time.
-export const alterarSenhaSchema = z
-  .object({
-    novaSenha: z.string().min(8, 'autenticacao:erros.senhaCurta'),
-    confirmarSenha: z
-      .string()
-      .min(1, 'autenticacao:erros.confirmacaoObrigatoria'),
-  })
-  .refine((dados) => dados.novaSenha === dados.confirmarSenha, {
-    message: 'autenticacao:erros.senhasDivergentes',
-    path: ['confirmarSenha'],
-  });
+// Só o e-mail: quem define a senha nova é a página do Keycloak, aberta pelo
+// link que o back manda (P-012).
+export const recuperarSenhaSchema = z.object({
+  email: z.email('autenticacao:erros.emailInvalido'),
+});
 
-export type AlterarSenhaForm = z.infer<typeof alterarSenhaSchema>;
+export type RecuperarSenhaForm = z.infer<typeof recuperarSenhaSchema>;

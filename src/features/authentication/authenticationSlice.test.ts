@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import reducer, {
+  clearPasswordReset,
   login,
   logout,
+  requestPasswordReset,
 } from '@/features/authentication/authenticationSlice';
 
 const fakeUser = {
@@ -24,6 +26,7 @@ const initialState = {
   user: null,
   status: 'idle' as const,
   error: null,
+  passwordReset: { status: 'idle' as const, error: null },
 };
 
 describe('authenticationSlice', () => {
@@ -149,6 +152,7 @@ describe('authenticationSlice', () => {
       user: fakeUser,
       status: 'authenticated' as const,
       error: null,
+      passwordReset: { status: 'idle' as const, error: null },
     };
 
     const state = reducer(loggedInState, logout());
@@ -156,5 +160,134 @@ describe('authenticationSlice', () => {
     expect(state.user).toBeNull();
     expect(state.status).toBe('idle');
     expect(localStorage.getItem('creed.session')).toBeNull();
+  });
+
+  describe('requestPasswordReset', () => {
+    const pedido = { email: 'ana@creed.ai' };
+
+    it('marks loading in its own status, without touching the login status', () => {
+      const loggedInState = {
+        ...initialState,
+        user: fakeUser,
+        status: 'authenticated' as const,
+      };
+
+      const state = reducer(
+        loggedInState,
+        requestPasswordReset.pending('', pedido),
+      );
+
+      expect(state.passwordReset).toEqual({ status: 'loading', error: null });
+      expect(state.status).toBe('authenticated');
+      expect(state.user).toEqual(fakeUser);
+    });
+
+    it('marks ready when the backend accepts the request', () => {
+      const state = reducer(
+        initialState,
+        requestPasswordReset.fulfilled(undefined, '', pedido),
+      );
+
+      expect(state.passwordReset.status).toBe('ready');
+    });
+
+    it('stores the i18n key when the request fails', () => {
+      const state = reducer(
+        initialState,
+        requestPasswordReset.rejected(
+          new Error('rejeitado'),
+          '',
+          pedido,
+          'autenticacao:erros.envioIndisponivel',
+        ),
+      );
+
+      expect(state.passwordReset).toEqual({
+        status: 'error',
+        error: 'autenticacao:erros.envioIndisponivel',
+      });
+      expect(state.error).toBeNull();
+    });
+
+    it.each([
+      { status: 'ready' as const, error: null },
+      {
+        status: 'error' as const,
+        error: 'autenticacao:erros.envioIndisponivel',
+      },
+    ])(
+      'clearPasswordReset goes back to idle from $status, without touching the login',
+      (passwordReset) => {
+        const loggedInState = {
+          ...initialState,
+          user: fakeUser,
+          status: 'authenticated' as const,
+          passwordReset,
+        };
+
+        const state = reducer(loggedInState, clearPasswordReset());
+
+        expect(state.passwordReset).toEqual({ status: 'idle', error: null });
+        expect(state.status).toBe('authenticated');
+        expect(state.user).toEqual(fakeUser);
+      },
+    );
+
+    describe('what goes to the backend and which key each answer produces', () => {
+      afterEach(() => {
+        vi.unstubAllGlobals();
+      });
+
+      function stubFetch(response: Response) {
+        const fetchMock = vi.fn().mockResolvedValue(response);
+        vi.stubGlobal('fetch', fetchMock);
+        return fetchMock;
+      }
+
+      it('posts the email to /authentication/password-reset and accepts the 204', async () => {
+        const fetchMock = stubFetch(new Response(null, { status: 204 }));
+
+        const action = await requestPasswordReset(pedido)(
+          vi.fn(),
+          () => ({}),
+          undefined,
+        );
+
+        expect(action.type).toBe(requestPasswordReset.fulfilled.type);
+        const [url, init] = fetchMock.mock.lastCall as [string, RequestInit];
+        expect(url).toBe('/api/v1/authentication/password-reset');
+        expect(init.method).toBe('POST');
+        expect(JSON.parse(init.body as string)).toEqual(pedido);
+      });
+
+      it('503 becomes the try-again key', async () => {
+        stubFetch(new Response('smtp down', { status: 503 }));
+
+        const action = await requestPasswordReset(pedido)(
+          vi.fn(),
+          () => ({}),
+          undefined,
+        );
+
+        expect(action.payload).toBe('autenticacao:erros.envioIndisponivel');
+      });
+
+      it('422 becomes the invalid-email key, for the field', async () => {
+        stubFetch(
+          new Response(JSON.stringify({ detail: [] }), {
+            status: 422,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        );
+
+        const action = await requestPasswordReset(pedido)(
+          vi.fn(),
+          () => ({}),
+          undefined,
+        );
+
+        expect(action.payload).toBe('autenticacao:erros.emailInvalido');
+      });
+    });
   });
 });

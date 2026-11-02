@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 import {
   InputGroup,
   InputGroupAddon,
@@ -38,7 +39,7 @@ export function AddMemberForm({ onSubmit }: AddMemberFormProps) {
     formState: { errors, isSubmitting },
   } = useForm<AddMemberValues>({
     resolver: zodResolver(addMemberSchema),
-    defaultValues: { email: '', role: 'respondente' },
+    defaultValues: { name: '', email: '', role: 'respondente' },
   });
 
   async function submit(values: AddMemberValues) {
@@ -46,7 +47,7 @@ export function AddMemberForm({ onSubmit }: AddMemberFormProps) {
       await onSubmit(values);
       reset();
     } catch {
-      // O erro é de quem passou o `onSubmit`. Aqui só mantemos o e-mail
+      // O erro é de quem passou o `onSubmit`. Aqui só mantemos o que foi
       // digitado para a pessoa tentar de novo.
     }
   }
@@ -62,6 +63,23 @@ export function AddMemberForm({ onSubmit }: AddMemberFormProps) {
       className="flex flex-col gap-3"
       onSubmit={(event) => void handleSubmit(submit)(event)}
     >
+      <Field data-invalid={Boolean(errors.name)}>
+        <FieldLabel htmlFor="member-name" className="sr-only">
+          {t('organizations:addMember.name.label')}
+        </FieldLabel>
+        <Input
+          id="member-name"
+          className="h-10"
+          // O nome é de quem vai ser convidado: o navegador não deve sugerir
+          // o de quem está logado.
+          autoComplete="off"
+          placeholder={t('organizations:addMember.name.placeholder')}
+          aria-invalid={Boolean(errors.name)}
+          {...register('name')}
+        />
+        <FieldError errors={[translateError(errors.name?.message)]} />
+      </Field>
+
       <Field data-invalid={Boolean(errors.email)}>
         <FieldLabel htmlFor="member-email" className="sr-only">
           {t('organizations:addMember.email.label')}

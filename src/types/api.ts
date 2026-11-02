@@ -56,6 +56,41 @@ export interface SessionResponse {
   user: UserSessionResponse;
 }
 
+// Contrato da spec da CREED-23.8 (86e35vhxm): o back ainda não tem a rota.
+// Responde 204 para qualquer e-mail, com ou sem acesso.
+export interface PasswordResetRequest {
+  email: string;
+}
+
+// Domínio users (app/domains/users/schemas.py)
+export type RecordStatus = 'active' | 'inactive';
+
+export interface UserResponse {
+  id: string;
+  name: string;
+  email: string;
+  status: RecordStatus;
+  // `str` no back, como em UserSessionResponse: o papel é lido do vínculo.
+  role: string;
+  link_id: string;
+  organization_id: string;
+  created_at: string;
+}
+
+// Convite de membro (POST /organizations/{organization_id}/members), do
+// contrato da spec da CREED-23.8 (86e35vhxm): o back ainda não tem a rota.
+export type Role = 'admin' | 'gestor' | 'respondente';
+export type LinkType = 'emprego' | 'mentoria' | 'academico' | 'pessoal';
+
+export interface MemberInvite {
+  // 🟡 Premissa P-046 — o convite pede o nome da pessoa.
+  name: string;
+  email: string;
+  role: Role;
+  // 🟡 Premissa P-047 — sem `type`, o back grava o vínculo como `emprego`.
+  type?: LinkType;
+}
+
 // Domínio forms (app/domains/forms/schemas.py)
 export type FormStatus = 'draft' | 'published' | 'closed';
 
