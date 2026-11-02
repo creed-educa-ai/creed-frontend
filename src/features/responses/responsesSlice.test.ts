@@ -1,5 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { formsApi } from '@/features/forms/formsApi';
+import { questionsApi } from '@/features/questions/questionsApi';
 import { responsesApi } from '@/features/responses/responsesApi';
 import reducer, {
   clearSubmissionError,
@@ -57,6 +59,7 @@ function question(
     type: 'descriptive',
     section: 'profile',
     required: true,
+    dimensao: null,
     prisma: null,
     created_at: '2026-09-30T18:38:18Z',
     ...overrides,
@@ -138,9 +141,9 @@ describe('responsesSlice', () => {
   });
 
   it('carrega o formulário e as perguntas pelo id pedido', async () => {
-    const getForm = vi.spyOn(responsesApi, 'getForm').mockResolvedValue(form);
+    const getForm = vi.spyOn(formsApi, 'getForm').mockResolvedValue(form);
     const listQuestions = vi
-      .spyOn(responsesApi, 'listQuestions')
+      .spyOn(questionsApi, 'listQuestions')
       .mockResolvedValue([question({ id: 'q1' })]);
     const store = criarStore();
 
@@ -160,8 +163,8 @@ describe('responsesSlice', () => {
   });
 
   it('formulário sem pergunta fica ready, com lista vazia', async () => {
-    vi.spyOn(responsesApi, 'getForm').mockResolvedValue(form);
-    vi.spyOn(responsesApi, 'listQuestions').mockResolvedValue([]);
+    vi.spyOn(formsApi, 'getForm').mockResolvedValue(form);
+    vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue([]);
     const store = criarStore();
 
     await store.dispatch(loadQuestionnaire(DEMO_FORM_ID));
@@ -175,7 +178,7 @@ describe('responsesSlice', () => {
     [403, 'formulario:erros.semAcesso'],
     [500, 'formulario:erros.servicoIndisponivel'],
   ])('erro %i vira a chave %s', async (status, chave) => {
-    vi.spyOn(responsesApi, 'getForm').mockRejectedValue(
+    vi.spyOn(formsApi, 'getForm').mockRejectedValue(
       new ApiError('erro do back', status),
     );
     const store = criarStore();
@@ -188,7 +191,7 @@ describe('responsesSlice', () => {
   });
 
   it('erro de rede, sem ApiError, vira servicoIndisponivel', async () => {
-    vi.spyOn(responsesApi, 'getForm').mockRejectedValue(
+    vi.spyOn(formsApi, 'getForm').mockRejectedValue(
       new TypeError('Failed to fetch'),
     );
     const store = criarStore();

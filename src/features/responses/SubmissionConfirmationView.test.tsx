@@ -7,7 +7,7 @@ import authenticationReducer from '@/features/authentication/authenticationSlice
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { responsesApi } from './responsesApi';
 import responsesReducer from './responsesSlice';
-import { RevisaoRespostasRoute } from './RevisaoRespostasRoute';
+import { AnswersReviewRoute } from './AnswersReviewRoute';
 import { SubmissionConfirmationView } from './SubmissionConfirmationView';
 
 beforeEach(async () => {
@@ -138,7 +138,7 @@ describe('SubmissionConfirmationView', () => {
           <Routes>
             <Route
               path="/questionnaire/review"
-              element={<RevisaoRespostasRoute />}
+              element={<AnswersReviewRoute />}
             />
             <Route
               path="/questionnaire/submitted"

@@ -6,7 +6,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
-import { registrarAceiteDoTermo } from '@/features/authentication/termoAceito';
+import { recordTermsAcceptance } from '@/features/authentication/termsAcceptance';
 import type { UserSessionResponse } from '@/types/api';
 
 const usuario: UserSessionResponse = {
@@ -110,7 +110,7 @@ describe('ProtectedRoute — termo de consentimento', () => {
   });
 
   it('não mostra o termo para quem já aceitou', () => {
-    registrarAceiteDoTermo(usuario.id);
+    recordTermsAcceptance(usuario.id);
 
     renderizarLogado();
 

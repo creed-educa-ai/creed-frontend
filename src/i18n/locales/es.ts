@@ -323,6 +323,7 @@ export const es: typeof ptBR = {
 
   mentees: {
     title: 'Mentorados',
+    loadError: 'No se pudieron cargar los mentorados.',
     search: { label: 'Buscar mentorados', placeholder: 'Buscar' },
     columnsMenu: 'Columnas',
     select: { all: 'Seleccionar todos', row: 'Seleccionar {{name}}' },
@@ -443,6 +444,7 @@ export const es: typeof ptBR = {
   },
   dashboard: {
     titulo: 'Dashboard',
+    erroAoCarregar: 'No se pudo cargar el dashboard.',
     Geral: 'Visión general',
     Gerentes: 'Gerentes',
     Colaboradores: 'Colaboradores',
@@ -524,6 +526,7 @@ export const es: typeof ptBR = {
   },
   empresas: {
     titulo: 'Empresas',
+    erroAoCarregar: 'No se pudieron cargar las empresas.',
     pesquisar: 'Buscar',
     colunas: {
       titulo: 'Columnas',

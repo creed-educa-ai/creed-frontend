@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { TermoModal } from '@/components/modals/TermoModal';
+import { TermsModal } from '@/components/modals/TermsModal';
 import { logout } from '@/features/authentication/authenticationSlice';
 import {
-  registrarAceiteDoTermo,
-  termoFoiAceito,
-} from '@/features/authentication/termoAceito';
+  recordTermsAcceptance,
+  hasAcceptedTerms,
+} from '@/features/authentication/termsAcceptance';
 
 interface ProtectedRouteProps {
   enabled?: boolean;
@@ -29,19 +29,19 @@ export function ProtectedRoute({ enabled = true }: ProtectedRouteProps) {
   // logada, e não na tela de login: assim também vale para quem volta com a
   // sessão salva. A tela protegida só é montada depois do aceite — antes
   // disso, nenhum dado da plataforma é carregado.
-  if (enabled && user && !aceitouAgora && !termoFoiAceito(user.id)) {
+  if (enabled && user && !aceitouAgora && !hasAcceptedTerms(user.id)) {
     return (
-      <TermoModal
+      <TermsModal
         open
         onOpenChange={() => undefined}
-        // Depois do aceite vêm sempre os dados demográficos (fluxoDemograficos):
+        // Depois do aceite vêm sempre os dados demográficos (demographicsFlow):
         // o termo só aparece no primeiro acesso, e é nele que o onboarding começa.
         // Quem já aceitou antes não passa por aqui e vai direto ao destino.
         // replace: a rota por trás do termo (em geral o dashboard) sai do
         // histórico, e a seta de voltar da etapa 1 não cai numa tela que a
         // pessoa nunca viu.
         onAccept={() => {
-          registrarAceiteDoTermo(user.id);
+          recordTermsAcceptance(user.id);
           setAceitouAgora(true);
           navigate('/demographics/step-1', { replace: true });
         }}

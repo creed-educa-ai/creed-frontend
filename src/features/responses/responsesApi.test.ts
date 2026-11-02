@@ -37,30 +37,6 @@ describe('responsesApi', () => {
     vi.unstubAllGlobals();
   });
 
-  it('getForm lê o formulário pelo id', async () => {
-    const fetchMock = stubFetch();
-
-    await responsesApi.getForm(FORM_ID);
-
-    expect(lastCall(fetchMock)).toEqual({
-      url: `/api/v1/forms/${FORM_ID}`,
-      method: 'GET',
-      body: undefined,
-    });
-  });
-
-  it('listQuestions lê as perguntas do formulário', async () => {
-    const fetchMock = stubFetch();
-
-    await responsesApi.listQuestions(FORM_ID);
-
-    expect(lastCall(fetchMock)).toEqual({
-      url: `/api/v1/forms/${FORM_ID}/questions`,
-      method: 'GET',
-      body: undefined,
-    });
-  });
-
   it('createFormResponse manda só o form_id, sem vínculo', async () => {
     const fetchMock = stubFetch(201);
 
@@ -86,6 +62,18 @@ describe('responsesApi', () => {
     expect(JSON.parse(call.body as string)).toEqual({
       question_id: QUESTION_ID,
       value: 'Minha resposta',
+    });
+  });
+
+  it('listAnswers lê as respostas gravadas', async () => {
+    const fetchMock = stubFetch();
+
+    await responsesApi.listAnswers(FORM_RESPONSE_ID);
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: `/api/v1/form-responses/${FORM_RESPONSE_ID}/answers`,
+      method: 'GET',
+      body: undefined,
     });
   });
 

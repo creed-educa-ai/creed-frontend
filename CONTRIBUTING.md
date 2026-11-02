@@ -120,8 +120,8 @@ armadilha que você encontrou, a alternativa que descartou e o motivo.
 ❌ fix: RespondentesView.tsx   nome de arquivo não é mensagem
 ```
 
-Escopo é opcional; quando usar, prefira o nome da feature (`respondentes`,
-`auth`) ou `deps`.
+Escopo é opcional; quando usar, prefira o nome da feature, que é o do domínio do back (`responses`,
+`authentication`) ou `deps`.
 
 ## Pull Request
 

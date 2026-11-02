@@ -1,17 +1,22 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
+import { dashboardsApi } from '@/features/dashboards/dashboardsApi';
+import dashboardsReducer from '@/features/dashboards/dashboardsSlice';
 import { UserDashboardView } from './UserDashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
 // O menu do topo lê o papel na sessão e marca o item da rota atual.
-function renderizar() {
+async function renderizar() {
   const store = configureStore({
-    reducer: { authentication: authenticationReducer },
+    reducer: {
+      authentication: authenticationReducer,
+      dashboards: dashboardsReducer,
+    },
     preloadedState: {
       authentication: {
         user: {
@@ -29,22 +34,31 @@ function renderizar() {
     },
   });
 
-  return render(
+  const view = render(
     <Provider store={store}>
       <MemoryRouter initialEntries={['/dashboard']}>
         <UserDashboardView />
       </MemoryRouter>
     </Provider>,
   );
+  // A tela carrega pelo slice: espera o mock do dashboardsApi chegar.
+  await waitFor(() => {
+    expect(store.getState().dashboards.user.status).toBe('ready');
+  });
+  return view;
 }
 
 describe('UserDashboardView', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   beforeEach(async () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
-  it('should render the page title and the logo', () => {
-    renderizar();
+  it('should render the page title and the logo', async () => {
+    await renderizar();
 
     expect(
       screen.getByRole('heading', { level: 1, name: 'Dashboard' }),
@@ -52,8 +66,8 @@ describe('UserDashboardView', () => {
     expect(screen.getByAltText('CREED.ai')).toBeInTheDocument();
   });
 
-  it('should render the header menu items by accessible name', () => {
-    renderizar();
+  it('should render the header menu items by accessible name', async () => {
+    await renderizar();
 
     expect(
       screen.getByRole('link', { name: i18n.t('formulario:menuPainel') }),
@@ -71,8 +85,8 @@ describe('UserDashboardView', () => {
     ).toBeInTheDocument();
   });
 
-  it('should not render the company-only summary, recommendation or view selector', () => {
-    renderizar();
+  it('should not render the company-only summary, recommendation or view selector', async () => {
+    await renderizar();
 
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
     expect(
@@ -88,8 +102,8 @@ describe('UserDashboardView', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should render the overview data section with both prisma charts and the metrics card', () => {
-    renderizar();
+  it('should render the overview data section with both prisma charts and the metrics card', async () => {
+    await renderizar();
 
     expect(
       screen.getByRole('button', {
@@ -108,7 +122,7 @@ describe('UserDashboardView', () => {
 
   it('should collapse and expand the overview data section', async () => {
     const user = userEvent.setup();
-    renderizar();
+    await renderizar();
 
     const secao = screen.getByRole('button', {
       name: i18n.t('resultado:dadosVisaoGeral'),
@@ -133,7 +147,7 @@ describe('UserDashboardView', () => {
 
   it('should collapse and expand the Creed.ai summary', async () => {
     const user = userEvent.setup();
-    renderizar();
+    await renderizar();
 
     const resumo = screen.getByRole('button', {
       name: i18n.t('resultado:resumo'),
@@ -156,7 +170,7 @@ describe('UserDashboardView', () => {
 
   it('should change the period when selecting another option', async () => {
     const user = userEvent.setup();
-    renderizar();
+    await renderizar();
 
     // No jsdom não há CSS: os dois spans (desktop e mobile) entram no nome do botão.
     await user.click(screen.getByRole('button', { name: /2026\/1/ }));
@@ -173,7 +187,7 @@ describe('UserDashboardView', () => {
 
   it('should list PDF and CSV in the download menu', async () => {
     const user = userEvent.setup();
-    renderizar();
+    await renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Baixar' }));
 
@@ -184,7 +198,7 @@ describe('UserDashboardView', () => {
   it('should open the print dialog when choosing PDF', async () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     const user = userEvent.setup();
-    renderizar();
+    await renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Baixar' }));
     await user.click(screen.getByRole('menuitem', { name: 'PDF' }));
@@ -195,7 +209,7 @@ describe('UserDashboardView', () => {
 
   it('should translate the sections and the download button to English', async () => {
     await i18n.changeLanguage('en');
-    renderizar();
+    await renderizar();
 
     expect(
       screen.getByRole('button', { name: 'Creed.ai Summary' }),
@@ -206,5 +220,28 @@ describe('UserDashboardView', () => {
     expect(
       screen.getByRole('button', { name: 'Download' }),
     ).toBeInTheDocument();
+  });
+
+  it('should show a translated error when the dashboard does not load', async () => {
+    vi.spyOn(dashboardsApi, 'getUserDashboard').mockRejectedValue(
+      new Error('Falha técnica'),
+    );
+    const store = configureStore({
+      reducer: {
+        authentication: authenticationReducer,
+        dashboards: dashboardsReducer,
+      },
+    });
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/dashboard']}>
+          <UserDashboardView />
+        </MemoryRouter>
+      </Provider>,
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível carregar o dashboard.',
+    );
   });
 });

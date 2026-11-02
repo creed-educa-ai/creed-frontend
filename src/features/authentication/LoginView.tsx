@@ -8,7 +8,7 @@ import { Field, FieldLabel, FieldError } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { AuthLayout } from '@/components/layout/authLayout';
 import { dashboardPath } from '@/lib/dashboardPath';
-import { loginSchema, type LoginForm } from '@/lib/validadores';
+import { loginSchema, type LoginForm } from '@/lib/validators';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { login } from '@/features/authentication/authenticationSlice';
 import { useState } from 'react';

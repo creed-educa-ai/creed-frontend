@@ -9,7 +9,9 @@ import {
 } from '@reduxjs/toolkit';
 import type { RootState } from '@/app/store';
 import type { QuestionType as TipoDaTela } from '@/features/responses/Question';
-import { questoesDeDemonstracao } from '@/features/responses/questoesDeDemonstracao';
+import { demoQuestions } from '@/features/responses/demoQuestions';
+import { formsApi } from '@/features/forms/formsApi';
+import { questionsApi } from '@/features/questions/questionsApi';
 import { responsesApi } from '@/features/responses/responsesApi';
 import { ApiError } from '@/lib/apiClient';
 import type {
@@ -82,15 +84,15 @@ export const loadQuestionnaire = createAsyncThunk<
   { rejectValue: string }
 >('responses/loadQuestionnaire', async (formId, { rejectWithValue }) => {
   try {
-    const form = await responsesApi.getForm(formId);
-    const questions = await responsesApi.listQuestions(formId);
+    const form = await formsApi.getForm(formId);
+    const questions = await questionsApi.listQuestions(formId);
     // DEMONSTRAÇÃO: escala e objetiva no formato do back, até a CREED-37.
     // Só num formulário que tem pergunta: o vazio continua vazio. Apagar este
-    // `if`, e o arquivo questoesDeDemonstracao.ts, quando a CREED-37 chegar.
+    // `if`, e o arquivo demoQuestions.ts, quando a CREED-37 chegar.
     if (questions.length > 0) {
       return {
         form,
-        questions: [...questions, ...questoesDeDemonstracao(formId)],
+        questions: [...questions, ...demoQuestions(formId)],
       };
     }
     return { form, questions };
@@ -155,9 +157,11 @@ export const submitResponses = createAsyncThunk<
       for (const { question_id, answer } of answers) {
         const question = questions.find(({ id }) => id === question_id);
         if (!question) continue;
-        // O back ainda recusa resposta objetiva com 422 (D2 da CREED-47).
-        // Quando a CREED-37 chegar, apagar esta linha: o corpo com
-        // `option_id` já sai pronto de `paraAnswerCreate`.
+        // O back já aceita `option_id` (creed-backend 590be26), mas o
+        // `GET /forms/{id}/questions` ainda não devolve as alternativas: as
+        // objetivas que a tela tem são as de demonstração, com ids que o back
+        // não conhece. Quando a listagem trouxer `options`, apagar esta
+        // linha: o corpo com `option_id` já sai pronto de `paraAnswerCreate`.
         if (question.type === 'objective') continue;
 
         const corpo = paraAnswerCreate(question, answer);

@@ -2,10 +2,10 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { BotaoVoltar } from '@/components/layout/botaoVoltar';
+import { BackButton } from '@/components/layout/backButton';
 import CreedSymbol, { Wordmark } from '@/components/logos/logo';
-import { SeletorIdioma } from '@/components/SeletorIdioma';
-import { useAtrasoDaAnimacaoMarca } from '@/hooks/useAtrasoDaAnimacaoMarca';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { useBrandAnimationDelay } from '@/hooks/useBrandAnimationDelay';
 
 interface AuthLayoutProps {
   children: React.ReactNode; // coluna esquerda: título + campos + botões
@@ -23,7 +23,7 @@ export function AuthLayout({
   exibirNavegacao = false,
 }: AuthLayoutProps) {
   const { t } = useTranslation('comum');
-  const atrasoDaAnimacao = useAtrasoDaAnimacaoMarca();
+  const atrasoDaAnimacao = useBrandAnimationDelay();
   const marca = (
     <>
       <CreedSymbol animated={carregando} className="size-10 lg:size-24" />
@@ -41,7 +41,7 @@ export function AuthLayout({
       {/* No mobile a seta fica sobre o painel roxo do topo: por isso a cor
           clara abaixo de lg. */}
       {exibirNavegacao && (
-        <BotaoVoltar className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground lg:text-foreground lg:hover:bg-accent lg:hover:text-accent-foreground" />
+        <BackButton className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground lg:text-foreground lg:hover:bg-accent lg:hover:text-accent-foreground" />
       )}
 
       {/* ESQUERDA — conteúdo da tela */}
@@ -54,7 +54,7 @@ export function AuthLayout({
           {/* Troca de idioma em todas as telas de acesso: abaixo de tudo,
               discreta, para não competir com a ação principal da tela. */}
           <div className="mt-10 flex justify-center opacity-80 transition-opacity focus-within:opacity-100 hover:opacity-100">
-            <SeletorIdioma />
+            <LanguageSelector />
           </div>
         </div>
       </div>
