@@ -29,7 +29,7 @@ describe('AuthLayout', () => {
     expect(screen.getByRole('img', { name: 'CREED.ai' })).toBeInTheDocument();
   });
 
-  // O seletor em si tem teste próprio (SeletorIdioma.test.tsx); aqui só a
+  // O seletor em si tem teste próprio (LanguageSelector.test.tsx); aqui só a
   // garantia de que toda tela de acesso oferece a troca de idioma.
   it('oferece a troca de idioma abaixo do conteúdo', async () => {
     render(

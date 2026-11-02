@@ -1,32 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { organizationsApi } from '@/features/organizations/organizationsApi';
+import {
+  organizationsApi,
+  resetCompaniesMock,
+} from '@/features/organizations/organizationsApi';
+import { lastCall, stubFetch } from '@/test/stubFetch';
 
-const ORGANIZATION_ID = '00000000-0000-0000-0000-000000000001';
+const ORGANIZATION_ID = '5a1e9c3b-2f7d-4b8a-9e6c-0d4f1b2a3c5e';
+const DOCUMENT_ID = '3b2f8c1a-6d4e-4f7a-9c5b-1e0d2a8f6b94';
 
-// Troca só o `fetch`: a chamada passa pelo apiClient de verdade, então o teste
-// confere o endereço, o método e o corpo que de fato saem para o back.
-function stubFetch(status = 201) {
-  const fetchMock = vi.fn(() =>
-    Promise.resolve(
-      new Response(JSON.stringify({}), {
-        status,
-        headers: { 'Content-Type': 'application/json' },
-      }),
-    ),
-  );
-  vi.stubGlobal('fetch', fetchMock);
-  return fetchMock;
-}
-
-function lastCall(fetchMock: ReturnType<typeof stubFetch>) {
-  const [url, init] = fetchMock.mock.lastCall as unknown as [
-    string,
-    RequestInit | undefined,
-  ];
-  return { url, method: init?.method ?? 'GET', body: init?.body };
-}
-
-describe('organizationsApi', () => {
+describe('organizationsApi — rotas do back', () => {
   beforeEach(() => {
     localStorage.clear();
   });
@@ -35,53 +17,86 @@ describe('organizationsApi', () => {
     vi.unstubAllGlobals();
   });
 
-  it('inviteMember manda o convite para a rota de membros da organização', async () => {
+  it('listOrganizations pede a primeira página por padrão', async () => {
     const fetchMock = stubFetch();
 
-    await organizationsApi.inviteMember(ORGANIZATION_ID, {
-      name: 'Pessoa Teste',
-      email: 'pessoa@empresa.com.br',
-      role: 'gestor',
-    });
+    await organizationsApi.listOrganizations();
 
-    const call = lastCall(fetchMock);
-    expect(call.url).toBe(`/api/v1/organizations/${ORGANIZATION_ID}/members`);
-    expect(call.method).toBe('POST');
-    // Sem `type`: o back grava `emprego` (P-047).
-    expect(JSON.parse(call.body as string)).toEqual({
-      name: 'Pessoa Teste',
-      email: 'pessoa@empresa.com.br',
-      role: 'gestor',
+    expect(lastCall(fetchMock).url).toBe(
+      '/api/v1/organizacoes?pagina=1&tamanho_pagina=50',
+    );
+  });
+
+  it('listOrganizations repassa página e tamanho', async () => {
+    const fetchMock = stubFetch();
+
+    await organizationsApi.listOrganizations({ pagina: 2, tamanho_pagina: 10 });
+
+    expect(lastCall(fetchMock).url).toBe(
+      '/api/v1/organizacoes?pagina=2&tamanho_pagina=10',
+    );
+  });
+
+  it('getOrganization lê pelo id', async () => {
+    const fetchMock = stubFetch();
+
+    await organizationsApi.getOrganization(ORGANIZATION_ID);
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: `/api/v1/organizacoes/${ORGANIZATION_ID}`,
+      method: 'GET',
+      body: undefined,
     });
   });
 
-  it('inviteMember repassa o tipo do vínculo quando quem convida informa', async () => {
-    const fetchMock = stubFetch();
+  it('createOrganization manda nome, endereço e documento', async () => {
+    const fetchMock = stubFetch(201);
+    const organization = {
+      name: 'Organização Exemplo',
+      address: 'Av. Ipiranga, 6681',
+      document_id: DOCUMENT_ID,
+    };
 
-    await organizationsApi.inviteMember(ORGANIZATION_ID, {
-      name: 'Pessoa Teste',
-      email: 'pessoa@empresa.com.br',
-      role: 'respondente',
-      type: 'mentoria',
-    });
+    await organizationsApi.createOrganization(organization);
 
-    expect(JSON.parse(lastCall(fetchMock).body as string)).toEqual({
-      name: 'Pessoa Teste',
-      email: 'pessoa@empresa.com.br',
-      role: 'respondente',
-      type: 'mentoria',
+    expect(lastCall(fetchMock)).toEqual({
+      url: '/api/v1/organizacoes',
+      method: 'POST',
+      body: organization,
     });
   });
 
-  it('inviteMember deixa o 409 chegar a quem chamou, com o status', async () => {
-    stubFetch(409);
+  it('updateOrganization manda só os campos alterados', async () => {
+    const fetchMock = stubFetch();
 
-    await expect(
-      organizationsApi.inviteMember(ORGANIZATION_ID, {
-        name: 'Pessoa Teste',
-        email: 'pessoa@empresa.com.br',
-        role: 'gestor',
-      }),
-    ).rejects.toMatchObject({ name: 'ApiError', status: 409 });
+    await organizationsApi.updateOrganization(ORGANIZATION_ID, {
+      status: 'inactive',
+    });
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: `/api/v1/organizacoes/${ORGANIZATION_ID}`,
+      method: 'PATCH',
+      body: { status: 'inactive' },
+    });
+  });
+});
+
+describe('organizationsApi — mock das empresas', () => {
+  beforeEach(() => {
+    resetCompaniesMock();
+  });
+
+  it('aprovar deixa a empresa ativa', async () => {
+    await organizationsApi.approveCompany('1');
+
+    const companies = await organizationsApi.listCompanies();
+    expect(companies.find(({ id }) => id === '1')?.status).toBe('ativo');
+  });
+
+  it('rejeitar tira a empresa da lista', async () => {
+    await organizationsApi.rejectCompany('1');
+
+    const companies = await organizationsApi.listCompanies();
+    expect(companies.map(({ id }) => id)).not.toContain('1');
   });
 });

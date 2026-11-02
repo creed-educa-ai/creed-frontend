@@ -319,6 +319,7 @@ export const en: typeof ptBR = {
 
   mentees: {
     title: 'Mentees',
+    loadError: 'Could not load the mentees.',
     search: { label: 'Search mentees', placeholder: 'Search' },
     columnsMenu: 'Columns',
     select: { all: 'Select all', row: 'Select {{name}}' },
@@ -439,6 +440,7 @@ export const en: typeof ptBR = {
   },
   dashboard: {
     titulo: 'Dashboard',
+    erroAoCarregar: 'Could not load the dashboard.',
     Geral: 'Overview',
     Gerentes: 'Managers',
     Colaboradores: 'Team members',
@@ -520,6 +522,7 @@ export const en: typeof ptBR = {
   },
   empresas: {
     titulo: 'Companies',
+    erroAoCarregar: 'Could not load the companies.',
     pesquisar: 'Search',
     colunas: {
       titulo: 'Columns',

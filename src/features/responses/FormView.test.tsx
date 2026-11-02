@@ -6,7 +6,8 @@ import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { FormView } from './FormView';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
-import { responsesApi } from '@/features/responses/responsesApi';
+import { formsApi } from '@/features/forms/formsApi';
+import { questionsApi } from '@/features/questions/questionsApi';
 import responsesReducer, {
   DEMO_FORM_ID,
 } from '@/features/responses/responsesSlice';
@@ -36,6 +37,7 @@ function question(
     type: 'descriptive',
     section,
     required,
+    dimensao: null,
     prisma: null,
     created_at: '2026-09-30T18:38:18Z',
   };
@@ -87,8 +89,8 @@ describe('FormView', () => {
   });
 
   function comPerguntas(lista: QuestionResponse[] = perguntas) {
-    vi.spyOn(responsesApi, 'getForm').mockResolvedValue(form);
-    return vi.spyOn(responsesApi, 'listQuestions').mockResolvedValue(lista);
+    vi.spyOn(formsApi, 'getForm').mockResolvedValue(form);
+    return vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue(lista);
   }
 
   function renderizar() {
@@ -157,10 +159,10 @@ describe('FormView', () => {
     });
 
     it('mostra o erro e tenta de novo', async () => {
-      vi.spyOn(responsesApi, 'getForm')
+      vi.spyOn(formsApi, 'getForm')
         .mockRejectedValueOnce(new ApiError('não achou', 404))
         .mockResolvedValue(form);
-      vi.spyOn(responsesApi, 'listQuestions').mockResolvedValue(perguntas);
+      vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue(perguntas);
       renderizar();
 
       expect(await screen.findByRole('alert')).toHaveTextContent(

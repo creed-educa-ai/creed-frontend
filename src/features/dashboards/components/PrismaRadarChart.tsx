@@ -8,18 +8,21 @@ import {
   Tooltip,
 } from 'recharts';
 import { ChartContainer } from '@/components/ui/chart';
-import type { Prisma } from '@/types/api';
 
-export const PRISMA_DIMENSIONS: readonly Prisma[] = [
+// Os cinco eixos que a tela desenha. ⚠️ Não são os valores do enum `Prisma` do
+// back (`seguranca_psicologica`, `lideranca_adaptativa`…): divergência
+// registrada em conventions/contrato-front-back.md. Mantidos como a tela pede
+// até o time decidir qual lista vale.
+export const PRISMA_DIMENSIONS = [
   'plasticidade_humana',
   'empreendedorismo',
   'multiculturalismo',
   'neuroinovacao',
   'tomada_decisao',
-];
+] as const;
 
-export type PrismaDimension = Prisma;
-export type PrismaScores = Record<Prisma, number>;
+export type PrismaDimension = (typeof PRISMA_DIMENSIONS)[number];
+export type PrismaScores = Record<PrismaDimension, number>;
 
 export interface PrismaPeriod {
   label: string;

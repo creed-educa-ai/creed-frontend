@@ -1,18 +1,21 @@
 // Store Redux configurado com RTK (ADR-003, secao 2).
+// Uma chave por feature, com o nome do domínio do backend.
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
-import respondentesReducer from '@/features/respondentes/respondentesSlice';
-import respondentesDemograficosReducer from '@/features/respondentes/respondentesDemograficosSlice';
-import responsesReducer from '@/features/responses/responsesSlice';
+import dashboardsReducer from '@/features/dashboards/dashboardsSlice';
+import demographicsReducer from '@/features/demographics/demographicsSlice';
 import organizationsReducer from '@/features/organizations/organizationsSlice';
+import responsesReducer from '@/features/responses/responsesSlice';
+import usersReducer from '@/features/users/usersSlice';
 
 export const store = configureStore({
   reducer: {
     authentication: authenticationReducer,
-    respondentes: respondentesReducer,
-    respondentesDemograficos: respondentesDemograficosReducer,
-    responses: responsesReducer,
+    dashboards: dashboardsReducer,
+    demographics: demographicsReducer,
     organizations: organizationsReducer,
+    responses: responsesReducer,
+    users: usersReducer,
   },
 });
 

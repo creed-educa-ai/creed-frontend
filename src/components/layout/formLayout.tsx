@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import { BotaoVoltar } from '@/components/layout/botaoVoltar';
+import { BackButton } from '@/components/layout/backButton';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-dark.svg';
-import { SeletorIdioma } from '@/components/SeletorIdioma';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 interface FormLayoutProps {
   children: ReactNode;
@@ -17,7 +17,7 @@ export function FormLayout({ children }: FormLayoutProps) {
     // overflow-x-hidden: no celular o formulário ocupa a largura toda, e o
     // deslocamento da entrada criaria rolagem horizontal durante a animação.
     <div className="relative min-h-screen overflow-x-hidden px-6 py-6 sm:px-8 sm:py-8">
-      <BotaoVoltar />
+      <BackButton />
 
       {/* Topo em três colunas iguais nas laterais: a marca fica no centro
           exato da tela, com o idioma à direita. No celular não cabe tudo numa
@@ -28,7 +28,7 @@ export function FormLayout({ children }: FormLayoutProps) {
           <img src={wordmark} alt="creed.ai" className="h-5" />
         </div>
         <div className="justify-self-center sm:justify-self-end">
-          <SeletorIdioma />
+          <LanguageSelector />
         </div>
       </div>
 

@@ -1,30 +1,29 @@
-// Chamadas ao backend para o questionário: lê o formulário e as perguntas
-// (domínios forms e questions) e grava a resposta (domínio responses).
+// Chamadas ao backend para o domínio responses (rota `/form-responses`).
+// Formulário e perguntas são de outros domínios: `formsApi` e `questionsApi`.
 import { apiClient } from '@/lib/apiClient';
 import type {
   AnswerCreate,
   AnswerResponse,
-  FormRead,
+  FormResponseCreate,
   FormResponseResponse,
-  QuestionResponse,
 } from '@/types/api';
 
 export const responsesApi = {
-  getForm: (formId: string) => apiClient.get<FormRead>(`/forms/${formId}`),
-
-  // Já vêm na ordem de `order_index`.
-  listQuestions: (formId: string) =>
-    apiClient.get<QuestionResponse[]>(`/forms/${formId}/questions`),
-
+  // O vínculo não vai no corpo: o back usa o do login.
   createFormResponse: (formId: string) =>
     apiClient.post<FormResponseResponse>('/form-responses', {
       form_id: formId,
-    }),
+    } satisfies FormResponseCreate),
 
   recordAnswer: (formResponseId: string, answer: AnswerCreate) =>
     apiClient.post<AnswerResponse>(
       `/form-responses/${formResponseId}/answers`,
       answer,
+    ),
+
+  listAnswers: (formResponseId: string) =>
+    apiClient.get<AnswerResponse[]>(
+      `/form-responses/${formResponseId}/answers`,
     ),
 
   // Sem corpo: o envio só muda o status para `submitted`.

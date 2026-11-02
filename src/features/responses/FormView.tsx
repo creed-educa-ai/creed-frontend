@@ -7,7 +7,7 @@ import {
 } from '@/features/responses/Question';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import type { ReviewQuestion } from '@/features/responses/RevisaoRespostasView';
+import type { ReviewQuestion } from '@/features/responses/AnswersReviewView';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import {

@@ -4,15 +4,15 @@ import { useAppSelector } from '@/app/hooks';
 import CreedSymbol from '@/components/logos/logo';
 import wordmark from '@/components/logos/wordmark-light.svg';
 import { Button } from '@/components/ui/button';
-import { useAtrasoDaAnimacaoMarca } from '@/hooks/useAtrasoDaAnimacaoMarca';
+import { useBrandAnimationDelay } from '@/hooks/useBrandAnimationDelay';
 import { dashboardPath } from '@/lib/dashboardPath';
 
 // Tela de "respostas enviadas", depois de confirmar o envio na revisão.
-// Copiada da AguardeConfirmacaoView: mesmo fundo da marca girando e mesmo
+// Copiada da AwaitingConfirmationView: mesmo fundo da marca girando e mesmo
 // símbolo animado, com a wordmark embaixo e só a ação de voltar.
 export function SubmissionConfirmationView() {
   const { t } = useTranslation(['respostasEnviadas']);
-  const atrasoDaAnimacao = useAtrasoDaAnimacaoMarca();
+  const atrasoDaAnimacao = useBrandAnimationDelay();
   const role = useAppSelector((state) => state.authentication.user?.role);
 
   return (

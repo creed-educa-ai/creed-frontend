@@ -322,6 +322,7 @@ export const ptBR = {
 
   mentees: {
     title: 'Mentorandos',
+    loadError: 'Não foi possível carregar os mentorandos.',
     search: { label: 'Pesquisar mentorandos', placeholder: 'Pesquise' },
     columnsMenu: 'Colunas',
     select: { all: 'Selecionar todos', row: 'Selecionar {{name}}' },
@@ -445,6 +446,7 @@ export const ptBR = {
   },
   dashboard: {
     titulo: 'Dashboard',
+    erroAoCarregar: 'Não foi possível carregar o dashboard.',
     Geral: 'Visão Geral',
     Gerentes: 'Gerentes',
     Colaboradores: 'Colaboradores',
@@ -526,6 +528,7 @@ export const ptBR = {
   },
   empresas: {
     titulo: 'Empresas',
+    erroAoCarregar: 'Não foi possível carregar as empresas.',
     pesquisar: 'Pesquise',
     colunas: {
       titulo: 'Colunas',
