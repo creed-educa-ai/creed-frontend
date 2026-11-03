@@ -1,0 +1,104 @@
+import { useTranslation } from 'react-i18next';
+import {
+  DIMENSIONS,
+  type DimensionScores,
+} from '@/features/dashboards/prismas';
+import { InfoTip } from './InfoTip';
+
+interface DimensionsCardProps {
+  scores: DimensionScores;
+  // O recorte das notas, ex.: "Marketing 2026/1".
+  shownLabel: string;
+  // Sem comparação, só as barras.
+  comparison?: { label: string; dimensions: DimensionScores } | undefined;
+}
+
+// As sete dimensões de que os prismas são feitos: mostra *por que* um prisma
+// está alto ou baixo. A barra grossa é a nota exibida; a fina, logo abaixo, a
+// da comparação, na mesma cor da linha tracejada do radar. Barras lado a lado
+// mostram a diferença pelo comprimento.
+export function DimensionsCard({
+  scores,
+  shownLabel,
+  comparison,
+}: DimensionsCardProps) {
+  const { t } = useTranslation(['dashboardPrisma', 'dashboard']);
+
+  return (
+    <article className="flex h-full flex-col rounded-2xl bg-card p-5 shadow-sm">
+      <div className="flex items-center gap-1.5">
+        <h3 className="text-xl font-bold text-heading">
+          {t('dashboardPrisma:dimensoes.titulo')}
+        </h3>
+        <InfoTip
+          title={t('dashboardPrisma:dimensoes.titulo')}
+          text={t('dashboard:info.dimensoes')}
+        />
+      </div>
+
+      {/* Legenda: a barra grossa é o exibido, a fina é a comparação. */}
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5">
+          <span aria-hidden="true" className="h-3 w-4 rounded-sm bg-chart-1" />
+          {shownLabel}
+        </span>
+        {comparison && (
+          <span className="inline-flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-4 rounded-sm bg-chart-2"
+            />
+            {comparison.label}
+          </span>
+        )}
+      </div>
+
+      {/* As linhas dividem a altura do card, como na variação ao lado. */}
+      <ul className="mt-3 flex flex-1 flex-col gap-3">
+        {DIMENSIONS.map((dimension) => {
+          const name = t(`dashboardPrisma:dimensoes.nomes.${dimension}`);
+          const compared = comparison?.dimensions[dimension];
+
+          return (
+            <li
+              key={dimension}
+              className="flex flex-1 flex-col justify-center gap-1.5"
+            >
+              <div className="flex items-baseline justify-between gap-3 text-sm">
+                <span className="min-w-0">
+                  <span className="font-bold text-heading">{dimension}</span>{' '}
+                  <span className="font-medium text-muted-foreground">
+                    {name}
+                  </span>
+                </span>
+                <span className="shrink-0 font-bold text-chart-1">
+                  {scores[dimension]}
+                  {compared !== undefined && (
+                    <span className="text-chart-2"> / {compared}</span>
+                  )}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-1" aria-hidden="true">
+                <div className="h-3.5 rounded-full bg-secondary">
+                  <div
+                    className="h-full rounded-full bg-chart-1"
+                    style={{ width: `${String(scores[dimension])}%` }}
+                  />
+                </div>
+                {compared !== undefined && (
+                  <div className="h-2 rounded-full bg-secondary">
+                    <div
+                      className="h-full rounded-full bg-chart-2"
+                      style={{ width: `${String(compared)}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </article>
+  );
+}

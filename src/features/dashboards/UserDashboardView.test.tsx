@@ -102,7 +102,7 @@ describe('UserDashboardView', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('should render the overview data section with both prisma charts and the metrics card', async () => {
+  it('should render the overview data section with the variation card and one prisma chart', async () => {
     await renderizar();
 
     expect(
@@ -111,13 +111,110 @@ describe('UserDashboardView', () => {
       }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: i18n.t('resultado:metricas') }),
+      screen.getByRole('heading', {
+        name: i18n.t('dashboardPrisma:variacao.titulo'),
+      }),
     ).toBeInTheDocument();
+    // O radar traz uma tabela acessível com os valores.
+    expect(screen.getAllByRole('table')).toHaveLength(1);
+    // O alinhamento é só da visão da empresa.
     expect(
-      screen.getByRole('heading', { name: i18n.t('resultado:evolucao') }),
+      screen.queryByRole('heading', { name: 'Alinhamento da equipe' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should start comparing with the most recent period', async () => {
+    await renderizar();
+
+    expect(
+      screen.getByRole('group', { name: 'Comparar com' }),
     ).toBeInTheDocument();
-    // Cada radar traz uma tabela acessível com os valores.
-    expect(screen.getAllByRole('table')).toHaveLength(2);
+    expect(screen.getByRole('button', { name: '2025/2' })).toBeInTheDocument();
+    expect(screen.getByText('2026/1 em relação a 2025/2')).toBeInTheDocument();
+    expect(screen.getByRole('table')).toHaveTextContent('2025/2');
+    // Quem responde só compara com os próprios períodos, não com setores.
+    expect(
+      screen.queryByRole('button', { name: 'Setor' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should change the compared period in the chart and in the variation card', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: '2025/2' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '2025/1' }));
+
+    expect(
+      await screen.findByRole('button', { name: '2025/1' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('2026/1 em relação a 2025/1')).toBeInTheDocument();
+    expect(screen.getByText('diminuiu 3')).toBeInTheDocument();
+    expect(screen.getByRole('table')).toHaveTextContent('2025/1');
+    // As dimensões seguem a mesma comparação (S7: 82 contra 78 em 2025/1).
+    expect(screen.getByText(/S7/).closest('li')).toHaveTextContent('82 / 78');
+  });
+
+  it('should uncheck the compared period when clicking it again', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: '2025/2' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '2025/2' }));
+
+    expect(
+      await screen.findByRole('button', { name: 'Período' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('2026/1, sem comparação.')).toBeInTheDocument();
+  });
+
+  it('should show only the current period when choosing no comparison', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: '2025/2' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sem comparação' }));
+
+    expect(
+      await screen.findByText('2026/1, sem comparação.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Período' })).toBeInTheDocument();
+    expect(screen.queryByText(/aumentou|diminuiu/)).not.toBeInTheDocument();
+    expect(screen.getByRole('table').querySelectorAll('thead th')).toHaveLength(
+      2,
+    );
+  });
+
+  it('should load the chosen period and compare it with the one before', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(
+      screen.getByRole('button', { name: /^2026\/1\s*Período$/ }),
+    );
+    await user.click(screen.getByRole('menuitemradio', { name: '2025/2' }));
+
+    expect(
+      await screen.findByText('2025/2 em relação a 2025/1'),
+    ).toBeInTheDocument();
+    // Linha cheia (2025/2) e tracejada (2025/1) na tabela do radar.
+    const header = screen.getByRole('table').querySelector('thead');
+    expect(header).toHaveTextContent('2025/2');
+    expect(header).toHaveTextContent('2025/1');
+  });
+
+  it('should not compare the oldest period with anything by default', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(
+      screen.getByRole('button', { name: /^2026\/1\s*Período$/ }),
+    );
+    await user.click(screen.getByRole('menuitemradio', { name: '2025/1' }));
+
+    expect(
+      await screen.findByText('2025/1, sem comparação.'),
+    ).toBeInTheDocument();
   });
 
   it('should collapse and expand the overview data section', async () => {
@@ -133,7 +230,9 @@ describe('UserDashboardView', () => {
 
     expect(secao).toHaveAttribute('aria-expanded', 'false');
     expect(
-      screen.queryByRole('heading', { name: i18n.t('resultado:metricas') }),
+      screen.queryByRole('heading', {
+        name: i18n.t('dashboardPrisma:variacao.titulo'),
+      }),
     ).not.toBeInTheDocument();
     expect(screen.queryAllByRole('table')).toHaveLength(0);
 
@@ -141,7 +240,9 @@ describe('UserDashboardView', () => {
 
     expect(secao).toHaveAttribute('aria-expanded', 'true');
     expect(
-      screen.getByRole('heading', { name: i18n.t('resultado:metricas') }),
+      screen.getByRole('heading', {
+        name: i18n.t('dashboardPrisma:variacao.titulo'),
+      }),
     ).toBeInTheDocument();
   });
 
@@ -158,13 +259,13 @@ describe('UserDashboardView', () => {
 
     expect(resumo).toHaveAttribute('aria-expanded', 'false');
     expect(
-      screen.queryByRole('heading', { name: 'Destaque' }),
+      screen.queryByRole('heading', { name: i18n.t('resultado:analise') }),
     ).not.toBeInTheDocument();
 
     await user.click(resumo);
 
     expect(
-      screen.getByRole('heading', { name: 'Destaque' }),
+      screen.getByRole('heading', { name: i18n.t('resultado:analise') }),
     ).toBeInTheDocument();
   });
 
@@ -180,8 +281,10 @@ describe('UserDashboardView', () => {
 
     await user.click(screen.getByRole('menuitemradio', { name: '2025/2' }));
 
+    // O botão do topo leva o rótulo de celular no nome ("Período"); o de
+    // comparação também se chama "2025/2", e sem esse sufixo os dois casariam.
     expect(
-      await screen.findByRole('button', { name: /2025\/2/ }),
+      await screen.findByRole('button', { name: /^2025\/2\s*Período$/ }),
     ).toBeInTheDocument();
   });
 

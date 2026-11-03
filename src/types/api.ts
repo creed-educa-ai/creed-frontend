@@ -35,9 +35,8 @@ export type RecordStatus = 'active' | 'inactive';
 // As sete dimensões da Matriz CREED (`Dimension`).
 export type Dimension = 'S2' | 'S4' | 'S5A' | 'S5B' | 'S6' | 'S7' | 'S8';
 
-// Tipo `prisma` no banco, compartilhado por `questions` e `insights`.
-// ⚠️ Não são os mesmos cinco do radar do dashboard (`PrismaDimension`, em
-// features/dashboards/components/PrismaRadarChart.tsx): divergência registrada.
+// Tipo `prisma` no banco, compartilhado por `questions` e `insights`. São
+// também os cinco eixos do radar dos dashboards (`PRISMAS`).
 export type Prisma =
   | 'seguranca_psicologica'
   | 'lideranca_adaptativa'

@@ -3,19 +3,19 @@ import { PrismaRadarChart, type PrismaScores } from './PrismaRadarChart';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
 const SCORES_ATUAIS: PrismaScores = {
-  plasticidade_humana: 78,
-  empreendedorismo: 64,
-  multiculturalismo: 82,
-  neuroinovacao: 78,
-  tomada_decisao: 90,
+  seguranca_psicologica: 78,
+  lideranca_adaptativa: 90,
+  cultura_empreendedora: 64,
+  adaptabilidade_cognitiva: 82,
+  neuroinovacao_prisma: 78,
 };
 
 const SCORES_ANTERIORES: PrismaScores = {
-  plasticidade_humana: 62,
-  empreendedorismo: 58,
-  multiculturalismo: 70,
-  neuroinovacao: 62,
-  tomada_decisao: 74,
+  seguranca_psicologica: 62,
+  lideranca_adaptativa: 74,
+  cultura_empreendedora: 58,
+  adaptabilidade_cognitiva: 70,
+  neuroinovacao_prisma: 62,
 };
 
 describe('PrismaRadarChart', () => {
@@ -42,11 +42,11 @@ describe('PrismaRadarChart', () => {
     expect(within(table).queryByText('62')).not.toBeInTheDocument();
   });
 
-  it('compara os valores do período anterior quando a segunda série existe', () => {
+  it('compara os valores do período escolhido quando a segunda série existe', () => {
     render(
       <PrismaRadarChart
         current={{ label: '2026', scores: SCORES_ATUAIS }}
-        previous={{ label: '2025', scores: SCORES_ANTERIORES }}
+        comparison={{ label: '2025', scores: SCORES_ANTERIORES }}
       />,
     );
 
@@ -73,7 +73,7 @@ describe('PrismaRadarChart', () => {
     );
 
     expect(screen.getByText('Prisma de competencias')).toBeInTheDocument();
-    expect(screen.getByText('Plasticidad humana')).toBeInTheDocument();
+    expect(screen.getByText('Seguridad Psicológica')).toBeInTheDocument();
   });
   it('na versão compacta mostra o título e a legenda dentro do card', () => {
     render(
@@ -89,23 +89,5 @@ describe('PrismaRadarChart', () => {
     // Na legenda e na tabela acessível.
     expect(screen.getAllByText('2026')).toHaveLength(2);
     expect(screen.getByRole('table')).toBeInTheDocument();
-  });
-
-  it('na versão compacta usa o título recebido', () => {
-    render(
-      <PrismaRadarChart
-        compact
-        title="Evolução"
-        current={{ label: '2026', scores: SCORES_ATUAIS }}
-        previous={{ label: '2025', scores: SCORES_ANTERIORES }}
-      />,
-    );
-
-    expect(
-      screen.getByRole('heading', { name: 'Evolução' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole('heading', { name: 'Prisma de competências' }),
-    ).not.toBeInTheDocument();
   });
 });

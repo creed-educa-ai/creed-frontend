@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -47,6 +47,15 @@ async function renderizar() {
   return view;
 }
 
+// O nome de um prisma aparece no resumo da empresa e no do Creed.ai: as
+// buscas por título ficam presas à seção certa.
+function secao(nome: string) {
+  const titulo = screen.getByRole('button', { name: nome });
+  const section = titulo.closest('section');
+  if (!section) throw new Error(`Seção "${nome}" não encontrada`);
+  return within(section);
+}
+
 describe('CompanyDashboardView', () => {
   beforeEach(async () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
@@ -87,26 +96,29 @@ describe('CompanyDashboardView', () => {
 
   it('should render the highlight, opportunity and most common cards', async () => {
     await renderizar();
+    const resumo = secao(
+      i18n.t('resultado:resumoEmpresa', { empresa: 'Acme Inc.' }),
+    );
 
     expect(
-      screen.getByText(`${i18n.t('resultado:destaque')} - 79`),
+      resumo.getByText(`${i18n.t('resultado:destaque')} - 79`),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Inovação' }),
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByText(`${i18n.t('resultado:oportunidade')} - 54`),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: 'Neuroinovação' }),
+      resumo.getByRole('heading', { name: 'Segurança Psicológica' }),
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(`${i18n.t('resultado:maisComum')} - 67`),
+      resumo.getByText(`${i18n.t('resultado:oportunidade')} - 54`),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: 'Cultura' }),
+      resumo.getByRole('heading', { name: 'Neuroinovação' }),
+    ).toBeInTheDocument();
+
+    expect(
+      resumo.getByText(`${i18n.t('resultado:maisComum')} - 67`),
+    ).toBeInTheDocument();
+    expect(
+      resumo.getByRole('heading', { name: 'Cultura Empreendedora' }),
     ).toBeInTheDocument();
   });
 
@@ -124,19 +136,15 @@ describe('CompanyDashboardView', () => {
 
     expect(resumo).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('heading', { name: 'Inovação' }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('50/67')).not.toBeInTheDocument();
 
     await user.click(resumo);
 
     expect(resumo).toHaveAttribute('aria-expanded', 'true');
-    expect(
-      screen.getByRole('heading', { name: 'Inovação' }),
-    ).toBeInTheDocument();
+    expect(screen.getByText('50/67')).toBeInTheDocument();
   });
 
-  it('should render the overview data section with the prisma and evolution charts', async () => {
+  it('should render the overview data section with a single prisma chart', async () => {
     await renderizar();
 
     expect(
@@ -144,7 +152,220 @@ describe('CompanyDashboardView', () => {
         name: i18n.t('resultado:dadosVisaoGeral'),
       }),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole('table')).toHaveLength(2);
+    // A tabela acessível do radar (a outra tabela é o mapa de setores).
+    expect(
+      screen.getByRole('table', { name: /^Resultados/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('should compare with a department in another period', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    // Começa em 2025/2; marcar o setor junta os dois: Marketing em 2025/2.
+    await user.click(screen.getByRole('button', { name: 'Setor' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Marketing' }));
+
+    expect(
+      await screen.findByRole('button', { name: 'Marketing' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('2026/1 em relação a Marketing 2025/2'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('table', { name: /^Resultados/ }),
+    ).toHaveTextContent('Marketing 2025/2');
+  });
+
+  it('should compare with a department in the current period when no period is checked', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: '2025/2' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '2025/2' }));
+    await user.click(await screen.findByRole('button', { name: 'Setor' }));
+    await user.click(
+      screen.getByRole('menuitemradio', { name: 'Recursos Humanos' }),
+    );
+
+    expect(
+      await screen.findByText('2026/1 em relação a Recursos Humanos 2026/1'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('diminuiu 14')).toBeInTheDocument();
+  });
+
+  it('should clear both comparisons when choosing no comparison', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Setor' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Marketing' }));
+    await user.click(await screen.findByRole('button', { name: 'Marketing' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sem comparação' }));
+
+    expect(
+      await screen.findByRole('button', { name: 'Período' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Setor' })).toBeInTheDocument();
+    expect(screen.getByText('2026/1, sem comparação.')).toBeInTheDocument();
+  });
+
+  it('should show the chosen department as the main line', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
+    const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
+    setorSub.focus();
+    await user.keyboard('{Enter}');
+    const marketing = await screen.findByRole('menuitemradio', {
+      name: 'Marketing',
+    });
+    marketing.focus();
+    await user.keyboard('{Enter}');
+
+    expect(
+      await screen.findByText('Marketing 2026/1 em relação a Marketing 2025/2'),
+    ).toBeInTheDocument();
+
+    // O recorte muda a página inteira, não só o radar.
+    expect(
+      screen.getByRole('button', { name: 'Resumo de Marketing' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('12/14')).toBeInTheDocument();
+    expect(
+      screen.getByText('Análise de Marketing no período 2026/1.'),
+    ).toBeInTheDocument();
+
+    // O setor exibido some das opções de comparação.
+    await user.click(screen.getByRole('button', { name: 'Setor' }));
+    expect(
+      screen.queryByRole('menuitemradio', { name: 'Marketing' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitemradio', { name: 'Financeiro' }),
+    ).toBeInTheDocument();
+  });
+
+  it('should show the chosen employee as the main line', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
+    const funcionarioSub = await screen.findByRole('menuitem', {
+      name: 'Funcionário',
+    });
+    funcionarioSub.focus();
+    await user.keyboard('{Enter}');
+    const walter = await screen.findByRole('menuitemradio', {
+      name: 'Walter White',
+    });
+    walter.focus();
+    await user.keyboard('{Enter}');
+
+    expect(
+      await screen.findByText(
+        'Walter White 2026/1 em relação a Walter White 2025/2',
+      ),
+    ).toBeInTheDocument();
+    // Uma pessoa só não tem alinhamento.
+    expect(
+      screen.queryByRole('heading', { name: 'Alinhamento da equipe' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show one Creed.ai card per prism, marking highlight and opportunity', async () => {
+    await renderizar();
+    const creed = secao(i18n.t('resultado:resumo'));
+
+    for (const name of [
+      'Segurança Psicológica',
+      'Liderança Adaptativa',
+      'Cultura Empreendedora',
+      'Adaptabilidade Cognitiva',
+      'Neuroinovação',
+    ]) {
+      expect(creed.getByRole('heading', { name })).toBeInTheDocument();
+    }
+    // O destaque e a oportunidade são marcas nos cards, não cards à parte.
+    expect(
+      creed
+        .getByRole('heading', { name: 'Segurança Psicológica' })
+        .closest('article'),
+    ).toHaveTextContent(i18n.t('resultado:destaque'));
+    expect(
+      creed.getByRole('heading', { name: 'Neuroinovação' }).closest('article'),
+    ).toHaveTextContent(i18n.t('resultado:oportunidade'));
+  });
+
+  it('should show the team alignment in the overview', async () => {
+    await renderizar();
+
+    expect(
+      screen.getByRole('heading', { name: 'Alinhamento da equipe' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('2026/1 · 50 respostas')).toBeInTheDocument();
+    expect(screen.getByText('Dividido')).toBeInTheDocument();
+  });
+
+  it('should show the alignment of a department even with few responses', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
+    const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
+    setorSub.focus();
+    await user.keyboard('{Enter}');
+    const administrativo = await screen.findByRole('menuitemradio', {
+      name: 'Administrativo',
+    });
+    administrativo.focus();
+    await user.keyboard('{Enter}');
+
+    // A empresa já vê o resultado de cada pessoa: não há mínimo a proteger.
+    expect(
+      await screen.findByText('Administrativo 2026/1 · 4 respostas'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Alinhamento da equipe' }),
+    ).toBeInTheDocument();
+  });
+
+  it('should keep the departments map of the whole company for any view, following only the period', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    const mapa = () =>
+      screen.getByRole('table', {
+        name: '2026/1 · diferença em relação à empresa',
+      });
+    // Recursos Humanos: 3 pontos acima da empresa em Liderança Adaptativa.
+    expect(
+      within(mapa()).getByRole('row', { name: /Recursos Humanos/ }),
+    ).toHaveTextContent('80 +3');
+    expect(within(mapa()).queryByRole('button')).not.toBeInTheDocument();
+
+    // Escolher um funcionário no topo não muda o mapa.
+    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
+    const funcionarioSub = await screen.findByRole('menuitem', {
+      name: 'Funcionário',
+    });
+    funcionarioSub.focus();
+    await user.keyboard('{Enter}');
+    const tom = await screen.findByRole('menuitemradio', {
+      name: 'Tom Cruise',
+    });
+    tom.focus();
+    await user.keyboard('{Enter}');
+
+    expect(
+      await screen.findByText(
+        'Tom Cruise 2026/1 em relação a Tom Cruise 2025/2',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(mapa()).getByRole('row', { name: /Recursos Humanos/ }),
+    ).toHaveTextContent('80 +3');
   });
 
   it('should render the recommendation card in the Creed.ai summary', async () => {
@@ -163,16 +384,39 @@ describe('CompanyDashboardView', () => {
     ).toBeInTheDocument();
   });
 
-  it('should change the view label when selecting a group', async () => {
+  it('should select a department from the submenu', async () => {
     const user = userEvent.setup();
     await renderizar();
 
-    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
-    await user.click(screen.getByRole('menuitemradio', { name: 'Gerentes' }));
+    const viewTrigger = screen.getByRole('button', { name: 'Visão Geral' });
+    await user.click(viewTrigger);
 
-    expect(
-      await screen.findByRole('button', { name: 'Gerentes' }),
-    ).toBeInTheDocument();
+    const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
+    setorSub.focus();
+    await user.keyboard('{Enter}'); // abre submenu por teclado
+
+    // Todos os setores do `DepartmentType` do back.
+    for (const name of [
+      'Marketing',
+      'Financeiro',
+      'Administrativo',
+      'Recursos Humanos',
+      'Tecnologia da Informação',
+    ]) {
+      expect(
+        await screen.findByRole('menuitemradio', { name }),
+      ).toBeInTheDocument();
+    }
+
+    const ti = screen.getByRole('menuitemradio', {
+      name: 'Tecnologia da Informação',
+    });
+    ti.focus();
+    await user.keyboard('{Enter}');
+
+    await waitFor(() => {
+      expect(viewTrigger).toHaveTextContent('Tecnologia da Informação');
+    });
   });
 
   it('should select a specific employee from the submenu', async () => {
@@ -236,10 +480,7 @@ describe('CompanyDashboardView', () => {
       screen.getByRole('menuitemradio', { name: 'Overview' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menuitemradio', { name: 'Managers' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitemradio', { name: 'Team members' }),
+      screen.getByRole('menuitem', { name: 'Department' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: 'Employee' }),

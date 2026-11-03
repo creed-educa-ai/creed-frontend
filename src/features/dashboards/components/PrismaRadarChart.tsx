@@ -8,35 +8,23 @@ import {
   Tooltip,
 } from 'recharts';
 import { ChartContainer } from '@/components/ui/chart';
+import { PRISMAS } from '@/features/dashboards/prismas';
+import type { Prisma } from '@/types/api';
+import { InfoTip } from './InfoTip';
 
-// Os cinco eixos que a tela desenha. ⚠️ Não são os valores do enum `Prisma` do
-// back (`seguranca_psicologica`, `lideranca_adaptativa`…): divergência
-// registrada em conventions/contrato-front-back.md. Mantidos como a tela pede
-// até o time decidir qual lista vale.
-export const PRISMA_DIMENSIONS = [
-  'plasticidade_humana',
-  'empreendedorismo',
-  'multiculturalismo',
-  'neuroinovacao',
-  'tomada_decisao',
-] as const;
+export type PrismaScores = Record<Prisma, number>;
 
-export type PrismaDimension = (typeof PRISMA_DIMENSIONS)[number];
-export type PrismaScores = Record<PrismaDimension, number>;
-
-export interface PrismaPeriod {
+export interface PrismaSeries {
   label: string;
   scores: PrismaScores;
 }
 
 interface PrismaRadarChartProps {
-  current: PrismaPeriod;
-  previous?: PrismaPeriod;
+  current: PrismaSeries;
+  comparison?: PrismaSeries | undefined;
   className?: string;
   // Versão reduzida para o dashboard: card com título dentro e radar menor.
   compact?: boolean;
-  // Título do card na versão compacta; o padrão é "Prisma de competências".
-  title?: string;
 }
 
 interface TickProps {
@@ -44,7 +32,7 @@ interface TickProps {
   y?: number;
   cx?: number;
   cy?: number;
-  payload?: { value?: PrismaDimension };
+  payload?: { value?: Prisma };
 }
 
 const chartConfig = {
@@ -52,8 +40,8 @@ const chartConfig = {
     label: 'dashboardPrisma:periodoAtual',
     color: 'var(--chart-1)',
   },
-  previous: {
-    label: 'dashboardPrisma:periodoAnterior',
+  comparison: {
+    label: 'dashboardPrisma:periodoComparado',
     color: 'var(--chart-2)',
   },
 };
@@ -95,9 +83,9 @@ function labelHeight(name: string) {
 // raio em 100%, o recharts dá ao radar todo o espaço que sobra. Ele desenha
 // em sentido horário a partir do topo: o 1º nome é o vértice de cima, o 2º o
 // lateral direito, o 3º e o 4º os de baixo e o último o lateral esquerdo.
-function compactMargin(names: string[], withPrevious: boolean) {
+function compactMargin(names: string[], withComparison: boolean) {
   const valueWidth = textWidth(
-    withPrevious ? '100 / 100' : '100',
+    withComparison ? '100 / 100' : '100',
     COMPACT_VALUE_SIZE,
   );
   const labelWidth = (name: string) =>
@@ -117,12 +105,28 @@ function compactMargin(names: string[], withPrevious: boolean) {
   };
 }
 
+// O traço que identifica a série: contínuo para o resultado exibido,
+// tracejado para a comparação.
+function LegendSwatch({ series }: { series: 'current' | 'comparison' }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={
+        series === 'current'
+          ? 'w-5 border-t-[3px]'
+          : 'w-5 border-t-2 border-dashed'
+      }
+      style={{ borderColor: chartConfig[series].color }}
+    />
+  );
+}
+
 function PeriodLegend({
   current,
-  previous,
+  comparison,
 }: {
-  current: PrismaPeriod;
-  previous: PrismaPeriod | undefined;
+  current: PrismaSeries;
+  comparison: PrismaSeries | undefined;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -134,14 +138,10 @@ function PeriodLegend({
           color: 'var(--accent-foreground)',
         }}
       >
-        <span
-          aria-hidden="true"
-          className="w-5 border-t-[3px]"
-          style={{ borderColor: chartConfig.current.color }}
-        />
+        <LegendSwatch series="current" />
         {current.label}
       </span>
-      {previous && (
+      {comparison && (
         <span
           className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
           style={{
@@ -150,12 +150,8 @@ function PeriodLegend({
             color: 'var(--accent-foreground)',
           }}
         >
-          <span
-            aria-hidden="true"
-            className="w-5 border-t-2 border-dashed"
-            style={{ borderColor: chartConfig.previous.color }}
-          />
-          {previous.label}
+          <LegendSwatch series="comparison" />
+          {comparison.label}
         </span>
       )}
     </div>
@@ -165,27 +161,27 @@ function PeriodLegend({
 function RadarMetricTick({
   tick,
   current,
-  previous,
+  comparison,
   compact,
 }: {
   tick: TickProps;
   current: PrismaScores;
-  previous: PrismaScores | undefined;
+  comparison: PrismaScores | undefined;
   compact: boolean;
 }) {
   const { t } = useTranslation(['dashboardPrisma']);
-  const dimension = tick.payload?.value;
-  if (!dimension) return null;
+  const prisma = tick.payload?.value;
+  if (!prisma) return null;
 
   const x = tick.x ?? 0;
   const y = tick.y ?? 0;
   const centerX = tick.cx ?? 0;
   const centerY = tick.cy ?? 0;
   const anchor = x > centerX + 8 ? 'start' : x < centerX - 8 ? 'end' : 'middle';
-  const previousValue = previous?.[dimension];
+  const comparisonValue = comparison?.[prisma];
 
   if (compact) {
-    const lines = splitName(t(`dashboardPrisma:dimensoes.${dimension}`));
+    const lines = splitName(t(`dashboardPrisma:prismas.${prisma}`));
     const below = y > centerY;
     const upperSide = !below && anchor !== 'middle';
     // Distância da base da primeira linha à base do valor.
@@ -218,10 +214,10 @@ function RadarMetricTick({
           fontSize={COMPACT_VALUE_SIZE}
           fontWeight="700"
         >
-          {String(current[dimension])}
-          {previousValue !== undefined && (
-            <tspan fill={chartConfig.previous.color}>
-              {` / ${String(previousValue)}`}
+          {String(current[prisma])}
+          {comparisonValue !== undefined && (
+            <tspan fill={chartConfig.comparison.color}>
+              {` / ${String(comparisonValue)}`}
             </tspan>
           )}
         </tspan>
@@ -238,7 +234,7 @@ function RadarMetricTick({
         fontSize="10"
         fontWeight="500"
       >
-        {t(`dashboardPrisma:dimensoes.${dimension}`)}
+        {t(`dashboardPrisma:prismas.${prisma}`)}
       </tspan>
       <tspan
         x={x}
@@ -247,20 +243,20 @@ function RadarMetricTick({
         fontSize="12"
         fontWeight="700"
       >
-        {String(current[dimension])}
+        {String(current[prisma])}
       </tspan>
-      {previousValue !== undefined && (
+      {comparisonValue !== undefined && (
         <>
           <tspan dx="4" fill="var(--muted-foreground)" fontSize="11">
             /
           </tspan>
           <tspan
             dx="4"
-            fill={chartConfig.previous.color}
+            fill={chartConfig.comparison.color}
             fontSize="12"
             fontWeight="700"
           >
-            {String(previousValue)}
+            {String(comparisonValue)}
           </tspan>
         </>
       )}
@@ -270,26 +266,23 @@ function RadarMetricTick({
 
 export function PrismaRadarChart({
   current,
-  previous,
+  comparison,
   className,
   compact = false,
-  title,
 }: PrismaRadarChartProps) {
-  const { t } = useTranslation(['dashboardPrisma']);
-  const chartData = PRISMA_DIMENSIONS.map((dimension) => ({
-    dimension,
-    current: current.scores[dimension],
-    previous: previous?.scores[dimension],
+  const { t } = useTranslation(['dashboardPrisma', 'dashboard']);
+  const chartData = PRISMAS.map((prisma) => ({
+    prisma,
+    current: current.scores[prisma],
+    comparison: comparison?.scores[prisma],
   }));
-  const label = previous
+  const label = comparison
     ? t('dashboardPrisma:descricaoComComparacao', {
         atual: current.label,
-        anterior: previous.label,
+        comparado: comparison.label,
       })
     : t('dashboardPrisma:descricaoSemComparacao', { atual: current.label });
-  const names = PRISMA_DIMENSIONS.map((dimension) =>
-    t(`dashboardPrisma:dimensoes.${dimension}`),
-  );
+  const names = PRISMAS.map((prisma) => t(`dashboardPrisma:prismas.${prisma}`));
 
   return (
     <figure className={compact ? `h-full ${className ?? ''}` : className}>
@@ -304,7 +297,7 @@ export function PrismaRadarChart({
           </figcaption>
 
           <div className="mb-3">
-            <PeriodLegend current={current} previous={previous} />
+            <PeriodLegend current={current} comparison={comparison} />
           </div>
         </>
       )}
@@ -318,15 +311,20 @@ export function PrismaRadarChart({
         style={{ backgroundColor: 'var(--card)' }}
       >
         {/* Na versão compacta título e legenda ficam dentro do card, como no
-            Figma. A legenda aparece mesmo com um período só: assim os dois
-            radares do dashboard têm a mesma estrutura e o mesmo tamanho. */}
+            Figma. */}
         {compact && (
           <>
-            <h3 className="text-xl font-bold text-heading">
-              {title ?? t('dashboardPrisma:titulo')}
-            </h3>
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-xl font-bold text-heading">
+                {t('dashboardPrisma:titulo')}
+              </h3>
+              <InfoTip
+                title={t('dashboardPrisma:titulo')}
+                text={t('dashboard:info.prisma')}
+              />
+            </div>
             <div className="mt-3">
-              <PeriodLegend current={current} previous={previous} />
+              <PeriodLegend current={current} comparison={comparison} />
             </div>
           </>
         )}
@@ -348,18 +346,18 @@ export function PrismaRadarChart({
             outerRadius={compact ? '100%' : '62%'}
             margin={
               compact
-                ? compactMargin(names, previous !== undefined)
+                ? compactMargin(names, comparison !== undefined)
                 : { top: 20, right: 32, bottom: 20, left: 32 }
             }
           >
             <PolarGrid stroke="var(--border)" />
             <PolarAngleAxis
-              dataKey="dimension"
+              dataKey="prisma"
               tick={(tick) => (
                 <RadarMetricTick
                   tick={tick as TickProps}
                   current={current.scores}
-                  previous={previous?.scores}
+                  comparison={comparison?.scores}
                   compact={compact}
                 />
               )}
@@ -389,14 +387,14 @@ export function PrismaRadarChart({
                     }}
                   >
                     <p className="font-medium">
-                      {t(`dashboardPrisma:dimensoes.${point.dimension}`)}
+                      {t(`dashboardPrisma:prismas.${point.prisma}`)}
                     </p>
                     <p style={{ color: chartConfig.current.color }}>
                       {current.label}: {String(point.current)}
                     </p>
-                    {previous !== undefined && (
-                      <p style={{ color: chartConfig.previous.color }}>
-                        {previous.label}: {String(point.previous)}
+                    {comparison !== undefined && (
+                      <p style={{ color: chartConfig.comparison.color }}>
+                        {comparison.label}: {String(point.comparison)}
                       </p>
                     )}
                   </div>
@@ -412,12 +410,12 @@ export function PrismaRadarChart({
               strokeWidth={2}
               isAnimationActive={false}
             />
-            {previous && (
+            {comparison && (
               <Radar
-                name={previous.label}
-                dataKey="previous"
-                stroke="var(--color-previous)"
-                fill="var(--color-previous)"
+                name={comparison.label}
+                dataKey="comparison"
+                stroke="var(--color-comparison)"
+                fill="var(--color-comparison)"
                 fillOpacity={0.1}
                 strokeWidth={2}
                 strokeDasharray="5 4"
@@ -428,25 +426,29 @@ export function PrismaRadarChart({
         </ChartContainer>
       </div>
 
-      <table className="sr-only">
-        <caption>{label}</caption>
-        <thead>
-          <tr>
-            <th>{t('dashboardPrisma:dimensao')}</th>
-            <th>{current.label}</th>
-            {previous && <th>{previous.label}</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {PRISMA_DIMENSIONS.map((dimension) => (
-            <tr key={dimension}>
-              <th>{t(`dashboardPrisma:dimensoes.${dimension}`)}</th>
-              <td>{String(current.scores[dimension])}</td>
-              {previous && <td>{String(previous.scores[dimension])}</td>}
+      {/* O sr-only fica num div em volta, e não na tabela: o navegador desenha
+          o <caption> fora da caixa da tabela, e ele aparecia embaixo do card. */}
+      <div className="sr-only">
+        <table>
+          <caption>{label}</caption>
+          <thead>
+            <tr>
+              <th>{t('dashboardPrisma:prisma')}</th>
+              <th>{current.label}</th>
+              {comparison && <th>{comparison.label}</th>}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {PRISMAS.map((prisma) => (
+              <tr key={prisma}>
+                <th>{t(`dashboardPrisma:prismas.${prisma}`)}</th>
+                <td>{String(current.scores[prisma])}</td>
+                {comparison && <td>{String(comparison.scores[prisma])}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

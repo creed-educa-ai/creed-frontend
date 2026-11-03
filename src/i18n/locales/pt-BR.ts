@@ -208,18 +208,65 @@ export const ptBR = {
   },
   dashboardPrisma: {
     titulo: 'Prisma de competências',
-    dimensao: 'Dimensão',
+    prisma: 'Prisma',
     periodoAtual: 'Período atual',
-    periodoAnterior: 'Período anterior',
+    periodoComparado: 'Período comparado',
     descricaoComComparacao:
-      'Resultados de {{atual}} comparados com {{anterior}}.',
+      'Resultados de {{atual}} comparados com {{comparado}}.',
     descricaoSemComparacao: 'Resultados do período {{atual}}.',
+    compararCom: 'Comparar com',
+    semComparacao: 'Sem comparação',
+    prismas: {
+      seguranca_psicologica: 'Segurança Psicológica',
+      lideranca_adaptativa: 'Liderança Adaptativa',
+      cultura_empreendedora: 'Cultura Empreendedora',
+      adaptabilidade_cognitiva: 'Adaptabilidade Cognitiva',
+      neuroinovacao_prisma: 'Neuroinovação',
+    },
+    // As sete dimensões da Matriz CREED (`Dimension` do back).
     dimensoes: {
-      plasticidade_humana: 'Plasticidade humana',
-      empreendedorismo: 'Empreendedorismo',
-      multiculturalismo: 'Multiculturalismo',
-      neuroinovacao: 'Neuroinovação',
-      tomada_decisao: 'Tomada de decisão',
+      titulo: 'Desempenho por dimensão',
+      nomes: {
+        S2: 'Vivência e Competências Empreendedoras',
+        S4: 'Multiculturalismo na Educação',
+        S5A: 'Metodologias de Inovação',
+        S5B: 'Aprendizagem e Metacognição',
+        S6: 'Ensino Culturalmente Responsivo',
+        S7: 'Competências Culturais, Responsivas e Empreendedoras',
+        S8: 'Inovação e Impacto Social',
+      },
+    },
+    mapa: {
+      titulo: 'Setores × prismas',
+      subtitulo: '{{periodo}} · diferença em relação à empresa',
+      acima: 'Acima da empresa',
+      abaixo: 'Abaixo da empresa',
+      neutro: 'Sem cor: diferença menor que 3 pontos',
+      respostas: '{{total}} respostas',
+    },
+    alinhamento: {
+      titulo: 'Alinhamento da equipe',
+      respostas: '{{exibido}} · {{total}} respostas',
+      semRespostas: 'Ainda não há respostas neste recorte.',
+      faixas: {
+        baixa: 'Baixa (até 40)',
+        media: 'Média (40 a 70)',
+        alta: 'Alta (acima de 70)',
+      },
+      niveis: {
+        alinhado: 'Alinhado',
+        moderado: 'Moderado',
+        dividido: 'Dividido',
+      },
+      leitor: '{{baixa}} com nota baixa, {{media}} média e {{alta}} alta.',
+    },
+    variacao: {
+      titulo: 'Variação por prisma',
+      comparadoCom: '{{exibido}} em relação a {{referencia}}',
+      semComparacao: '{{exibido}}, sem comparação.',
+      aumentou: 'aumentou {{valor}}',
+      diminuiu: 'diminuiu {{valor}}',
+      estavel: 'sem variação',
     },
   },
   boasVindas: {
@@ -440,19 +487,46 @@ export const ptBR = {
     resumoEmpresa: 'Resumo de {{empresa}}',
     taxaConclusao: 'Taxa de Conclusão',
     maisComum: 'Mais comum',
-    metricas: 'Métricas',
     dadosVisaoGeral: 'Dados de Visão Geral',
-    evolucao: 'Evolução',
   },
   dashboard: {
     titulo: 'Dashboard',
     erroAoCarregar: 'Não foi possível carregar o dashboard.',
     Geral: 'Visão Geral',
-    Gerentes: 'Gerentes',
-    Colaboradores: 'Colaboradores',
     Funcionario: 'Funcionário',
     Baixar: 'Baixar',
     Periodo: 'Período',
+    Setor: 'Setor',
+    // Nomes do `DepartmentType` do back.
+    setores: {
+      Marketing: 'Marketing',
+      Financeiro: 'Financeiro',
+      Administrativo: 'Administrativo',
+      RecursosHumanos: 'Recursos Humanos',
+      TecnologiaInformacao: 'Tecnologia da Informação',
+    },
+    // Texto do ícone de informação ao lado do título de cada card.
+    info: {
+      sobre: 'Sobre: {{titulo}}',
+      taxaConclusao:
+        'Quantas das pessoas convidadas já terminaram o questionário.',
+      destaque: 'O prisma com a maior nota.',
+      oportunidade:
+        'O prisma com a menor nota: onde há mais espaço para crescer.',
+      maisComum: 'O prisma com a nota mais próxima da média.',
+      variacao:
+        'Quanto cada prisma subiu (▲) ou caiu (▼) em relação ao que está escolhido em "Comparar com".',
+      prisma:
+        'As notas dos cinco prismas, de 0 a 100. A linha cheia é o que está sendo exibido; a tracejada, a comparação.',
+      dimensoes:
+        'A média das respostas às afirmações de cada tema do questionário. Os prismas são calculados a partir delas.',
+      alinhamento:
+        'Se as pessoas do grupo deram notas parecidas em cada prisma (alinhado) ou se dividiram entre notas baixas e altas (dividido).',
+      mapa: 'A nota de cada setor em cada prisma. A cor mostra se o setor está acima (verde) ou abaixo (amarelo) da empresa toda. Mostra sempre a empresa inteira no período escolhido.',
+      creedPrisma: 'O que o Creed.ai leu sobre este prisma nas respostas.',
+      creedRecomendacao: 'Um próximo passo sugerido pelo Creed.ai.',
+      creedAnalise: 'A leitura geral dos resultados, escrita pelo Creed.ai.',
+    },
   },
   organizations: {
     addMember: {

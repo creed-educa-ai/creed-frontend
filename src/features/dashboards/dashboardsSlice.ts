@@ -4,6 +4,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
   dashboardsApi,
   type CompanyDashboard,
+  type DashboardFilters,
   type UserDashboard,
 } from '@/features/dashboards/dashboardsApi';
 
@@ -28,14 +29,18 @@ const initialState: DashboardsState = {
   company: { data: null, status: 'idle', error: null },
 };
 
+// Cada troca de filtro carrega de novo: quem recorta é o back. O dado anterior
+// fica no estado enquanto o novo chega, para a tela não piscar.
 export const loadUserDashboard = createAsyncThunk(
   'dashboards/loadUserDashboard',
-  async () => dashboardsApi.getUserDashboard(),
+  async (filters: Pick<DashboardFilters, 'period'>) =>
+    dashboardsApi.getUserDashboard(filters),
 );
 
 export const loadCompanyDashboard = createAsyncThunk(
   'dashboards/loadCompanyDashboard',
-  async () => dashboardsApi.getCompanyDashboard(),
+  async (filters: DashboardFilters) =>
+    dashboardsApi.getCompanyDashboard(filters),
 );
 
 const dashboardsSlice = createSlice({

@@ -207,17 +207,64 @@ export const en: typeof ptBR = {
   },
   dashboardPrisma: {
     titulo: 'Competency prism',
-    dimensao: 'Dimension',
+    prisma: 'Prism',
     periodoAtual: 'Current period',
-    periodoAnterior: 'Previous period',
-    descricaoComComparacao: '{{atual}} results compared with {{anterior}}.',
+    periodoComparado: 'Compared period',
+    descricaoComComparacao: '{{atual}} results compared with {{comparado}}.',
     descricaoSemComparacao: 'Results for {{atual}}.',
+    compararCom: 'Compare with',
+    semComparacao: 'No comparison',
+    prismas: {
+      seguranca_psicologica: 'Psychological Safety',
+      lideranca_adaptativa: 'Adaptive Leadership',
+      cultura_empreendedora: 'Entrepreneurial Culture',
+      adaptabilidade_cognitiva: 'Cognitive Adaptability',
+      neuroinovacao_prisma: 'Neuroinnovation',
+    },
+    // As sete dimensões da Matriz CREED (`Dimension` do back).
     dimensoes: {
-      plasticidade_humana: 'Human plasticity',
-      empreendedorismo: 'Entrepreneurship',
-      multiculturalismo: 'Multiculturalism',
-      neuroinovacao: 'Neuroinnovation',
-      tomada_decisao: 'Decision-making',
+      titulo: 'Performance by dimension',
+      nomes: {
+        S2: 'Entrepreneurial Experience and Skills',
+        S4: 'Multiculturalism in Education',
+        S5A: 'Innovation Methodologies',
+        S5B: 'Learning and Metacognition',
+        S6: 'Culturally Responsive Teaching',
+        S7: 'Cultural, Responsive and Entrepreneurial Skills',
+        S8: 'Innovation and Social Impact',
+      },
+    },
+    mapa: {
+      titulo: 'Departments × prisms',
+      subtitulo: '{{periodo}} · difference from the company',
+      acima: 'Above the company',
+      abaixo: 'Below the company',
+      neutro: 'No color: difference under 3 points',
+      respostas: '{{total}} responses',
+    },
+    alinhamento: {
+      titulo: 'Team alignment',
+      respostas: '{{exibido}} · {{total}} responses',
+      semRespostas: 'There are no responses for this view yet.',
+      faixas: {
+        baixa: 'Low (up to 40)',
+        media: 'Medium (40 to 70)',
+        alta: 'High (above 70)',
+      },
+      niveis: {
+        alinhado: 'Aligned',
+        moderado: 'Moderate',
+        dividido: 'Divided',
+      },
+      leitor: '{{baixa}} with a low score, {{media}} medium and {{alta}} high.',
+    },
+    variacao: {
+      titulo: 'Change by prism',
+      comparadoCom: '{{exibido}} compared with {{referencia}}',
+      semComparacao: '{{exibido}}, no comparison.',
+      aumentou: 'up {{valor}}',
+      diminuiu: 'down {{valor}}',
+      estavel: 'no change',
     },
   },
   boasVindas: {
@@ -434,19 +481,46 @@ export const en: typeof ptBR = {
     resumoEmpresa: 'Summary of {{empresa}}',
     taxaConclusao: 'Completion Rate',
     maisComum: 'Most common',
-    metricas: 'Metrics',
     dadosVisaoGeral: 'Overview Data',
-    evolucao: 'Evolution',
   },
   dashboard: {
     titulo: 'Dashboard',
     erroAoCarregar: 'Could not load the dashboard.',
     Geral: 'Overview',
-    Gerentes: 'Managers',
-    Colaboradores: 'Team members',
     Funcionario: 'Employee',
     Baixar: 'Download',
     Periodo: 'Period',
+    Setor: 'Department',
+    // Nomes do `DepartmentType` do back.
+    setores: {
+      Marketing: 'Marketing',
+      Financeiro: 'Finance',
+      Administrativo: 'Administration',
+      RecursosHumanos: 'Human Resources',
+      TecnologiaInformacao: 'Information Technology',
+    },
+    // Texto do ícone de informação ao lado do título de cada card.
+    info: {
+      sobre: 'About: {{titulo}}',
+      taxaConclusao:
+        'How many of the invited people have finished the questionnaire.',
+      destaque: 'The prism with the highest score.',
+      oportunidade:
+        'The prism with the lowest score: where there is most room to grow.',
+      maisComum: 'The prism whose score is closest to the average.',
+      variacao:
+        'How much each prism went up (▲) or down (▼) compared with what is chosen in "Compare with".',
+      prisma:
+        'The scores of the five prisms, from 0 to 100. The solid line is what is being shown; the dashed one, the comparison.',
+      dimensoes:
+        'The average of the answers to each topic of the questionnaire. The prisms are calculated from them.',
+      alinhamento:
+        'Whether people in the group gave similar scores in each prism (aligned) or split between low and high scores (divided).',
+      mapa: 'The score of each department in each prism. The color shows whether the department is above (green) or below (yellow) the whole company. It always shows the whole company in the chosen period.',
+      creedPrisma: 'What Creed.ai read about this prism in the answers.',
+      creedRecomendacao: 'A next step suggested by Creed.ai.',
+      creedAnalise: 'The overall reading of the results, written by Creed.ai.',
+    },
   },
   organizations: {
     addMember: {
