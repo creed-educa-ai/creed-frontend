@@ -1,6 +1,7 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
+import { InfoTip } from './InfoTip';
 
 interface Metrica {
   titulo: string;
@@ -19,6 +20,8 @@ interface SummaryCardsProps {
 
 interface CardMetricaProps {
   rotulo: string;
+  // Texto do ícone de informação.
+  info: string;
   corPonto: string;
   corTexto: string;
   metrica: Metrica;
@@ -26,6 +29,7 @@ interface CardMetricaProps {
 
 function CardMetrica({
   rotulo,
+  info,
   corPonto,
   corTexto,
   metrica,
@@ -40,6 +44,7 @@ function CardMetrica({
           aria-hidden="true"
         />
         {rotulo} - {metrica.valor}
+        <InfoTip title={rotulo} text={info} />
       </p>
       <h3 className="mt-1 text-3xl font-bold text-heading">{metrica.titulo}</h3>
       <p className="mt-2 text-xs text-card-foreground">{metrica.descricao}</p>
@@ -55,7 +60,7 @@ export function SummaryCards({
   oportunidade,
   maisComum,
 }: SummaryCardsProps) {
-  const { t } = useTranslation(['resultado']);
+  const { t } = useTranslation(['resultado', 'dashboard']);
   const [isOpen, setIsOpen] = useState(true);
   const conteudoId = useId();
 
@@ -94,9 +99,15 @@ export function SummaryCards({
         >
           {/* CARD 1: TAXA DE CONCLUSÃO */}
           <article className="rounded-2xl bg-card p-5 shadow-sm">
-            <p className="text-sm text-card-foreground">
-              {t('resultado:taxaConclusao')}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm text-card-foreground">
+                {t('resultado:taxaConclusao')}
+              </p>
+              <InfoTip
+                title={t('resultado:taxaConclusao')}
+                text={t('dashboard:info.taxaConclusao')}
+              />
+            </div>
             <div className="mt-2 flex items-end justify-between">
               <span className="text-6xl font-bold text-heading">{taxa}%</span>
               <span className="text-sm text-muted-foreground">
@@ -121,18 +132,21 @@ export function SummaryCards({
           {/* CARDS 2, 3 E 4: MÉTRICAS */}
           <CardMetrica
             rotulo={t('resultado:destaque')}
+            info={t('dashboard:info.destaque')}
             corPonto="bg-success"
             corTexto="text-success"
             metrica={destaque}
           />
           <CardMetrica
             rotulo={t('resultado:oportunidade')}
+            info={t('dashboard:info.oportunidade')}
             corPonto="bg-warning"
             corTexto="text-warning"
             metrica={oportunidade}
           />
           <CardMetrica
             rotulo={t('resultado:maisComum')}
+            info={t('dashboard:info.maisComum')}
             corPonto="bg-brand"
             corTexto="text-primary"
             metrica={maisComum}

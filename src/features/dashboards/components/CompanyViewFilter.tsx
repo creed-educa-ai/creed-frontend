@@ -11,48 +11,99 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { DepartmentDot } from '@/components/department/DepartmentTag';
+import type { DashboardFilters } from '@/features/dashboards/dashboardsApi';
+import type { DepartmentType } from '@/types/api';
 
-interface ViewOption {
-  id: string;
+/** O recorte do topo: vazio é a organização inteira. */
+export type DashboardView = Omit<DashboardFilters, 'period'>;
+
+interface ViewOption<T extends string> {
+  id: T;
   label: string;
 }
 
 interface CompanyViewFilterProps {
-  groups: ViewOption[];
-  members: ViewOption[];
-  // Id do grupo ou do membro selecionado: os dois dividem a mesma seleção.
-  value: string;
-  onChange: (id: string) => void;
+  departments: ViewOption<DepartmentType>[];
+  members: ViewOption<string>[];
+  value: DashboardView;
+  // O nome do recorte escolhido, mostrado no botão.
+  label: string;
+  // A opção da organização inteira leva o nome dela.
+  organizationName: string;
+  onChange: (view: DashboardView) => void;
+}
+
+// O radio group só marca por texto: cada recorte vira uma chave com o tipo na
+// frente, porque um setor e um membro podem ter o mesmo id.
+function viewKey(view: DashboardView) {
+  if (view.department) return `setor:${view.department}`;
+  if (view.member_id) return `membro:${view.member_id}`;
+  return 'geral';
 }
 
 export function CompanyViewFilter({
-  groups,
+  departments,
   members,
   value,
+  label,
+  organizationName,
   onChange,
 }: CompanyViewFilterProps) {
   const { t } = useTranslation(['dashboard']);
-
-  const selectedLabel =
-    [...groups, ...members].find((option) => option.id === value)?.label ?? '';
+  const selected = viewKey(value);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="default" className="gap-2">
           <ChevronDown />
-          {selectedLabel}
+          {value.department && (
+            // Contorno claro: a cor do setor sobre o roxo do botão.
+            <DepartmentDot
+              department={value.department}
+              className="ring-2 ring-primary-foreground"
+            />
+          )}
+          {label}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {/* GRUPOS */}
-        <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
-          {groups.map((group) => (
-            <DropdownMenuRadioItem key={group.id} value={group.id}>
-              {group.label}
-            </DropdownMenuRadioItem>
-          ))}
+        <DropdownMenuRadioGroup value={selected}>
+          <DropdownMenuRadioItem
+            value={viewKey({})}
+            onSelect={() => {
+              onChange({});
+            }}
+          >
+            {organizationName}
+          </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
+
+        {/* SELETOR DE SETOR: some se a organização não tem setores. */}
+        {departments.length > 0 && (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              {t('dashboard:Setor')}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
+              <DropdownMenuRadioGroup value={selected}>
+                {departments.map((department) => (
+                  <DropdownMenuRadioItem
+                    key={department.id}
+                    value={viewKey({ department: department.id })}
+                    onSelect={() => {
+                      onChange({ department: department.id });
+                    }}
+                  >
+                    <DepartmentDot department={department.id} />
+                    {department.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        )}
 
         {/* SELETOR DE FUNCIONÁRIO */}
         <DropdownMenuSub>
@@ -60,13 +111,13 @@ export function CompanyViewFilter({
             {t('dashboard:Funcionario')}
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
-            <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+            <DropdownMenuRadioGroup value={selected}>
               {members.map((member) => (
                 <DropdownMenuRadioItem
                   key={member.id}
-                  value={member.id}
+                  value={viewKey({ member_id: member.id })}
                   onSelect={() => {
-                    onChange(member.id);
+                    onChange({ member_id: member.id });
                   }}
                 >
                   {member.label}

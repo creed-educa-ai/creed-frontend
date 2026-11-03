@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { PageHeader } from '@/components/layout/pageHeader';
+import { pageGutterClassName } from '@/lib/layout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { loadUserDashboard } from '@/features/dashboards/dashboardsSlice';
 import { screenEnterClassName } from '@/lib/animations';
@@ -21,9 +22,10 @@ export function UserDashboardView() {
   // Nulo até a pessoa escolher: vale o período atual que veio do back.
   const [period, setPeriod] = useState<string | null>(null);
 
+  // Cada troca de período pede ao back o resultado daquele período.
   useEffect(() => {
-    void dispatch(loadUserDashboard());
-  }, [dispatch]);
+    void dispatch(loadUserDashboard({ period: period ?? undefined }));
+  }, [dispatch, period]);
 
   return (
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
@@ -33,9 +35,15 @@ export function UserDashboardView() {
       />
 
       <main
-        className={cn('flex flex-col gap-8 px-6 pb-10', screenEnterClassName)}
+        className={cn(
+          'flex flex-col gap-8 pb-10',
+          pageGutterClassName,
+          screenEnterClassName,
+        )}
       >
-        {status === 'loading' && (
+        {/* Esqueleto só na primeira carga: ao trocar o período, a tela fica
+            com o dado anterior até o novo chegar. */}
+        {status === 'loading' && !data && (
           <div className="space-y-3" aria-live="polite">
             <p className="text-sm text-muted-foreground">{t('carregando')}</p>
             <Skeleton className="h-80 w-full rounded-3xl" />
@@ -51,19 +59,29 @@ export function UserDashboardView() {
           </p>
         )}
 
-        {status === 'ready' && data && (
+        {data && (
           <>
             <DashboardToolbar
               filters={
                 <PeriodFilter
                   periods={data.periods}
-                  value={period ?? data.current.label}
+                  value={period ?? data.period}
                   onChange={setPeriod}
                 />
               }
             />
 
-            <OverviewSection current={data.current} previous={data.previous} />
+            {/* A `key` recomeça a comparação quando o período muda. */}
+            <OverviewSection
+              key={data.period}
+              period={data.period}
+              scores={data.scores}
+              dimensions={data.dimensions}
+              viewLabel={null}
+              organizationName={data.organization_name}
+              comparisonOptions={data.comparison_options}
+              comparisons={data.comparisons}
+            />
 
             <ResultText {...data.creed_summary} />
           </>

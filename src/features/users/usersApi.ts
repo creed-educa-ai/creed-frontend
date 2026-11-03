@@ -27,7 +27,7 @@ const memberSeed: Member[] = [
     name: 'Enner Valência',
     email: 'michael.mitc@example.com',
     status: 'ativo',
-    tag: 'marketing',
+    tag: 'Marketing',
     updated_at: '2026-10-18T14:12:00.000Z',
   },
   {
@@ -35,7 +35,7 @@ const memberSeed: Member[] = [
     name: 'Wilson Mathias',
     email: 'felicia.reid@example.com',
     status: 'ativo',
-    tag: 'vendas',
+    tag: 'Financeiro',
     updated_at: '2026-10-17T09:40:00.000Z',
   },
   {
@@ -43,7 +43,7 @@ const memberSeed: Member[] = [
     name: 'Volante Ronaldo',
     email: 'georgia.young@example.com',
     status: 'pendente',
-    tag: 'rh',
+    tag: 'RecursosHumanos',
     updated_at: '2026-10-16T18:05:00.000Z',
   },
   {
@@ -51,7 +51,7 @@ const memberSeed: Member[] = [
     name: 'Maurides Cambalhota',
     email: 'alma.lawson@example.com',
     status: 'ativo',
-    tag: 'vendas',
+    tag: 'TecnologiaInformacao',
     updated_at: '2026-10-15T11:22:00.000Z',
   },
   {
@@ -59,7 +59,7 @@ const memberSeed: Member[] = [
     name: 'Clayton Sampaio',
     email: 'dolores.chambers@example.com',
     status: 'pendente',
-    tag: 'vendas',
+    tag: 'Administrativo',
     updated_at: '2026-10-14T08:01:00.000Z',
   },
   {
@@ -67,7 +67,7 @@ const memberSeed: Member[] = [
     name: 'Ana Souza',
     email: 'ana.souza@example.com',
     status: 'ativo',
-    tag: 'marketing',
+    tag: 'Marketing',
     updated_at: '2026-10-13T16:47:00.000Z',
   },
   {
@@ -75,7 +75,7 @@ const memberSeed: Member[] = [
     name: 'Bruno Lima',
     email: 'bruno.lima@example.com',
     status: 'pendente',
-    tag: 'rh',
+    tag: 'RecursosHumanos',
     updated_at: '2026-10-12T10:18:00.000Z',
   },
   {
@@ -83,7 +83,7 @@ const memberSeed: Member[] = [
     name: 'Carla Dias',
     email: 'carla.dias@example.com',
     status: 'ativo',
-    tag: 'vendas',
+    tag: 'Financeiro',
     updated_at: '2026-10-11T13:33:00.000Z',
   },
 ];

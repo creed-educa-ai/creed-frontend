@@ -4,11 +4,14 @@ import { ChevronDown } from 'lucide-react';
 interface CollapsibleSectionProps {
   title: string;
   children: ReactNode;
+  // Controle que vale só para esta seção; fica no fim da linha do título.
+  action?: ReactNode;
 }
 
 export function CollapsibleSection({
   title,
   children,
+  action,
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
   const contentId = useId();
@@ -34,6 +37,7 @@ export function CollapsibleSection({
           <h2 className="text-xl font-bold">{title}</h2>
         </button>
         <div className="h-px flex-1 bg-primary" aria-hidden="true" />
+        {action}
       </div>
 
       {isOpen && <div id={contentId}>{children}</div>}

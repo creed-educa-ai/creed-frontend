@@ -14,7 +14,7 @@ const membro: Member = {
   name: 'Enner Valência',
   email: 'michael.mitc@example.com',
   status: 'ativo',
-  tag: 'marketing',
+  tag: 'Marketing',
   updated_at: '2026-10-18T14:12:00.000Z',
 };
 
