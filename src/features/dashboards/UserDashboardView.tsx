@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { PageHeader } from '@/components/layout/pageHeader';
+import { pageGutterClassName } from '@/lib/layout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { loadUserDashboard } from '@/features/dashboards/dashboardsSlice';
 import { screenEnterClassName } from '@/lib/animations';
@@ -34,7 +35,11 @@ export function UserDashboardView() {
       />
 
       <main
-        className={cn('flex flex-col gap-8 px-6 pb-10', screenEnterClassName)}
+        className={cn(
+          'flex flex-col gap-8 pb-10',
+          pageGutterClassName,
+          screenEnterClassName,
+        )}
       >
         {/* Esqueleto só na primeira carga: ao trocar o período, a tela fica
             com o dado anterior até o novo chegar. */}

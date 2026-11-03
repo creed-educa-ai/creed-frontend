@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppSelector } from '@/app/hooks';
 import { PageHeader } from '@/components/layout/pageHeader';
+import { pageGutterClassName } from '@/lib/layout';
 import { SectionHeader } from '@/components/layout/sectionHeader';
 import { AddMemberForm } from '@/features/users/AddMemberForm';
 import type { AddMemberValues } from '@/features/users/addMemberSchema';
@@ -57,7 +58,11 @@ export function CompanyControlPanelView() {
           tabela de membros embaixo, na largura toda. No celular, tudo numa
           coluna, nessa ordem. */}
       <main
-        className={cn('flex flex-col gap-8 px-6 pb-10', screenEnterClassName)}
+        className={cn(
+          'flex flex-col gap-8 pb-10',
+          pageGutterClassName,
+          screenEnterClassName,
+        )}
       >
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Sem recolher, ao contrário do dashboard: o painel é curto e as

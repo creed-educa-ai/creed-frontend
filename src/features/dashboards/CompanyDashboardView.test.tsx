@@ -153,7 +153,7 @@ describe('CompanyDashboardView', () => {
 
     expect(
       screen.getByRole('button', {
-        name: i18n.t('resultado:dadosVisaoGeral'),
+        name: i18n.t('resultado:metricas'),
       }),
     ).toBeInTheDocument();
     // A tabela acessível do radar (a outra tabela é o mapa de setores).
@@ -331,7 +331,7 @@ describe('CompanyDashboardView', () => {
 
   it('should show one Creed.ai card per prism, marking highlight and opportunity', async () => {
     await renderizar();
-    const creed = secao(i18n.t('resultado:resumo'));
+    const creed = secao(i18n.t('resultado:creedAi'));
 
     for (const name of [
       'Segurança Psicológica',
@@ -516,7 +516,7 @@ describe('CompanyDashboardView', () => {
     await renderizar();
 
     expect(
-      screen.getByRole('button', { name: 'Creed.ai Summary' }),
+      screen.getByRole('button', { name: 'Creed.ai' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Summary of Acme Inc.' }),

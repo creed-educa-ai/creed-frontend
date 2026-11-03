@@ -1,4 +1,5 @@
 import { NavMenu } from '@/components/layout/navMenu';
+import { pageGutterClassName } from '@/lib/layout';
 import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
@@ -9,6 +10,9 @@ interface PageHeaderProps {
   tone?: 'default' | 'brand';
   // Tela pública (o Sobre) mostra o menu só para quem tem sessão.
   showNavMenu?: boolean;
+  // Posição extra. O questionário tira o header do fluxo, para a pergunta
+  // ficar no centro da tela sem o header mudar de lugar.
+  className?: string;
 }
 
 // Topo de todas as telas logadas: um header só, para o título e o menu não
@@ -18,11 +22,18 @@ export function PageHeader({
   title,
   tone = 'default',
   showNavMenu = true,
+  className,
 }: PageHeaderProps) {
   const isBrand = tone === 'brand';
 
   return (
-    <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-10 sm:flex-row sm:items-start sm:justify-between">
+    <header
+      className={cn(
+        'flex w-full flex-col items-center justify-center gap-4 py-10 sm:flex-row sm:items-start sm:justify-between',
+        pageGutterClassName,
+        className,
+      )}
+    >
       <div className="text-center sm:text-left">
         {/* min-h-5: sem eyebrow, a linha fica reservada e o título não sobe. */}
         <p

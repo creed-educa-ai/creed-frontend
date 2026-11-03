@@ -481,7 +481,8 @@ export const en: typeof ptBR = {
     iniciarQuestionario: 'Start questionnaire',
   },
   resultado: {
-    resumo: 'Creed.ai Summary',
+    // Nome de marca: igual em todo idioma.
+    creedAi: 'Creed.ai',
     destaque: 'Highlight',
     oportunidade: 'Opportunity',
     analise: 'Creed.ai Analysis',
@@ -489,7 +490,7 @@ export const en: typeof ptBR = {
     resumoEmpresa: 'Summary of {{empresa}}',
     taxaConclusao: 'Completion Rate',
     maisComum: 'Most common',
-    dadosVisaoGeral: 'Overview Data',
+    metricas: 'Metrics',
   },
   dashboard: {
     titulo: 'Dashboard',

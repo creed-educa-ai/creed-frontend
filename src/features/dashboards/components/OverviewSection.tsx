@@ -93,7 +93,7 @@ export function OverviewSection({
 
   return (
     <CollapsibleSection
-      title={t('resultado:dadosVisaoGeral')}
+      title={t('resultado:metricas')}
       action={
         <div
           role="group"

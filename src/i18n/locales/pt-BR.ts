@@ -487,7 +487,8 @@ export const ptBR = {
     iniciarQuestionario: 'Iniciar questionário',
   },
   resultado: {
-    resumo: 'Resumo do Creed.ai',
+    // Nome de marca: igual em todo idioma.
+    creedAi: 'Creed.ai',
     destaque: 'Destaque',
     oportunidade: 'Oportunidade',
     analise: 'Análise do Creed.ai',
@@ -495,7 +496,7 @@ export const ptBR = {
     resumoEmpresa: 'Resumo de {{empresa}}',
     taxaConclusao: 'Taxa de Conclusão',
     maisComum: 'Mais comum',
-    dadosVisaoGeral: 'Dados de Visão Geral',
+    metricas: 'Métricas',
   },
   dashboard: {
     titulo: 'Dashboard',

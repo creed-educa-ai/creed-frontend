@@ -90,7 +90,7 @@ export function ResultText({
               isOpen ? 'rotate-0' : '-rotate-90'
             }`}
           />
-          <h2 className="text-xl font-bold">{t('resultado:resumo')}</h2>
+          <h2 className="text-xl font-bold">{t('resultado:creedAi')}</h2>
         </button>
         <div className="h-px flex-1 bg-primary" aria-hidden="true" />
       </div>

@@ -1,4 +1,4 @@
-import { NavMenu } from '@/components/layout/navMenu';
+import { PageHeader } from '@/components/layout/pageHeader';
 import { useEffect, useState } from 'react';
 import {
   Questions,
@@ -75,21 +75,20 @@ export function FormView() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col overflow-hidden bg-background">
-      {/* #region header */}
-      <header className="flex w-full flex-col items-center justify-center gap-4 px-6 py-6 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-sm font-bold text-heading">João Silva</p>
-          <h1 className="text-center text-3xl font-bold text-heading sm:text-left">
-            {t('formulario:titulo')}
-          </h1>
-        </div>
+    <div className="relative flex min-h-svh flex-col overflow-hidden bg-background">
+      {/* O mesmo header das outras telas, para o menu não pular. A partir de
+          `sm` ele sai do fluxo e fica sobre o topo: assim a área da pergunta
+          ocupa a tela toda e a pergunta fica no centro dela. No celular o
+          header empilha e fica alto, então continua no fluxo. */}
+      <PageHeader
+        eyebrow="João Silva"
+        title={t('formulario:titulo')}
+        className="sm:absolute sm:inset-x-0 sm:top-0 sm:z-10"
+      />
 
-        <NavMenu />
-      </header>
-      {/* #endregion */}
-
-      <div className="flex flex-1 flex-col overflow-hidden p-6 lg:p-8">
+      {/* Em cima e embaixo, o mesmo espaço, um pouco maior que o header:
+          centralizado na tela, e a pergunta nunca passa por baixo dele. */}
+      <div className="flex flex-1 flex-col overflow-hidden p-6 sm:py-40 lg:px-8">
         {conteudo()}
       </div>
     </div>

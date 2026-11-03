@@ -107,7 +107,7 @@ describe('UserDashboardView', () => {
 
     expect(
       screen.getByRole('button', {
-        name: i18n.t('resultado:dadosVisaoGeral'),
+        name: i18n.t('resultado:metricas'),
       }),
     ).toBeInTheDocument();
     expect(
@@ -223,7 +223,7 @@ describe('UserDashboardView', () => {
     await renderizar();
 
     const secao = screen.getByRole('button', {
-      name: i18n.t('resultado:dadosVisaoGeral'),
+      name: i18n.t('resultado:metricas'),
     });
     expect(secao).toHaveAttribute('aria-expanded', 'true');
 
@@ -252,7 +252,7 @@ describe('UserDashboardView', () => {
     await renderizar();
 
     const resumo = screen.getByRole('button', {
-      name: i18n.t('resultado:resumo'),
+      name: i18n.t('resultado:creedAi'),
     });
     expect(resumo).toHaveAttribute('aria-expanded', 'true');
 
@@ -316,11 +316,9 @@ describe('UserDashboardView', () => {
     await renderizar();
 
     expect(
-      screen.getByRole('button', { name: 'Creed.ai Summary' }),
+      screen.getByRole('button', { name: 'Creed.ai' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Overview Data' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Metrics' })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Download' }),
     ).toBeInTheDocument();

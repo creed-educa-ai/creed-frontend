@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/layout/pageHeader';
+import { pageGutterClassName } from '@/lib/layout';
+import { cn } from '@/lib/utils';
 import { SectionHeader } from '@/components/layout/sectionHeader';
 import { MenteesSection } from '@/features/users/MenteesSection';
 import { CompaniesSection } from '@/features/organizations/CompaniesSection';
@@ -27,7 +29,7 @@ export function AdminControlPanelView() {
 
       {/* Tudo em uma coluna, na largura toda: "Adicionar" e as duas tabelas,
           uma embaixo da outra. */}
-      <main className="flex flex-col gap-8 px-6 pb-10">
+      <main className={cn('flex flex-col gap-8 pb-10', pageGutterClassName)}>
         <section className="flex flex-col gap-4">
           <SectionHeader>{t('adicionarMentorando:titulo')}</SectionHeader>
           <AddMenteeForm onSubmit={handleAdicionar} />
