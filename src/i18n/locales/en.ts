@@ -4,6 +4,14 @@ import type { ptBR } from './pt-BR';
 // faltando ou sobrando nas demais traduções.
 export const en: typeof ptBR = {
   comum: {
+    // Setores (`DepartmentType` do back): tags, filtros e o mapa.
+    setores: {
+      Marketing: 'Marketing',
+      Financeiro: 'Finance',
+      Administrativo: 'Administration',
+      RecursosHumanos: 'Human Resources',
+      TecnologiaInformacao: 'Information Technology',
+    },
     // Textos que as tabelas compartilham (src/components/table).
     tabela: {
       ordenarPorNome: 'Sort by name',
@@ -486,19 +494,10 @@ export const en: typeof ptBR = {
   dashboard: {
     titulo: 'Dashboard',
     erroAoCarregar: 'Could not load the dashboard.',
-    Geral: 'Overview',
     Funcionario: 'Employee',
     Baixar: 'Download',
     Periodo: 'Period',
     Setor: 'Department',
-    // Nomes do `DepartmentType` do back.
-    setores: {
-      Marketing: 'Marketing',
-      Financeiro: 'Finance',
-      Administrativo: 'Administration',
-      RecursosHumanos: 'Human Resources',
-      TecnologiaInformacao: 'Information Technology',
-    },
     // Texto do ícone de informação ao lado do título de cada card.
     info: {
       sobre: 'About: {{titulo}}',
@@ -576,11 +575,6 @@ export const en: typeof ptBR = {
       status: {
         ativo: 'Active',
         pendente: 'Pending',
-      },
-      tags: {
-        marketing: 'Marketing',
-        vendas: 'Sales',
-        rh: 'HR',
       },
     },
     errors: {

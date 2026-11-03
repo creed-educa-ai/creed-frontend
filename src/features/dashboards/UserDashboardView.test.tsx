@@ -98,7 +98,7 @@ describe('UserDashboardView', () => {
       screen.queryByRole('heading', { name: 'Recomendação' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Visão Geral' }),
+      screen.queryByRole('button', { name: 'Acme Inc.' }),
     ).not.toBeInTheDocument();
   });
 
@@ -155,17 +155,18 @@ describe('UserDashboardView', () => {
     expect(screen.getByText(/S7/).closest('li')).toHaveTextContent('82 / 78');
   });
 
-  it('should uncheck the compared period when clicking it again', async () => {
+  it('should keep the compared period when choosing it again', async () => {
     const user = userEvent.setup();
     await renderizar();
 
     await user.click(screen.getByRole('button', { name: '2025/2' }));
     await user.click(screen.getByRole('menuitemradio', { name: '2025/2' }));
 
+    // Só "Sem comparação" limpa.
     expect(
-      await screen.findByRole('button', { name: 'Período' }),
+      await screen.findByRole('button', { name: '2025/2' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('2026/1, sem comparação.')).toBeInTheDocument();
+    expect(screen.getByText('2026/1 em relação a 2025/2')).toBeInTheDocument();
   });
 
   it('should show only the current period when choosing no comparison', async () => {

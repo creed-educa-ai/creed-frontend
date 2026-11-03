@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,8 @@ import {
 interface ComparisonOption<T extends string> {
   id: T;
   label: string;
+  // Desenho antes do nome, no menu e no botão (ex.: a cor do setor).
+  icon?: ReactNode;
 }
 
 // Genérico no id para o setor voltar como `DepartmentType`, e não string.
@@ -23,14 +26,14 @@ interface ComparisonFilterProps<T extends string> {
   options: ComparisonOption<T>[];
   // Id marcado; `null` é nenhum.
   value: T | null;
-  onChange: (id: T | null) => void;
+  onChange: (id: T) => void;
   // "Sem comparação" limpa este botão e o outro também.
   onClear: () => void;
 }
 
-// Um dos dois botões de comparação da seção (período e setor). Clicar no item
-// marcado desmarca: assim dá para comparar só por período, só por setor, ou
-// pelos dois juntos.
+// Um dos dois botões de comparação da seção (período e setor). Cada um escolhe
+// à parte: só período, só setor ou os dois juntos. Escolher de novo o item
+// marcado não muda nada; só "Sem comparação" limpa.
 export function ComparisonFilter<T extends string>({
   placeholder,
   options,
@@ -39,28 +42,28 @@ export function ComparisonFilter<T extends string>({
   onClear,
 }: ComparisonFilterProps<T>) {
   const { t } = useTranslation(['dashboardPrisma']);
-  const selectedLabel = options.find((option) => option.id === value)?.label;
+  const selected = options.find((option) => option.id === value);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="outline" className="gap-2">
           <ChevronDown />
-          {selectedLabel ?? placeholder}
+          {selected?.icon}
+          {selected?.label ?? placeholder}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {/* Sem `onValueChange`: o radio group só avisa quando o valor muda, e
-            o clique no item já marcado precisa desmarcar. */}
         <DropdownMenuRadioGroup value={value ?? ''}>
           {options.map((option) => (
             <DropdownMenuRadioItem
               key={option.id}
               value={option.id}
               onSelect={() => {
-                onChange(option.id === value ? null : option.id);
+                onChange(option.id);
               }}
             >
+              {option.icon}
               {option.label}
             </DropdownMenuRadioItem>
           ))}

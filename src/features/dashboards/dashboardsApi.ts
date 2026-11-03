@@ -43,15 +43,21 @@ export interface CompanySummary {
 }
 
 /**
+ * Com quem a comparação é feita, além do período: um setor ou a empresa toda.
+ * `null` é o mesmo recorte que está sendo exibido.
+ */
+export type ComparisonScope = DepartmentType | 'organization';
+
+/**
  * Uma referência com que o resultado exibido pode ser comparado. Período e
- * setor são escolhidos à parte, e o que vem nulo é o mesmo do que está sendo
- * exibido: só `period` = o mesmo recorte em outro período; só `department` =
- * aquele setor no período exibido. A variação já vem calculada (exibido −
- * referência): derivar indicador é do back (princípio 1).
+ * escopo são escolhidos à parte, e o que vem nulo é o mesmo do que está sendo
+ * exibido: só `period` = o mesmo recorte em outro período; só `scope` = aquele
+ * setor (ou a empresa toda) no período exibido. A variação já vem calculada
+ * (exibido − referência): derivar indicador é do back (princípio 1).
  */
 export interface PrismaComparison {
   period: string | null;
-  department: DepartmentType | null;
+  scope: ComparisonScope | null;
   scores: PrismaScores;
   variation: PrismaScores;
   // Notas das sete dimensões da referência.
@@ -89,7 +95,8 @@ export interface DepartmentRow {
 export interface ComparisonOptions {
   // Os outros períodos, do mais recente para o mais antigo.
   periods: string[];
-  // Sem o setor exibido. Quem responde não compara com setores (lista vazia).
+  // Todos os setores, inclusive o exibido. Quem responde não compara com
+  // setores (lista vazia).
   departments: DepartmentType[];
   // O período anterior ao exibido; nulo quando o exibido é o mais antigo.
   default_period: string | null;
@@ -309,24 +316,31 @@ function buildResult(
   const dimensions = dimensionsOf(period, viewOffset);
 
   const otherPeriods = periods.filter((other) => other !== period);
-  const otherDepartments = comparableDepartments.filter(
-    (department) => department !== filters.department,
-  );
+
+  // A empresa toda só entra onde também há setores: na visão da empresa.
+  const scopes: (ComparisonScope | null)[] =
+    comparableDepartments.length > 0
+      ? [null, 'organization', ...comparableDepartments]
+      : [null];
 
   const comparisons: PrismaComparison[] = [null, ...otherPeriods].flatMap(
     (comparedPeriod) =>
-      [null, ...otherDepartments]
-        .filter((department) => comparedPeriod !== null || department !== null)
-        .map((department) => {
-          // O que vem nulo é o mesmo do que está sendo exibido.
+      scopes
+        .filter((scope) => comparedPeriod !== null || scope !== null)
+        .map((scope) => {
+          // O que vem nulo é o mesmo do que está sendo exibido; a empresa
+          // toda não tem desvio.
           const referencePeriod = comparedPeriod ?? period;
-          const referenceOffset = department
-            ? departmentOffsets[department]
-            : viewOffset;
+          const referenceOffset =
+            scope === null
+              ? viewOffset
+              : scope === 'organization'
+                ? undefined
+                : departmentOffsets[scope];
           const reference = scoresOf(referencePeriod, referenceOffset);
           return {
             period: comparedPeriod,
-            department,
+            scope,
             scores: reference,
             variation: mapPrismas(
               (prisma) => scores[prisma] - reference[prisma],
@@ -342,7 +356,7 @@ function buildResult(
     dimensions,
     comparison_options: {
       periods: otherPeriods,
-      departments: otherDepartments,
+      departments: comparableDepartments,
       default_period: periods[periods.indexOf(period) + 1] ?? null,
     },
     comparisons,

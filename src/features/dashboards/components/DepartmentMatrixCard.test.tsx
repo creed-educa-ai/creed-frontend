@@ -55,6 +55,13 @@ describe('DepartmentMatrixCard', () => {
     expect(cells[2]).not.toHaveClass('bg-success', 'bg-warning');
   });
 
+  it('mostra cada setor como tag, com a cor dele', () => {
+    render(<DepartmentMatrixCard rows={ROWS} period="2026/1" />);
+
+    expect(screen.getByText('Marketing')).toHaveClass('bg-[#009E4F]');
+    expect(screen.getByText('Financeiro')).toHaveClass('bg-[#008AC9]');
+  });
+
   it('mostra traço no setor sem respostas', () => {
     render(<DepartmentMatrixCard rows={ROWS} period="2026/1" />);
 

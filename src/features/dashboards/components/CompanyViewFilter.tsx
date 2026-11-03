@@ -11,6 +11,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { DepartmentDot } from '@/components/department/DepartmentTag';
 import type { DashboardFilters } from '@/features/dashboards/dashboardsApi';
 import type { DepartmentType } from '@/types/api';
 
@@ -28,6 +29,8 @@ interface CompanyViewFilterProps {
   value: DashboardView;
   // O nome do recorte escolhido, mostrado no botão.
   label: string;
+  // A opção da organização inteira leva o nome dela.
+  organizationName: string;
   onChange: (view: DashboardView) => void;
 }
 
@@ -44,6 +47,7 @@ export function CompanyViewFilter({
   members,
   value,
   label,
+  organizationName,
   onChange,
 }: CompanyViewFilterProps) {
   const { t } = useTranslation(['dashboard']);
@@ -54,6 +58,13 @@ export function CompanyViewFilter({
       <DropdownMenuTrigger asChild>
         <Button type="button" variant="default" className="gap-2">
           <ChevronDown />
+          {value.department && (
+            // Contorno claro: a cor do setor sobre o roxo do botão.
+            <DepartmentDot
+              department={value.department}
+              className="ring-2 ring-primary-foreground"
+            />
+          )}
           {label}
         </Button>
       </DropdownMenuTrigger>
@@ -65,7 +76,7 @@ export function CompanyViewFilter({
               onChange({});
             }}
           >
-            {t('dashboard:Geral')}
+            {organizationName}
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
 
@@ -84,6 +95,7 @@ export function CompanyViewFilter({
                     onChange({ department: department.id });
                   }}
                 >
+                  <DepartmentDot department={department.id} />
                   {department.label}
                 </DropdownMenuRadioItem>
               ))}

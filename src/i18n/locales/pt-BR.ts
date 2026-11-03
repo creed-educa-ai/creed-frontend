@@ -2,6 +2,14 @@
 // compartilhado; cada feature ganha o seu.
 export const ptBR = {
   comum: {
+    // Setores (`DepartmentType` do back): tags, filtros e o mapa.
+    setores: {
+      Marketing: 'Marketing',
+      Financeiro: 'Financeiro',
+      Administrativo: 'Administrativo',
+      RecursosHumanos: 'Recursos Humanos',
+      TecnologiaInformacao: 'Tecnologia da Informação',
+    },
     // Textos que as tabelas compartilham (src/components/table).
     tabela: {
       ordenarPorNome: 'Ordenar por nome',
@@ -492,19 +500,10 @@ export const ptBR = {
   dashboard: {
     titulo: 'Dashboard',
     erroAoCarregar: 'Não foi possível carregar o dashboard.',
-    Geral: 'Visão Geral',
     Funcionario: 'Funcionário',
     Baixar: 'Baixar',
     Periodo: 'Período',
     Setor: 'Setor',
-    // Nomes do `DepartmentType` do back.
-    setores: {
-      Marketing: 'Marketing',
-      Financeiro: 'Financeiro',
-      Administrativo: 'Administrativo',
-      RecursosHumanos: 'Recursos Humanos',
-      TecnologiaInformacao: 'Tecnologia da Informação',
-    },
     // Texto do ícone de informação ao lado do título de cada card.
     info: {
       sobre: 'Sobre: {{titulo}}',
@@ -582,11 +581,6 @@ export const ptBR = {
       status: {
         ativo: 'Ativo',
         pendente: 'Pendente',
-      },
-      tags: {
-        marketing: 'Marketing',
-        vendas: 'Vendas',
-        rh: 'RH',
       },
     },
     errors: {

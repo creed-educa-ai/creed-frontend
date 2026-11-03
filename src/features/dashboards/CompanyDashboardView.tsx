@@ -42,8 +42,7 @@ export function CompanyDashboardView() {
     department?: DepartmentType | null | undefined;
     member_id?: string | null | undefined;
   }) => {
-    if (selected.department)
-      return t(`dashboard:setores.${selected.department}`);
+    if (selected.department) return t(`comum:setores.${selected.department}`);
     if (selected.member_id)
       return (
         data?.members.find((member) => member.id === selected.member_id)
@@ -93,11 +92,12 @@ export function CompanyDashboardView() {
                   <CompanyViewFilter
                     departments={data.departments.map((department) => ({
                       id: department,
-                      label: t(`dashboard:setores.${department}`),
+                      label: t(`comum:setores.${department}`),
                     }))}
                     members={data.members}
                     value={view}
-                    label={viewName(view) ?? t('dashboard:Geral')}
+                    label={viewName(view) ?? data.organization_name}
+                    organizationName={data.organization_name}
                     onChange={setView}
                   />
                 </>
@@ -118,7 +118,10 @@ export function CompanyDashboardView() {
               period={data.period}
               scores={data.scores}
               dimensions={data.dimensions}
-              viewLabel={viewName(data)}
+              // Sem setor e sem funcionário, o recorte é a organização: o
+              // nome dela entra no rótulo, como o do setor entraria.
+              viewLabel={viewName(data) ?? data.organization_name}
+              organizationName={data.organization_name}
               comparisonOptions={data.comparison_options}
               comparisons={data.comparisons}
               alignment={data.alignment}

@@ -481,7 +481,6 @@ export interface InsightResponse {
 // Falta no back: `GET /organizations/{id}/members` (listar) e
 // `DELETE` de membro. Mais perto do back: `UserResponse` + departamento.
 export type MemberStatus = 'ativo' | 'pendente';
-export type MemberTag = 'marketing' | 'vendas' | 'rh';
 
 export interface Member {
   id: string;
@@ -490,8 +489,8 @@ export interface Member {
   // No back, `RecordStatus` (`active`/`inactive`); "pendente" (convite não
   // aceito) não existe.
   status: MemberStatus;
-  // No back seria o setor (`DepartmentType`), com outros valores.
-  tag: MemberTag;
+  // O setor do vínculo (`links.department_id` → `DepartmentType`).
+  tag: DepartmentType;
   updated_at: string;
 }
 

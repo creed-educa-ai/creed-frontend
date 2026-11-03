@@ -73,6 +73,7 @@ export function UserDashboardView() {
               scores={data.scores}
               dimensions={data.dimensions}
               viewLabel={null}
+              organizationName={data.organization_name}
               comparisonOptions={data.comparison_options}
               comparisons={data.comparisons}
             />

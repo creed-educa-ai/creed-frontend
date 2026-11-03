@@ -67,7 +67,11 @@ describe('CompanyDashboardView', () => {
     expect(
       screen.getByRole('heading', { level: 1, name: 'Dashboard' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('Acme Inc.')).toBeInTheDocument();
+    // No cabeçalho, acima do título; o botão do recorte também se chama
+    // Acme Inc., por isso a busca fica no `header`.
+    expect(
+      within(screen.getByRole('banner')).getByText('Acme Inc.'),
+    ).toBeInTheDocument();
   });
 
   it('should render the summary title with the company name', async () => {
@@ -170,7 +174,7 @@ describe('CompanyDashboardView', () => {
       await screen.findByRole('button', { name: 'Marketing' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('2026/1 em relação a Marketing 2025/2'),
+      screen.getByText('Acme Inc. 2026/1 em relação a Marketing 2025/2'),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('table', { name: /^Resultados/ }),
@@ -181,15 +185,19 @@ describe('CompanyDashboardView', () => {
     const user = userEvent.setup();
     await renderizar();
 
+    // "Sem comparação" limpa o período; aí escolher o setor compara com ele
+    // no período exibido.
     await user.click(screen.getByRole('button', { name: '2025/2' }));
-    await user.click(screen.getByRole('menuitemradio', { name: '2025/2' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Sem comparação' }));
     await user.click(await screen.findByRole('button', { name: 'Setor' }));
     await user.click(
       screen.getByRole('menuitemradio', { name: 'Recursos Humanos' }),
     );
 
     expect(
-      await screen.findByText('2026/1 em relação a Recursos Humanos 2026/1'),
+      await screen.findByText(
+        'Acme Inc. 2026/1 em relação a Recursos Humanos 2026/1',
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText('diminuiu 14')).toBeInTheDocument();
   });
@@ -207,14 +215,16 @@ describe('CompanyDashboardView', () => {
       await screen.findByRole('button', { name: 'Período' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Setor' })).toBeInTheDocument();
-    expect(screen.getByText('2026/1, sem comparação.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Acme Inc. 2026/1, sem comparação.'),
+    ).toBeInTheDocument();
   });
 
   it('should show the chosen department as the main line', async () => {
     const user = userEvent.setup();
     await renderizar();
 
-    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
+    await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
     const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
     setorSub.focus();
     await user.keyboard('{Enter}');
@@ -237,21 +247,66 @@ describe('CompanyDashboardView', () => {
       screen.getByText('Análise de Marketing no período 2026/1.'),
     ).toBeInTheDocument();
 
-    // O setor exibido some das opções de comparação.
+    // O setor exibido também pode ser escolhido na comparação: Marketing em
+    // 2026/1 contra Marketing em 2025/2.
     await user.click(screen.getByRole('button', { name: 'Setor' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Marketing' }));
     expect(
-      screen.queryByRole('menuitemradio', { name: 'Marketing' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitemradio', { name: 'Financeiro' }),
+      await screen.findByText('Marketing 2026/1 em relação a Marketing 2025/2'),
     ).toBeInTheDocument();
+    // O recorte do topo também se chama Marketing: a busca fica no grupo.
+    expect(
+      within(screen.getByRole('group', { name: 'Comparar com' })).getByRole(
+        'button',
+        { name: 'Marketing' },
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('should compare a department with the whole company', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
+    const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
+    setorSub.focus();
+    await user.keyboard('{Enter}');
+    const marketing = await screen.findByRole('menuitemradio', {
+      name: 'Marketing',
+    });
+    marketing.focus();
+    await user.keyboard('{Enter}');
+
+    await user.click(await screen.findByRole('button', { name: 'Setor' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Acme Inc.' }));
+
+    expect(
+      await screen.findByText('Marketing 2026/1 em relação a Acme Inc. 2025/2'),
+    ).toBeInTheDocument();
+    // Segurança Psicológica: Marketing 82 contra a empresa 70.
+    expect(screen.getByText('aumentou 12')).toBeInTheDocument();
+  });
+
+  it('should swap a department for the whole company without losing the period', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Setor' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Marketing' }));
+    await user.click(await screen.findByRole('button', { name: 'Marketing' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Acme Inc.' }));
+
+    expect(
+      await screen.findByText('Acme Inc. 2026/1 em relação a Acme Inc. 2025/2'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2025/2' })).toBeInTheDocument();
   });
 
   it('should show the chosen employee as the main line', async () => {
     const user = userEvent.setup();
     await renderizar();
 
-    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
+    await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
     const funcionarioSub = await screen.findByRole('menuitem', {
       name: 'Funcionário',
     });
@@ -304,7 +359,9 @@ describe('CompanyDashboardView', () => {
     expect(
       screen.getByRole('heading', { name: 'Alinhamento da equipe' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('2026/1 · 50 respostas')).toBeInTheDocument();
+    expect(
+      screen.getByText('Acme Inc. 2026/1 · 50 respostas'),
+    ).toBeInTheDocument();
     expect(screen.getByText('Dividido')).toBeInTheDocument();
   });
 
@@ -312,7 +369,7 @@ describe('CompanyDashboardView', () => {
     const user = userEvent.setup();
     await renderizar();
 
-    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
+    await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
     const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
     setorSub.focus();
     await user.keyboard('{Enter}');
@@ -346,7 +403,7 @@ describe('CompanyDashboardView', () => {
     expect(within(mapa()).queryByRole('button')).not.toBeInTheDocument();
 
     // Escolher um funcionário no topo não muda o mapa.
-    await user.click(screen.getByRole('button', { name: 'Visão Geral' }));
+    await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
     const funcionarioSub = await screen.findByRole('menuitem', {
       name: 'Funcionário',
     });
@@ -380,7 +437,7 @@ describe('CompanyDashboardView', () => {
     await renderizar();
 
     expect(
-      screen.getByRole('button', { name: 'Visão Geral' }),
+      screen.getByRole('button', { name: 'Acme Inc.' }),
     ).toBeInTheDocument();
   });
 
@@ -388,7 +445,7 @@ describe('CompanyDashboardView', () => {
     const user = userEvent.setup();
     await renderizar();
 
-    const viewTrigger = screen.getByRole('button', { name: 'Visão Geral' });
+    const viewTrigger = screen.getByRole('button', { name: 'Acme Inc.' });
     await user.click(viewTrigger);
 
     const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
@@ -424,7 +481,7 @@ describe('CompanyDashboardView', () => {
     await renderizar();
 
     // Guarda a referência do botão de visão ANTES de abrir o menu
-    const viewTrigger = screen.getByRole('button', { name: 'Visão Geral' });
+    const viewTrigger = screen.getByRole('button', { name: 'Acme Inc.' });
     await user.click(viewTrigger);
 
     const funcionarioSub = await screen.findByRole('menuitem', {
@@ -474,10 +531,10 @@ describe('CompanyDashboardView', () => {
     const user = userEvent.setup();
     await renderizar();
 
-    await user.click(screen.getByRole('button', { name: 'Overview' }));
+    await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
 
     expect(
-      screen.getByRole('menuitemradio', { name: 'Overview' }),
+      screen.getByRole('menuitemradio', { name: 'Acme Inc.' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: 'Department' }),

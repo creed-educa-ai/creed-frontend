@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { DepartmentTag } from '@/components/department/DepartmentTag';
 import type { DepartmentRow } from '@/features/dashboards/dashboardsApi';
 import { PRISMAS } from '@/features/dashboards/prismas';
 import { cn } from '@/lib/utils';
@@ -97,21 +98,14 @@ export function DepartmentMatrixCard({
           </thead>
           <tbody>
             {rows.map(({ department, respondents, scores, difference }) => {
-              const name = t(`dashboard:setores.${department}`);
-
               return (
                 <tr key={department}>
                   <th scope="row" className="py-1 pr-2 text-left font-normal">
-                    {/* Sem quebra: um nome em duas linhas deixaria a linha inteira
-                        mais alta que as outras. Se não couber, corta com
-                        reticências e o nome completo fica no hover. */}
-                    <span
-                      className="block truncate font-bold text-heading"
-                      title={name}
-                    >
-                      {name}
-                    </span>
-                    <span className="block text-xs text-muted-foreground">
+                    {/* O setor como tag, igual à tabela de membros. O selo não
+                        quebra linha: um nome em duas linhas deixaria a linha
+                        inteira mais alta que as outras. */}
+                    <DepartmentTag department={department} />
+                    <span className="mt-1 block text-xs text-muted-foreground">
                       {t('dashboardPrisma:mapa.respostas', {
                         total: respondents,
                       })}

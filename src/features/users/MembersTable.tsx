@@ -31,10 +31,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useRowSelection } from '@/hooks/useRowSelection';
+import { DepartmentTag } from '@/components/department/DepartmentTag';
 import { useTablePage } from '@/hooks/useTablePage';
 import { useTableSort } from '@/hooks/useTableSort';
 import { cn, normalizeForSearch } from '@/lib/utils';
-import type { Member, MemberTag } from '@/types/api';
+import type { Member } from '@/types/api';
 
 const OPTIONAL_COLUMNS = [
   'email',
@@ -61,12 +62,6 @@ function formatDate(iso: string, language: string) {
   return new Intl.DateTimeFormat(language, { dateStyle: 'short' }).format(
     new Date(iso),
   );
-}
-
-function tagBadgeClass(tag: MemberTag) {
-  if (tag === 'marketing') return 'bg-[#009E4F]';
-  if (tag === 'vendas') return 'bg-[#008AC9]';
-  return 'bg-[#8B1E8B]';
 }
 
 export function MembersTable({
@@ -280,9 +275,7 @@ export function MembersTable({
                   )}
                   {isVisible('tag') && (
                     <CenterCell>
-                      <StatusPill className={tagBadgeClass(member.tag)}>
-                        {t(`organizations:members.tags.${member.tag}`)}
-                      </StatusPill>
+                      <DepartmentTag department={member.tag} />
                     </CenterCell>
                   )}
                   {isVisible('updatedAt') && (
@@ -352,9 +345,7 @@ export function MembersTable({
                   {t('organizations:members.columnNames.tag')}
                 </dt>
                 <dd>
-                  <StatusPill className={tagBadgeClass(details.tag)}>
-                    {t(`organizations:members.tags.${details.tag}`)}
-                  </StatusPill>
+                  <DepartmentTag department={details.tag} />
                 </dd>
               </div>
               <div>
