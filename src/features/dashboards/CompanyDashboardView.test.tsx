@@ -181,6 +181,29 @@ describe('CompanyDashboardView', () => {
     ).toHaveTextContent('Marketing 2025/2');
   });
 
+  it('should compare with a department in the displayed period by picking it', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    // Sem setor, o período exibido aparece no menu, mas não dá para escolher:
+    // seria comparar a organização com ela mesma.
+    await user.click(screen.getByRole('button', { name: '2025/2' }));
+    expect(
+      screen.getByRole('menuitemradio', { name: '2026/1' }),
+    ).toHaveAttribute('aria-disabled', 'true');
+    await user.keyboard('{Escape}');
+
+    // Com o setor marcado, o período exibido vale: Marketing em 2026/1.
+    await user.click(await screen.findByRole('button', { name: 'Setor' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Marketing' }));
+    await user.click(await screen.findByRole('button', { name: '2025/2' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '2026/1' }));
+
+    expect(
+      await screen.findByText('Acme Inc. 2026/1 em relação a Marketing 2026/1'),
+    ).toBeInTheDocument();
+  });
+
   it('should compare with a department in the current period when no period is checked', async () => {
     const user = userEvent.setup();
     await renderizar();

@@ -62,9 +62,15 @@ export function OverviewSection({
     null,
   );
 
+  // No contrato, o período exibido na comparação é nulo ("o mesmo"); no
+  // botão, ele aparece pelo nome. Com um setor e nenhum período marcado, o
+  // botão mostra o período exibido, que é o que a comparação usa.
+  const contractPeriod = comparedPeriod === period ? null : comparedPeriod;
+  const shownComparedPeriod =
+    comparedPeriod ?? (comparedScope === null ? null : period);
   const selected = comparisons.find(
     (comparison) =>
-      comparison.period === comparedPeriod &&
+      comparison.period === contractPeriod &&
       comparison.scope === comparedScope,
   );
   const departmentName = (department: DepartmentType) =>
@@ -106,11 +112,13 @@ export function OverviewSection({
           </span>
           <ComparisonFilter
             placeholder={t('dashboard:Periodo')}
-            options={comparisonOptions.periods.map((period) => ({
-              id: period,
-              label: period,
+            options={comparisonOptions.periods.map((option) => ({
+              id: option,
+              label: option,
+              // Sem setor, o período exibido seria o recorte contra ele mesmo.
+              disabled: option === period && comparedScope === null,
             }))}
-            value={comparedPeriod}
+            value={shownComparedPeriod}
             onChange={setComparedPeriod}
             onClear={clear}
           />

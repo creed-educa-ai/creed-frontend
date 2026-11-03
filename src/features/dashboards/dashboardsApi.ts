@@ -93,7 +93,8 @@ export interface DepartmentRow {
 
 /** O que dá para escolher nos dois botões de comparação. */
 export interface ComparisonOptions {
-  // Os outros períodos, do mais recente para o mais antigo.
+  // Todos os períodos, do mais recente para o mais antigo, inclusive o
+  // exibido: com um setor escolhido, dá para comparar no mesmo período.
   periods: string[];
   // Todos os setores, inclusive o exibido. Quem responde não compara com
   // setores (lista vazia).
@@ -355,7 +356,7 @@ function buildResult(
     scores,
     dimensions,
     comparison_options: {
-      periods: otherPeriods,
+      periods,
       departments: comparableDepartments,
       default_period: periods[periods.indexOf(period) + 1] ?? null,
     },

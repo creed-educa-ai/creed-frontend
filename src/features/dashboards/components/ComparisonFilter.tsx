@@ -17,6 +17,9 @@ interface ComparisonOption<T extends string> {
   label: string;
   // Desenho antes do nome, no menu e no botão (ex.: a cor do setor).
   icon?: ReactNode;
+  // Aparece no menu, mas não dá para escolher (ex.: o período exibido sem
+  // setor, que seria comparar o recorte com ele mesmo).
+  disabled?: boolean;
 }
 
 // Genérico no id para o setor voltar como `DepartmentType`, e não string.
@@ -59,6 +62,7 @@ export function ComparisonFilter<T extends string>({
             <DropdownMenuRadioItem
               key={option.id}
               value={option.id}
+              disabled={option.disabled ?? false}
               onSelect={() => {
                 onChange(option.id);
               }}
