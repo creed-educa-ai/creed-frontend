@@ -7,6 +7,7 @@ import type {
   PrismaComparison,
   TeamAlignment,
 } from '@/features/dashboards/dashboardsApi';
+import { cn } from '@/lib/utils';
 import type { DepartmentType } from '@/types/api';
 import type { DimensionScores } from '@/features/dashboards/prismas';
 import { AlignmentCard } from './AlignmentCard';
@@ -160,17 +161,23 @@ export function OverviewSection({
         </div>
       </div>
 
-      {/* Linha própria, larga: barras empilhadas leem melhor assim. Ainda não
-          segue a comparação. */}
-      {alignment && (
-        <div className="mt-4">
-          <AlignmentCard alignment={alignment} shownLabel={shownLabel} />
-        </div>
-      )}
-
-      {departmentMatrix && (
-        <div className="mt-4">
-          <DepartmentMatrixCard rows={departmentMatrix} period={period} />
+      {/* Alinhamento | Setores × prismas, lado a lado no desktop: o
+          alinhamento fica estreito (as barras leem bem assim) e a tabela com
+          o resto. Sem alinhamento (recorte de funcionário), a tabela ocupa a
+          linha. Nenhum dos dois segue a comparação. */}
+      {(alignment ?? departmentMatrix) && (
+        <div
+          className={cn(
+            'mt-4 grid grid-cols-1 gap-4',
+            alignment && departmentMatrix && 'xl:grid-cols-[2fr_3fr]',
+          )}
+        >
+          {alignment && (
+            <AlignmentCard alignment={alignment} shownLabel={shownLabel} />
+          )}
+          {departmentMatrix && (
+            <DepartmentMatrixCard rows={departmentMatrix} period={period} />
+          )}
         </div>
       )}
     </CollapsibleSection>

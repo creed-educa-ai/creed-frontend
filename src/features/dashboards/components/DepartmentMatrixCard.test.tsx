@@ -62,6 +62,15 @@ describe('DepartmentMatrixCard', () => {
     expect(screen.getByText('Financeiro')).toHaveClass('bg-[#008AC9]');
   });
 
+  it('sem setores cadastrados mostra o aviso no lugar da tabela', () => {
+    render(<DepartmentMatrixCard rows={[]} period="2026/1" />);
+
+    expect(
+      screen.getByText('Esta organização ainda não tem setores cadastrados.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
   it('mostra traço no setor sem respostas', () => {
     render(<DepartmentMatrixCard rows={ROWS} period="2026/1" />);
 

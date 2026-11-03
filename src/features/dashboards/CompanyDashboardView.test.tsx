@@ -190,14 +190,10 @@ describe('CompanyDashboardView', () => {
     await user.click(screen.getByRole('button', { name: '2025/2' }));
     await user.click(screen.getByRole('menuitem', { name: 'Sem comparação' }));
     await user.click(await screen.findByRole('button', { name: 'Setor' }));
-    await user.click(
-      screen.getByRole('menuitemradio', { name: 'Recursos Humanos' }),
-    );
+    await user.click(screen.getByRole('menuitemradio', { name: 'RH' }));
 
     expect(
-      await screen.findByText(
-        'Acme Inc. 2026/1 em relação a Recursos Humanos 2026/1',
-      ),
+      await screen.findByText('Acme Inc. 2026/1 em relação a RH 2026/1'),
     ).toBeInTheDocument();
     expect(screen.getByText('diminuiu 14')).toBeInTheDocument();
   });
@@ -396,10 +392,10 @@ describe('CompanyDashboardView', () => {
       screen.getByRole('table', {
         name: '2026/1 · diferença em relação à empresa',
       });
-    // Recursos Humanos: 3 pontos acima da empresa em Liderança Adaptativa.
-    expect(
-      within(mapa()).getByRole('row', { name: /Recursos Humanos/ }),
-    ).toHaveTextContent('80 +3');
+    // RH: 3 pontos acima da empresa em Liderança Adaptativa.
+    expect(within(mapa()).getByRole('row', { name: /RH/ })).toHaveTextContent(
+      '80 +3',
+    );
     expect(within(mapa()).queryByRole('button')).not.toBeInTheDocument();
 
     // Escolher um funcionário no topo não muda o mapa.
@@ -420,9 +416,9 @@ describe('CompanyDashboardView', () => {
         'Tom Cruise 2026/1 em relação a Tom Cruise 2025/2',
       ),
     ).toBeInTheDocument();
-    expect(
-      within(mapa()).getByRole('row', { name: /Recursos Humanos/ }),
-    ).toHaveTextContent('80 +3');
+    expect(within(mapa()).getByRole('row', { name: /RH/ })).toHaveTextContent(
+      '80 +3',
+    );
   });
 
   it('should render the recommendation card in the Creed.ai summary', async () => {
@@ -457,8 +453,8 @@ describe('CompanyDashboardView', () => {
       'Marketing',
       'Financeiro',
       'Administrativo',
-      'Recursos Humanos',
-      'Tecnologia da Informação',
+      'RH',
+      'TI',
     ]) {
       expect(
         await screen.findByRole('menuitemradio', { name }),
@@ -466,13 +462,13 @@ describe('CompanyDashboardView', () => {
     }
 
     const ti = screen.getByRole('menuitemradio', {
-      name: 'Tecnologia da Informação',
+      name: 'TI',
     });
     ti.focus();
     await user.keyboard('{Enter}');
 
     await waitFor(() => {
-      expect(viewTrigger).toHaveTextContent('Tecnologia da Informação');
+      expect(viewTrigger).toHaveTextContent('TI');
     });
   });
 

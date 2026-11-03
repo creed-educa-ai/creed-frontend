@@ -61,84 +61,98 @@ export function DepartmentMatrixCard({
         <span>{t('dashboardPrisma:mapa.neutro')}</span>
       </div>
 
-      {/* No celular a tabela rola de lado dentro do card, não a página. */}
-      <div className="mt-4 overflow-x-auto">
-        {/* Layout fixo: a coluna do setor tem largura própria e os cinco
+      {/* Nem toda organização tem todos os setores: o mapa lista os que o
+          back mandar, e nenhum vira um aviso no lugar da tabela. */}
+      {rows.length === 0 ? (
+        <p className="mt-4 text-sm text-card-foreground">
+          {t('dashboardPrisma:mapa.semSetores')}
+        </p>
+      ) : (
+        <>
+          {/* No celular a tabela rola de lado dentro do card, não a página. */}
+          <div className="mt-4 overflow-x-auto">
+            {/* Layout fixo: a coluna do setor tem largura própria e os cinco
             prismas dividem o resto por igual, sem depender do tamanho do
             título de cada um. */}
-        <table className="w-full min-w-[40rem] table-fixed border-separate border-spacing-1 text-sm">
-          <caption className="sr-only">
-            {t('dashboardPrisma:mapa.subtitulo', { periodo: period })}
-          </caption>
-          <colgroup>
-            {/* Cabe "Tecnología de la Información", o nome mais longo. */}
-            <col className="w-56" />
-            {PRISMAS.map((prisma) => (
-              <col key={prisma} />
-            ))}
-          </colgroup>
-          <thead>
-            <tr>
-              <th
-                scope="col"
-                className="text-left font-medium text-muted-foreground"
-              >
-                {t('dashboard:Setor')}
-              </th>
-              {PRISMAS.map((prisma) => (
-                <th
-                  key={prisma}
-                  scope="col"
-                  className="px-2 pb-1 text-center text-xs font-medium text-muted-foreground"
-                >
-                  {t(`dashboardPrisma:prismas.${prisma}`)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(({ department, respondents, scores, difference }) => {
-              return (
-                <tr key={department}>
-                  <th scope="row" className="py-1 pr-2 text-left font-normal">
-                    {/* O setor como tag, igual à tabela de membros. O selo não
-                        quebra linha: um nome em duas linhas deixaria a linha
-                        inteira mais alta que as outras. */}
-                    <DepartmentTag department={department} />
-                    <span className="mt-1 block text-xs text-muted-foreground">
-                      {t('dashboardPrisma:mapa.respostas', {
-                        total: respondents,
-                      })}
-                    </span>
+            <table className="w-full min-w-[30rem] table-fixed border-separate border-spacing-1 text-sm">
+              <caption className="sr-only">
+                {t('dashboardPrisma:mapa.subtitulo', { periodo: period })}
+              </caption>
+              <colgroup>
+                {/* Estreita, para a tabela caber ao lado do alinhamento: os nomes
+                dos setores são curtos (RH, TI). */}
+                <col className="w-44" />
+                {PRISMAS.map((prisma) => (
+                  <col key={prisma} />
+                ))}
+              </colgroup>
+              <thead>
+                <tr>
+                  <th
+                    scope="col"
+                    className="text-left font-medium text-muted-foreground"
+                  >
+                    {t('dashboard:Setor')}
                   </th>
                   {PRISMAS.map((prisma) => (
-                    <td
+                    <th
                       key={prisma}
-                      className={cn(
-                        'rounded-md px-2 py-2 text-center',
-                        difference && cellColor(difference[prisma]),
-                      )}
+                      scope="col"
+                      className="px-1 pb-1 text-center text-[11px] leading-tight font-medium text-muted-foreground"
                     >
-                      {scores && difference ? (
-                        <>
-                          <span className="font-bold text-foreground">
-                            {scores[prisma]}
-                          </span>{' '}
-                          <span className="text-xs text-foreground">
-                            {signed(difference[prisma])}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
+                      {t(`dashboardPrisma:prismas.${prisma}`)}
+                    </th>
                   ))}
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {rows.map(({ department, respondents, scores, difference }) => {
+                  return (
+                    <tr key={department}>
+                      <th
+                        scope="row"
+                        className="py-1 pr-2 text-left font-normal"
+                      >
+                        {/* O setor como tag, igual à tabela de membros. O selo não
+                        quebra linha: um nome em duas linhas deixaria a linha
+                        inteira mais alta que as outras. */}
+                        <DepartmentTag department={department} />
+                        <span className="mt-1 block text-xs text-muted-foreground">
+                          {t('dashboardPrisma:mapa.respostas', {
+                            total: respondents,
+                          })}
+                        </span>
+                      </th>
+                      {PRISMAS.map((prisma) => (
+                        <td
+                          key={prisma}
+                          className={cn(
+                            'rounded-md px-1 py-2 text-center whitespace-nowrap',
+                            difference && cellColor(difference[prisma]),
+                          )}
+                        >
+                          {scores && difference ? (
+                            <>
+                              <span className="font-bold text-foreground">
+                                {scores[prisma]}
+                              </span>{' '}
+                              <span className="text-xs text-foreground">
+                                {signed(difference[prisma])}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </article>
   );
 }

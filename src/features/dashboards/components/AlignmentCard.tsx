@@ -33,7 +33,7 @@ export function AlignmentCard({ alignment, shownLabel }: AlignmentCardProps) {
   const { prismas, respondents } = alignment;
 
   return (
-    <article className="rounded-2xl bg-card p-5 shadow-sm">
+    <article className="flex h-full flex-col rounded-2xl bg-card p-5 shadow-sm">
       <div className="flex items-center gap-1.5">
         <h3 className="text-xl font-bold text-heading">
           {t('dashboardPrisma:alinhamento.titulo')}
@@ -68,22 +68,33 @@ export function AlignmentCard({ alignment, shownLabel }: AlignmentCardProps) {
             ))}
           </div>
 
-          <ul className="mt-4 flex flex-col gap-4">
+          {/* A lista ocupa a altura que sobra e reparte o espaço entre as
+              linhas: ao lado do mapa de setores, os dois cards terminam juntos. */}
+          <ul className="mt-4 flex flex-1 flex-col justify-between gap-4">
             {PRISMAS.map((prisma) => {
               const { bands, level } = prismas[prisma];
 
               return (
-                <li
-                  key={prisma}
-                  className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4"
-                >
-                  <span className="text-sm font-bold text-heading sm:w-52 sm:shrink-0">
-                    {t(`dashboardPrisma:prismas.${prisma}`)}
-                  </span>
+                <li key={prisma} className="flex flex-col gap-1.5">
+                  {/* Nome e nível numa linha, a barra embaixo com a largura
+                      toda: cabe ao lado do mapa de setores. */}
+                  <div className="flex items-baseline justify-between gap-3 text-sm">
+                    <span className="font-bold text-heading">
+                      {t(`dashboardPrisma:prismas.${prisma}`)}
+                    </span>
+                    <span
+                      className={cn(
+                        'shrink-0 font-semibold',
+                        LEVEL_COLORS[level],
+                      )}
+                    >
+                      {t(`dashboardPrisma:alinhamento.niveis.${level}`)}
+                    </span>
+                  </div>
 
                   {/* Cada pedaço cresce na proporção das pessoas da faixa. */}
                   <div
-                    className="flex h-4 flex-1 gap-0.5 overflow-hidden rounded-full"
+                    className="flex h-4 gap-0.5 overflow-hidden rounded-full"
                     aria-hidden="true"
                   >
                     {BANDS.map(
@@ -99,15 +110,6 @@ export function AlignmentCard({ alignment, shownLabel }: AlignmentCardProps) {
                   </div>
                   <span className="sr-only">
                     {t('dashboardPrisma:alinhamento.leitor', bands)}
-                  </span>
-
-                  <span
-                    className={cn(
-                      'text-sm font-semibold sm:w-24 sm:shrink-0 sm:text-right',
-                      LEVEL_COLORS[level],
-                    )}
-                  >
-                    {t(`dashboardPrisma:alinhamento.niveis.${level}`)}
                   </span>
                 </li>
               );

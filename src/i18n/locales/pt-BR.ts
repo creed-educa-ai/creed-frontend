@@ -7,8 +7,8 @@ export const ptBR = {
       Marketing: 'Marketing',
       Financeiro: 'Financeiro',
       Administrativo: 'Administrativo',
-      RecursosHumanos: 'Recursos Humanos',
-      TecnologiaInformacao: 'Tecnologia da Informação',
+      RecursosHumanos: 'RH',
+      TecnologiaInformacao: 'TI',
     },
     // Textos que as tabelas compartilham (src/components/table).
     tabela: {
@@ -245,6 +245,7 @@ export const ptBR = {
       },
     },
     mapa: {
+      semSetores: 'Esta organização ainda não tem setores cadastrados.',
       titulo: 'Setores × prismas',
       subtitulo: '{{periodo}} · diferença em relação à empresa',
       acima: 'Acima da empresa',

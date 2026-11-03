@@ -9,8 +9,8 @@ export const en: typeof ptBR = {
       Marketing: 'Marketing',
       Financeiro: 'Finance',
       Administrativo: 'Administration',
-      RecursosHumanos: 'Human Resources',
-      TecnologiaInformacao: 'Information Technology',
+      RecursosHumanos: 'HR',
+      TecnologiaInformacao: 'IT',
     },
     // Textos que as tabelas compartilham (src/components/table).
     tabela: {
@@ -243,6 +243,7 @@ export const en: typeof ptBR = {
       },
     },
     mapa: {
+      semSetores: 'This organization has no departments yet.',
       titulo: 'Departments × prisms',
       subtitulo: '{{periodo}} · difference from the company',
       acima: 'Above the company',

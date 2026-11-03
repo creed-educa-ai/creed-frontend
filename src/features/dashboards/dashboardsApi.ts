@@ -143,8 +143,8 @@ export interface CompanyDashboard extends UserDashboard {
   company_summary: CompanySummary;
   // Nulo no recorte de um funcionário: uma pessoa só não tem dispersão.
   alignment: TeamAlignment | null;
-  // Uma linha por setor, sempre da organização inteira no período pedido: o
-  // recorte (setor ou funcionário) não muda o mapa.
+  // Uma linha por setor cadastrado na organização (pode ser nenhum), sempre
+  // da organização inteira no período pedido: o recorte não muda o mapa.
   department_matrix: DepartmentRow[];
 }
 
@@ -384,8 +384,8 @@ const MOCK_DEPARTMENT_NAMES: Record<DepartmentType, string> = {
   Marketing: 'Marketing',
   Financeiro: 'Financeiro',
   Administrativo: 'Administrativo',
-  RecursosHumanos: 'Recursos Humanos',
-  TecnologiaInformacao: 'Tecnologia da Informação',
+  RecursosHumanos: 'RH',
+  TecnologiaInformacao: 'TI',
 };
 
 // Concluídos e convidados por setor; somam os 50/67 da organização.

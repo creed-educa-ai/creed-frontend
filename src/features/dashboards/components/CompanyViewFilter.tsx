@@ -80,28 +80,30 @@ export function CompanyViewFilter({
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
 
-        {/* SELETOR DE SETOR */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            {t('dashboard:Setor')}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
-            <DropdownMenuRadioGroup value={selected}>
-              {departments.map((department) => (
-                <DropdownMenuRadioItem
-                  key={department.id}
-                  value={viewKey({ department: department.id })}
-                  onSelect={() => {
-                    onChange({ department: department.id });
-                  }}
-                >
-                  <DepartmentDot department={department.id} />
-                  {department.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        {/* SELETOR DE SETOR: some se a organização não tem setores. */}
+        {departments.length > 0 && (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              {t('dashboard:Setor')}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
+              <DropdownMenuRadioGroup value={selected}>
+                {departments.map((department) => (
+                  <DropdownMenuRadioItem
+                    key={department.id}
+                    value={viewKey({ department: department.id })}
+                    onSelect={() => {
+                      onChange({ department: department.id });
+                    }}
+                  >
+                    <DepartmentDot department={department.id} />
+                    {department.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        )}
 
         {/* SELETOR DE FUNCIONÁRIO */}
         <DropdownMenuSub>

@@ -10,16 +10,14 @@ describe('DepartmentTag', () => {
   it('mostra o nome traduzido do setor com a cor dele', () => {
     render(<DepartmentTag department="TecnologiaInformacao" />);
 
-    expect(screen.getByText('Tecnologia da Informação')).toHaveClass(
-      'bg-[#C2185B]',
-    );
+    expect(screen.getByText('TI')).toHaveClass('bg-[#C2185B]');
   });
 
   it('traduz o nome do setor', async () => {
     await i18n.changeLanguage('en');
     render(<DepartmentTag department="RecursosHumanos" />);
 
-    expect(screen.getByText('Human Resources')).toBeInTheDocument();
+    expect(screen.getByText('HR')).toBeInTheDocument();
   });
 });
 
