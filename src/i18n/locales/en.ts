@@ -246,6 +246,7 @@ export const en: typeof ptBR = {
       semSetores: 'This organization has no departments yet.',
       titulo: 'Departments × prisms',
       subtitulo: '{{periodo}} · difference from the company',
+      diferenca: 'difference from the company',
       acima: 'Above the company',
       abaixo: 'Below the company',
       neutro: 'No color: difference under 3 points',
@@ -254,6 +255,7 @@ export const en: typeof ptBR = {
     alinhamento: {
       titulo: 'Team alignment',
       respostas: '{{exibido}} · {{total}} responses',
+      total: '{{total}} responses',
       semRespostas: 'There are no responses for this view yet.',
       faixas: {
         baixa: 'Low (up to 40)',
@@ -271,6 +273,8 @@ export const en: typeof ptBR = {
       titulo: 'Change by prism',
       comparadoCom: '{{exibido}} compared with {{referencia}}',
       semComparacao: '{{exibido}}, no comparison.',
+      emRelacaoA: 'compared with',
+      semReferencia: 'no comparison',
       aumentou: 'up {{valor}}',
       diminuiu: 'down {{valor}}',
       estavel: 'no change',

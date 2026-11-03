@@ -4,6 +4,7 @@ import {
   type DimensionScores,
 } from '@/features/dashboards/prismas';
 import { InfoTip } from './InfoTip';
+import { ShownChip } from './ShownChip';
 
 interface DimensionsCardProps {
   scores: DimensionScores;
@@ -37,19 +38,28 @@ export function DimensionsCard({
       </div>
 
       {/* Legenda: a barra grossa é o exibido, a fina é a comparação. */}
-      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5">
-          <span aria-hidden="true" className="h-3 w-4 rounded-sm bg-chart-1" />
-          {shownLabel}
-        </span>
-        {comparison && (
-          <span className="inline-flex items-center gap-1.5">
+      <div className="mt-3 flex flex-wrap gap-2">
+        <ShownChip
+          swatch={
             <span
               aria-hidden="true"
-              className="h-1.5 w-4 rounded-sm bg-chart-2"
+              className="h-3 w-4 rounded-sm bg-chart-1"
             />
+          }
+        >
+          {shownLabel}
+        </ShownChip>
+        {comparison && (
+          <ShownChip
+            swatch={
+              <span
+                aria-hidden="true"
+                className="h-1.5 w-4 rounded-sm bg-chart-2"
+              />
+            }
+          >
             {comparison.label}
-          </span>
+          </ShownChip>
         )}
       </div>
 

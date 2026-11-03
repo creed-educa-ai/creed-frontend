@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import type { TeamAlignment } from '@/features/dashboards/dashboardsApi';
 import { PRISMAS } from '@/features/dashboards/prismas';
+import { StatusPill } from '@/components/table/tablePills';
 import { cn } from '@/lib/utils';
 import { InfoTip } from './InfoTip';
+import { ShownChip } from './ShownChip';
 
 interface AlignmentCardProps {
   alignment: TeamAlignment;
@@ -19,10 +21,12 @@ const BAND_COLORS: Record<(typeof BANDS)[number], string> = {
   alta: 'bg-chart-1',
 };
 
+// O nível como tag, no selo de status das tabelas: verde alinhado, amarelo
+// dividido e cinza no meio.
 const LEVEL_COLORS = {
-  alinhado: 'text-success',
-  moderado: 'text-muted-foreground',
-  dividido: 'text-warning',
+  alinhado: 'bg-success',
+  moderado: 'bg-muted-foreground',
+  dividido: 'bg-warning',
 };
 
 // Se o grupo deu notas parecidas em cada prisma ou se dividiu. Cada barra é o
@@ -43,11 +47,21 @@ export function AlignmentCard({ alignment, shownLabel }: AlignmentCardProps) {
           text={t('dashboard:info.alinhamento')}
         />
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {t('dashboardPrisma:alinhamento.respostas', {
-          exibido: shownLabel,
-          total: respondents,
-        })}
+      {/* O recorte em etiqueta; o leitor de tela ouve a frase inteira. */}
+      <p className="mt-3 text-sm text-muted-foreground">
+        <span
+          aria-hidden="true"
+          className="flex flex-wrap items-center gap-x-2 gap-y-1"
+        >
+          <ShownChip>{shownLabel}</ShownChip>
+          {t('dashboardPrisma:alinhamento.total', { total: respondents })}
+        </span>
+        <span className="sr-only">
+          {t('dashboardPrisma:alinhamento.respostas', {
+            exibido: shownLabel,
+            total: respondents,
+          })}
+        </span>
       </p>
 
       {prismas === null ? (
@@ -78,18 +92,13 @@ export function AlignmentCard({ alignment, shownLabel }: AlignmentCardProps) {
                 <li key={prisma} className="flex flex-col gap-1.5">
                   {/* Nome e nível numa linha, a barra embaixo com a largura
                       toda: cabe ao lado do mapa de setores. */}
-                  <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <div className="flex items-center justify-between gap-3 text-sm">
                     <span className="font-bold text-heading">
                       {t(`dashboardPrisma:prismas.${prisma}`)}
                     </span>
-                    <span
-                      className={cn(
-                        'shrink-0 font-semibold',
-                        LEVEL_COLORS[level],
-                      )}
-                    >
+                    <StatusPill className={cn('shrink-0', LEVEL_COLORS[level])}>
                       {t(`dashboardPrisma:alinhamento.niveis.${level}`)}
-                    </span>
+                    </StatusPill>
                   </div>
 
                   {/* Cada pedaço cresce na proporção das pessoas da faixa. */}

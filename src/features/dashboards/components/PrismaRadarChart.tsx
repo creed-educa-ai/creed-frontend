@@ -11,6 +11,7 @@ import { ChartContainer } from '@/components/ui/chart';
 import { PRISMAS } from '@/features/dashboards/prismas';
 import type { Prisma } from '@/types/api';
 import { InfoTip } from './InfoTip';
+import { ShownChip } from './ShownChip';
 
 export type PrismaScores = Record<Prisma, number>;
 
@@ -130,29 +131,13 @@ function PeriodLegend({
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      <span
-        className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
-        style={{
-          borderColor: 'var(--border)',
-          backgroundColor: 'var(--accent)',
-          color: 'var(--accent-foreground)',
-        }}
-      >
-        <LegendSwatch series="current" />
+      <ShownChip swatch={<LegendSwatch series="current" />}>
         {current.label}
-      </span>
+      </ShownChip>
       {comparison && (
-        <span
-          className="inline-flex items-center gap-2 rounded-md border border-border bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground"
-          style={{
-            borderColor: 'var(--border)',
-            backgroundColor: 'var(--accent)',
-            color: 'var(--accent-foreground)',
-          }}
-        >
-          <LegendSwatch series="comparison" />
+        <ShownChip swatch={<LegendSwatch series="comparison" />}>
           {comparison.label}
-        </span>
+        </ShownChip>
       )}
     </div>
   );

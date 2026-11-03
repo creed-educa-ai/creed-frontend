@@ -248,6 +248,7 @@ export const ptBR = {
       semSetores: 'Esta organização ainda não tem setores cadastrados.',
       titulo: 'Setores × prismas',
       subtitulo: '{{periodo}} · diferença em relação à empresa',
+      diferenca: 'diferença em relação à empresa',
       acima: 'Acima da empresa',
       abaixo: 'Abaixo da empresa',
       neutro: 'Sem cor: diferença menor que 3 pontos',
@@ -256,6 +257,7 @@ export const ptBR = {
     alinhamento: {
       titulo: 'Alinhamento da equipe',
       respostas: '{{exibido}} · {{total}} respostas',
+      total: '{{total}} respostas',
       semRespostas: 'Ainda não há respostas neste recorte.',
       faixas: {
         baixa: 'Baixa (até 40)',
@@ -273,6 +275,8 @@ export const ptBR = {
       titulo: 'Variação por prisma',
       comparadoCom: '{{exibido}} em relação a {{referencia}}',
       semComparacao: '{{exibido}}, sem comparação.',
+      emRelacaoA: 'em relação a',
+      semReferencia: 'sem comparação',
       aumentou: 'aumentou {{valor}}',
       diminuiu: 'diminuiu {{valor}}',
       estavel: 'sem variação',

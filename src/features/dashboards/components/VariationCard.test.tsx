@@ -40,6 +40,13 @@ describe('VariationCard', () => {
       screen.getByRole('heading', { name: 'Variação por prisma' }),
     ).toBeInTheDocument();
     expect(screen.getByText('2026/1 em relação a 2025/1')).toBeInTheDocument();
+    // Na tela, os dois recortes aparecem em etiqueta, com o fundo do radar.
+    expect(screen.getByText('2026/1', { selector: 'span' })).toHaveClass(
+      'bg-accent',
+    );
+    expect(screen.getByText('2025/1', { selector: 'span' })).toHaveClass(
+      'bg-accent',
+    );
 
     const rows = screen.getAllByRole('listitem');
     // Nome, número da seta, descrição para leitor de tela e a nota.

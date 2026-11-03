@@ -42,6 +42,13 @@ describe('AlignmentCard', () => {
     expect(screen.getAllByText('Alinhado')).toHaveLength(4);
   });
 
+  it('mostra o nível como tag, verde no alinhado e amarelo no dividido', () => {
+    render(<AlignmentCard alignment={ALIGNMENT} shownLabel="2026/1" />);
+
+    expect(screen.getAllByText('Alinhado')[0]).toHaveClass('bg-success');
+    expect(screen.getByText('Dividido')).toHaveClass('bg-warning');
+  });
+
   it('sem nenhuma resposta mostra o aviso no lugar das barras', () => {
     render(
       <AlignmentCard

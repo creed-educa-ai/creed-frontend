@@ -249,6 +249,7 @@ export const es: typeof ptBR = {
       semSetores: 'Esta organización todavía no tiene sectores registrados.',
       titulo: 'Sectores × prismas',
       subtitulo: '{{periodo}} · diferencia con la empresa',
+      diferenca: 'diferencia con la empresa',
       acima: 'Por encima de la empresa',
       abaixo: 'Por debajo de la empresa',
       neutro: 'Sin color: diferencia menor que 3 puntos',
@@ -257,6 +258,7 @@ export const es: typeof ptBR = {
     alinhamento: {
       titulo: 'Alineación del equipo',
       respostas: '{{exibido}} · {{total}} respuestas',
+      total: '{{total}} respuestas',
       semRespostas: 'Todavía no hay respuestas en este recorte.',
       faixas: {
         baixa: 'Baja (hasta 40)',
@@ -274,6 +276,8 @@ export const es: typeof ptBR = {
       titulo: 'Variación por prisma',
       comparadoCom: '{{exibido}} en relación con {{referencia}}',
       semComparacao: '{{exibido}}, sin comparación.',
+      emRelacaoA: 'en relación con',
+      semReferencia: 'sin comparación',
       aumentou: 'subió {{valor}}',
       diminuiu: 'bajó {{valor}}',
       estavel: 'sin variación',

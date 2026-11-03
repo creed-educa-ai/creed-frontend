@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { InfoTip } from './InfoTip';
+import { ShownChip } from './ShownChip';
 import { PRISMAS } from '@/features/dashboards/prismas';
 import type { PrismaScores } from './PrismaRadarChart';
 
@@ -26,13 +27,13 @@ function VariationBadge({ value }: { value: number }) {
   return (
     <span
       className={cn(
-        'flex w-12 items-center justify-end gap-0.5 text-sm font-bold',
+        'flex w-14 items-center justify-end gap-0.5 text-base font-bold',
         value > 0 && 'text-success',
         value < 0 && 'text-destructive',
         value === 0 && 'text-muted-foreground',
       )}
     >
-      <Icon className="size-4" aria-hidden="true" />
+      <Icon className="size-5" aria-hidden="true" />
       <span aria-hidden="true">{value === 0 ? '' : Math.abs(value)}</span>
       <span className="sr-only">{description}</span>
     </span>
@@ -65,15 +66,33 @@ export function VariationCard({
           text={t('dashboard:info.variacao')}
         />
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {comparison
-          ? t('dashboardPrisma:variacao.comparadoCom', {
-              exibido: shownLabel,
-              referencia: comparison.label,
-            })
-          : t('dashboardPrisma:variacao.semComparacao', {
-              exibido: shownLabel,
-            })}
+      {/* Os recortes em etiqueta, com a ligação em texto. O leitor de tela
+          ouve a frase inteira, traduzida de uma vez. */}
+      <p className="mt-3 text-sm text-muted-foreground">
+        <span
+          aria-hidden="true"
+          className="flex flex-wrap items-center gap-x-2 gap-y-1"
+        >
+          <ShownChip>{shownLabel}</ShownChip>
+          {comparison ? (
+            <>
+              {t('dashboardPrisma:variacao.emRelacaoA')}
+              <ShownChip>{comparison.label}</ShownChip>
+            </>
+          ) : (
+            t('dashboardPrisma:variacao.semReferencia')
+          )}
+        </span>
+        <span className="sr-only">
+          {comparison
+            ? t('dashboardPrisma:variacao.comparadoCom', {
+                exibido: shownLabel,
+                referencia: comparison.label,
+              })
+            : t('dashboardPrisma:variacao.semComparacao', {
+                exibido: shownLabel,
+              })}
+        </span>
       </p>
 
       {/* As linhas dividem a altura do card: ao lado do radar, os dois cards
@@ -90,8 +109,9 @@ export function VariationCard({
               key={prisma}
               className="flex flex-1 items-center justify-between gap-3 py-2.5"
             >
-              <span className="text-sm">
-                <span className="font-bold text-heading">{first}</span>
+              {/* A palavra em roxo um tom acima do resto, em cinza. */}
+              <span className="text-base">
+                <span className="text-lg font-bold text-heading">{first}</span>
                 {rest.length > 0 && (
                   <span className="font-medium text-muted-foreground">
                     {' '}
@@ -106,7 +126,7 @@ export function VariationCard({
                 {comparison ? (
                   <VariationBadge value={comparison.variation[prisma]} />
                 ) : (
-                  <span className="w-12" aria-hidden="true" />
+                  <span className="w-14" aria-hidden="true" />
                 )}
                 <span className="text-xl font-bold text-heading">
                   {scores[prisma]}

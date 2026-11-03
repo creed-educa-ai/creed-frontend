@@ -47,12 +47,16 @@ describe('DepartmentMatrixCard', () => {
       '60 −9',
       '58 +8',
     ]);
-    // Acima da empresa é verde, abaixo é amarelo; menos de 3 pontos fica
-    // sem cor.
-    expect(cells[0]).toHaveClass('bg-success');
-    expect(cells[3]).toHaveClass('bg-warning');
-    expect(cells[1]).not.toHaveClass('bg-success', 'bg-warning');
-    expect(cells[2]).not.toHaveClass('bg-success', 'bg-warning');
+    // Contorno verde acima da empresa, amarelo abaixo; menos de 3 pontos
+    // fica sem cor. Os números ficam sempre no roxo.
+    const outlines = cells.map((cell) => cell.firstElementChild);
+    expect(outlines[0]).toHaveClass('border-success');
+    expect(outlines[3]).toHaveClass('border-warning');
+    expect(outlines[1]).not.toHaveClass('border-success', 'border-warning');
+    expect(outlines[2]).not.toHaveClass('border-success', 'border-warning');
+    expect(within(marketing).getByText('82')).toHaveClass('text-chart-1');
+    expect(within(marketing).getByText('+3')).toHaveClass('text-chart-2');
+    expect(within(marketing).getByText('−9')).toHaveClass('text-chart-2');
   });
 
   it('mostra cada setor como tag, com a cor dele', () => {
