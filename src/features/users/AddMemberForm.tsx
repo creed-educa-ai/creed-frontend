@@ -1,13 +1,13 @@
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus } from 'lucide-react';
+import { Mail, Plus, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   InputGroup,
   InputGroupAddon,
-  InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/input-group';
 import {
@@ -27,9 +27,15 @@ interface AddMemberFormProps {
   // Quem usa o componente decide o que fazer com os dados (chamar a API, por
   // exemplo). O formulário só valida e entrega.
   onSubmit: (values: AddMemberValues) => void | Promise<void>;
+  // Sem o seletor de função (painel do admin, para mentorandos): a função fica
+  // `respondente`, o padrão, e os campos e o Adicionar ficam numa linha só.
+  withRole?: boolean;
 }
 
-export function AddMemberForm({ onSubmit }: AddMemberFormProps) {
+export function AddMemberForm({
+  onSubmit,
+  withRole = true,
+}: AddMemberFormProps) {
   const { t } = useTranslation(['organizations']);
   const {
     register,
@@ -58,25 +64,37 @@ export function AddMemberForm({ onSubmit }: AddMemberFormProps) {
   }
 
   return (
+    // Sem a função (admin), da tela média em diante tudo numa linha: nome e
+    // e-mail dividem o espaço e o Adicionar fica no fim, só com a largura do
+    // texto. Com a função, um campo por linha.
     <form
       noValidate
-      className="flex flex-col gap-3"
+      className={cn(
+        'flex flex-col gap-3',
+        !withRole && 'md:grid md:grid-cols-[1fr_1fr_auto] md:items-start',
+      )}
       onSubmit={(event) => void handleSubmit(submit)(event)}
     >
+      {/* Nome e e-mail no mesmo formato, com o ícone do campo à esquerda (pessoa
+          e carta), como a lupa das buscas. */}
       <Field data-invalid={Boolean(errors.name)}>
         <FieldLabel htmlFor="member-name" className="sr-only">
           {t('organizations:addMember.name.label')}
         </FieldLabel>
-        <Input
-          id="member-name"
-          className="h-10"
-          // O nome é de quem vai ser convidado: o navegador não deve sugerir
-          // o de quem está logado.
-          autoComplete="off"
-          placeholder={t('organizations:addMember.name.placeholder')}
-          aria-invalid={Boolean(errors.name)}
-          {...register('name')}
-        />
+        <InputGroup className="h-10">
+          <InputGroupAddon>
+            <User aria-hidden="true" />
+          </InputGroupAddon>
+          <InputGroupInput
+            id="member-name"
+            // O nome é de quem vai ser convidado: o navegador não deve sugerir
+            // o de quem está logado.
+            autoComplete="off"
+            placeholder={t('organizations:addMember.name.placeholder')}
+            aria-invalid={Boolean(errors.name)}
+            {...register('name')}
+          />
+        </InputGroup>
         <FieldError errors={[translateError(errors.name?.message)]} />
       </Field>
 
@@ -85,65 +103,73 @@ export function AddMemberForm({ onSubmit }: AddMemberFormProps) {
           {t('organizations:addMember.email.label')}
         </FieldLabel>
         <InputGroup className="h-10">
+          <InputGroupAddon>
+            <Mail aria-hidden="true" />
+          </InputGroupAddon>
           <InputGroupInput
             id="member-email"
             type="email"
-            className="h-10"
             placeholder={t('organizations:addMember.email.placeholder')}
             aria-invalid={Boolean(errors.email)}
             {...register('email')}
           />
-          <InputGroupAddon
-            align="inline-end"
-            className="p-0 has-[>button]:mr-0"
-          >
-            <InputGroupButton
-              type="submit"
-              variant="default"
-              size="icon-sm"
-              className="size-10 rounded-l-none"
-              disabled={isSubmitting}
-              aria-label={t('organizations:addMember.submit')}
-            >
-              <Plus />
-            </InputGroupButton>
-          </InputGroupAddon>
         </InputGroup>
         <FieldError errors={[translateError(errors.email?.message)]} />
       </Field>
 
-      <Field data-invalid={Boolean(errors.role)}>
-        <FieldLabel htmlFor="member-role" className="sr-only">
-          {t('organizations:addMember.role.label')}
-        </FieldLabel>
-        <Controller
-          control={control}
-          name="role"
-          render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger
-                id="member-role"
-                className="w-full data-[size=default]:h-10"
-              >
-                <span className="flex gap-1">
-                  <span className="text-muted-foreground">
-                    {t('organizations:addMember.role.label')}:
-                  </span>
-                  <SelectValue />
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                {MEMBER_ROLES.map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {t(`organizations:addMember.role.options.${role}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        <FieldError errors={[translateError(errors.role?.message)]} />
-      </Field>
+      {/* Função e Adicionar meio a meio. No celular estreito, um embaixo do
+          outro: "Função: Respondente" não cabe na metade. Sem a função, só o
+          Adicionar, que é a última coluna da linha. */}
+      <div
+        className={cn(
+          'grid grid-cols-1 items-start gap-3',
+          withRole && 'sm:grid-cols-2',
+        )}
+      >
+        {withRole && (
+          <Field data-invalid={Boolean(errors.role)}>
+            <FieldLabel htmlFor="member-role" className="sr-only">
+              {t('organizations:addMember.role.label')}
+            </FieldLabel>
+            <Controller
+              control={control}
+              name="role"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger
+                    id="member-role"
+                    className="w-full data-[size=default]:h-10"
+                  >
+                    <span className="flex gap-1">
+                      <span className="text-muted-foreground">
+                        {t('organizations:addMember.role.label')}:
+                      </span>
+                      <SelectValue />
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MEMBER_ROLES.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {t(`organizations:addMember.role.options.${role}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            <FieldError errors={[translateError(errors.role?.message)]} />
+          </Field>
+        )}
+
+        <Button
+          type="submit"
+          className={cn('h-10 w-full', !withRole && 'md:px-6')}
+          disabled={isSubmitting}
+        >
+          <Plus aria-hidden="true" />
+          {t('organizations:addMember.submit')}
+        </Button>
+      </div>
     </form>
   );
 }

@@ -4,11 +4,7 @@ import { CenterCell } from '@/components/table/centerCell';
 import { ConfirmDeleteDialog } from '@/components/table/confirmDeleteDialog';
 import { SortableHead } from '@/components/table/sortableHead';
 import { TableFooter } from '@/components/table/tableFooter';
-import {
-  DeleteRowButton,
-  RowActionButton,
-  StatusPill,
-} from '@/components/table/tablePills';
+import { DeleteRowButton, StatusPill } from '@/components/table/tablePills';
 import {
   tableHeadClass,
   tableHeadDangerClass,
@@ -23,34 +19,27 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { useRowSelection } from '@/hooks/useRowSelection';
-import { DepartmentTag } from '@/components/department/DepartmentTag';
 import { useTablePage } from '@/hooks/useTablePage';
 import { useTableSort } from '@/hooks/useTableSort';
-import { cn, normalizeForSearch } from '@/lib/utils';
-import type { Member } from '@/types/api';
+import { normalizeForSearch } from '@/lib/utils';
+import { MemberTagPicker } from '@/features/users/MemberTagPicker';
+import type { DepartmentType, Member } from '@/types/api';
 
-const OPTIONAL_COLUMNS = [
-  'email',
-  'action',
-  'status',
-  'tag',
-  'updatedAt',
-] as const;
+type SortableColumn = 'name' | 'status' | 'tag' | 'updatedAt';
 
-type OptionalColumn = (typeof OPTIONAL_COLUMNS)[number];
-type SortableColumn = 'name' | 'updatedAt';
+// Ordem do status no crescente, a mesma da tabela de empresas do admin.
+// > 🟡 Premissa — "Pendente" (convite ainda não aceito) antes de "Ativo", não
+// > a ordem alfabética do rótulo, que muda com o idioma.
+const STATUS_ORDER: Record<Member['status'], number> = {
+  pendente: 0,
+  ativo: 1,
+};
 
 interface MembersTableProps {
   members: Member[];
   onDelete: (id: string) => Promise<void>;
+  onChangeTag: (id: string, tag: DepartmentType | null) => void;
   // Caixas de seleção na primeira coluna. Desligadas por padrão: nenhuma ação
   // usa a seleção ainda.
   // > 🟡 Premissa — o Figma tem as caixas (exportar resultados no futuro), mas
@@ -67,236 +56,275 @@ function formatDate(iso: string, language: string) {
 export function MembersTable({
   members,
   onDelete,
+  onChangeTag,
   selectable = false,
 }: MembersTableProps) {
   const { t, i18n } = useTranslation(['comum', 'organizations']);
-  const [search, setSearch] = useState('');
+  const [nameSearch, setNameSearch] = useState('');
+  const [emailSearch, setEmailSearch] = useState('');
   const {
     sorting,
     toggle: toggleSort,
     directionOf,
   } = useTableSort<SortableColumn>();
-  const [visibleColumns, setVisibleColumns] = useState<Set<OptionalColumn>>(
-    () => new Set(OPTIONAL_COLUMNS),
-  );
   const selection = useRowSelection();
-  const [details, setDetails] = useState<Member | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null);
 
   const filtered = useMemo(() => {
-    const term = normalizeForSearch(search);
-    const list = term
-      ? members.filter((member) =>
-          normalizeForSearch(member.email).includes(term),
-        )
-      : [...members];
+    const nameTerm = normalizeForSearch(nameSearch);
+    const emailTerm = normalizeForSearch(emailSearch);
+    // As duas buscas valem juntas: o membro precisa bater com as duas.
+    const list = members.filter(
+      (member) =>
+        normalizeForSearch(member.name).includes(nameTerm) &&
+        normalizeForSearch(member.email).includes(emailTerm),
+    );
 
     if (!sorting) return list;
 
+    const byText = (a: string, b: string) =>
+      a.localeCompare(b, i18n.resolvedLanguage, { sensitivity: 'base' });
+
     return list.sort((a, b) => {
+      // Tag em ordem alfabética do nome do setor, no idioma da tela. Quem
+      // está sem tag fica no fim nos dois sentidos.
+      if (sorting.column === 'tag') {
+        if (a.tag === null || b.tag === null) {
+          return Number(a.tag === null) - Number(b.tag === null);
+        }
+        const cmp = byText(
+          t(`comum:setores.${a.tag}`),
+          t(`comum:setores.${b.tag}`),
+        );
+        return sorting.direction === 'asc' ? cmp : -cmp;
+      }
       const cmp =
         sorting.column === 'updatedAt'
           ? Date.parse(a.updated_at) - Date.parse(b.updated_at)
-          : a.name.localeCompare(b.name, i18n.resolvedLanguage, {
-              sensitivity: 'base',
-            });
+          : sorting.column === 'status'
+            ? STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
+            : byText(a.name, b.name);
       return sorting.direction === 'asc' ? cmp : -cmp;
     });
-  }, [search, members, sorting, i18n.resolvedLanguage]);
+  }, [nameSearch, emailSearch, members, sorting, i18n.resolvedLanguage, t]);
 
   const pagination = useTablePage(filtered);
   const pageMembers = pagination.pageItems;
-
-  function isVisible(column: OptionalColumn) {
-    return visibleColumns.has(column);
-  }
-
-  function toggleColumn(column: OptionalColumn, checked: boolean) {
-    setVisibleColumns((current) => {
-      const next = new Set(current);
-      if (checked) {
-        next.add(column);
-      } else {
-        next.delete(column);
-      }
-      return next;
-    });
-  }
 
   const pageIds = pageMembers.map((member) => member.id);
   const selectedOnPage = pageIds.filter((id) => selection.isSelected(id));
   const allSelected =
     pageIds.length > 0 && selectedOnPage.length === pageIds.length;
   const someSelected = selectedOnPage.length > 0 && !allSelected;
+  const searching = Boolean(nameSearch.trim() || emailSearch.trim());
+
+  // O mesmo selo e a mesma lixeira aparecem na tabela e nos cartões do
+  // celular. No celular a lixeira tem 40px (alvo de toque); da tabela em
+  // diante (md), fica compacta, como no mockup.
+  function statusPill(member: Member) {
+    return (
+      <StatusPill tone={member.status === 'ativo' ? 'success' : 'warning'}>
+        {t(`organizations:members.status.${member.status}`)}
+      </StatusPill>
+    );
+  }
+
+  // No celular, 40px de altura para o toque, como os outros botões.
+  function tagPicker(member: Member) {
+    return (
+      <MemberTagPicker
+        className="min-h-10 md:min-h-0"
+        name={member.name}
+        tag={member.tag}
+        onChange={(tag) => {
+          onChangeTag(member.id, tag);
+        }}
+      />
+    );
+  }
+
+  function deleteButton(member: Member) {
+    return (
+      <DeleteRowButton
+        className="size-10 md:size-8"
+        label={`${t('organizations:members.delete')} ${member.name}`}
+        onClick={() => {
+          setDeleteTarget(member);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
       <TableToolbar
-        search={search}
-        onSearchChange={(value) => {
-          setSearch(value);
-          pagination.reset();
-        }}
-        searchLabel={t('organizations:members.searchEmail')}
-        searchPlaceholder={t('organizations:members.searchEmail')}
-        columns={OPTIONAL_COLUMNS.map((column) => ({
-          key: column,
-          label: t(`organizations:members.columnNames.${column}`),
-          visible: isVisible(column),
-        }))}
-        onToggleColumn={(key, visible) => {
-          toggleColumn(key as OptionalColumn, visible);
-        }}
+        searches={[
+          {
+            key: 'name',
+            value: nameSearch,
+            onChange: (value) => {
+              setNameSearch(value);
+              pagination.reset();
+            },
+            label: t('organizations:members.search.name.label'),
+            placeholder: t('organizations:members.search.name.placeholder'),
+          },
+          {
+            key: 'email',
+            value: emailSearch,
+            onChange: (value) => {
+              setEmailSearch(value);
+              pagination.reset();
+            },
+            label: t('organizations:members.search.email.label'),
+            placeholder: t('organizations:members.search.email.placeholder'),
+          },
+        ]}
       />
 
-      <div className="overflow-x-auto">
-        <Table aria-label={t('organizations:members.table')}>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              {selectable && (
-                <TableHead className="w-10">
-                  <Checkbox
-                    checked={someSelected ? 'indeterminate' : allSelected}
-                    onCheckedChange={(value) => {
-                      selection.toggle(pageIds, value === true);
-                    }}
-                    aria-label={t('organizations:members.selectPage')}
-                    disabled={pageMembers.length === 0}
-                  />
-                </TableHead>
-              )}
-              <SortableHead
-                label={t('organizations:members.columnNames.name')}
-                ariaLabel={t('comum:tabela.ordenarPorNome')}
-                direction={directionOf('name')}
-                onToggle={() => {
-                  pagination.reset();
-                  toggleSort('name');
-                }}
-              />
-              {isVisible('email') && (
-                <TableHead className={tableHeadClass}>
-                  {t('organizations:members.columnNames.email')}
-                </TableHead>
-              )}
-              {isVisible('action') && (
-                <TableHead className={cn(tableHeadClass, 'text-center')}>
-                  {t('organizations:members.columnNames.action')}
-                </TableHead>
-              )}
-              {isVisible('status') && (
-                <TableHead className={cn(tableHeadClass, 'text-center')}>
-                  {t('organizations:members.columnNames.status')}
-                </TableHead>
-              )}
-              {isVisible('tag') && (
-                <TableHead className={cn(tableHeadClass, 'text-center')}>
-                  {t('organizations:members.columnNames.tag')}
-                </TableHead>
-              )}
-              {isVisible('updatedAt') && (
-                <SortableHead
-                  className="text-center"
-                  label={t('organizations:members.columnNames.updatedAt')}
-                  ariaLabel={t('organizations:members.sortByDate')}
-                  direction={directionOf('updatedAt')}
-                  onToggle={() => {
-                    pagination.reset();
-                    toggleSort('updatedAt');
-                  }}
-                />
-              )}
-              <TableHead className={tableHeadDangerClass}>
-                {t('organizations:members.columnNames.delete')}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pageMembers.length === 0 && (
-              <TableRow className="hover:bg-transparent">
-                <TableCell
-                  colSpan={(selectable ? 3 : 2) + visibleColumns.size}
-                  className="py-10 text-center text-muted-foreground"
-                >
-                  {search.trim()
-                    ? t('organizations:members.emptySearch')
-                    : t('organizations:members.empty')}
-                </TableCell>
-              </TableRow>
-            )}
-            {pageMembers.map((member) => {
-              const checked = selection.isSelected(member.id);
-
-              return (
-                <TableRow
-                  key={member.id}
-                  data-state={checked ? 'selected' : undefined}
-                >
+      {pageMembers.length === 0 ? (
+        <p
+          role="status"
+          className="rounded-lg border border-border px-4 py-8 text-center text-sm text-muted-foreground"
+        >
+          {searching
+            ? t('organizations:members.emptySearch')
+            : t('organizations:members.empty')}
+        </p>
+      ) : (
+        <>
+          <div className="hidden overflow-x-auto md:block">
+            <Table aria-label={t('organizations:members.table')}>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
                   {selectable && (
-                    <TableCell>
+                    <TableHead className="w-10">
                       <Checkbox
-                        checked={checked}
+                        checked={someSelected ? 'indeterminate' : allSelected}
                         onCheckedChange={(value) => {
-                          selection.toggle([member.id], value === true);
+                          selection.toggle(pageIds, value === true);
                         }}
-                        aria-label={member.name}
+                        aria-label={t('organizations:members.selectPage')}
                       />
-                    </TableCell>
+                    </TableHead>
                   )}
-                  <TableCell className="font-medium">{member.name}</TableCell>
-                  {isVisible('email') && (
-                    <TableCell
-                      title={member.email}
-                      className="max-w-[220px] truncate text-muted-foreground"
-                    >
-                      {member.email}
-                    </TableCell>
-                  )}
-                  {isVisible('action') && (
-                    <CenterCell>
-                      <RowActionButton
-                        muted={member.status !== 'ativo'}
-                        onClick={() => {
-                          setDetails(member);
-                        }}
-                      >
-                        {t('organizations:members.view')}
-                      </RowActionButton>
-                    </CenterCell>
-                  )}
-                  {isVisible('status') && (
-                    <CenterCell>
-                      <StatusPill
-                        tone={member.status === 'ativo' ? 'success' : 'warning'}
-                      >
-                        {t(`organizations:members.status.${member.status}`)}
-                      </StatusPill>
-                    </CenterCell>
-                  )}
-                  {isVisible('tag') && (
-                    <CenterCell>
-                      <DepartmentTag department={member.tag} />
-                    </CenterCell>
-                  )}
-                  {isVisible('updatedAt') && (
-                    <CenterCell className="text-sm text-muted-foreground">
-                      {formatDate(member.updated_at, i18n.language)}
-                    </CenterCell>
-                  )}
-                  <CenterCell>
-                    <DeleteRowButton
-                      label={`${t('organizations:members.delete')} ${member.name}`}
-                      onClick={() => {
-                        setDeleteTarget(member);
-                      }}
-                    />
-                  </CenterCell>
+                  <SortableHead
+                    label={t('organizations:members.columnNames.name')}
+                    ariaLabel={t('comum:tabela.ordenarPorNome')}
+                    direction={directionOf('name')}
+                    onToggle={() => {
+                      pagination.reset();
+                      toggleSort('name');
+                    }}
+                  />
+                  <TableHead className={tableHeadClass}>
+                    {t('organizations:members.columnNames.email')}
+                  </TableHead>
+                  <SortableHead
+                    className="text-center"
+                    label={t('organizations:members.columnNames.status')}
+                    ariaLabel={t('comum:tabela.ordenarPorStatus')}
+                    direction={directionOf('status')}
+                    onToggle={() => {
+                      pagination.reset();
+                      toggleSort('status');
+                    }}
+                  />
+                  <SortableHead
+                    className="text-center"
+                    label={t('organizations:members.columnNames.tag')}
+                    ariaLabel={t('organizations:members.sortByTag')}
+                    direction={directionOf('tag')}
+                    onToggle={() => {
+                      pagination.reset();
+                      toggleSort('tag');
+                    }}
+                  />
+                  <SortableHead
+                    className="text-center"
+                    label={t('organizations:members.columnNames.updatedAt')}
+                    ariaLabel={t('organizations:members.sortByDate')}
+                    direction={directionOf('updatedAt')}
+                    onToggle={() => {
+                      pagination.reset();
+                      toggleSort('updatedAt');
+                    }}
+                  />
+                  <TableHead className={tableHeadDangerClass}>
+                    {t('organizations:members.columnNames.delete')}
+                  </TableHead>
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
+              </TableHeader>
+              <TableBody>
+                {pageMembers.map((member) => {
+                  const checked = selection.isSelected(member.id);
+
+                  return (
+                    <TableRow
+                      key={member.id}
+                      data-state={checked ? 'selected' : undefined}
+                    >
+                      {selectable && (
+                        <TableCell>
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(value) => {
+                              selection.toggle([member.id], value === true);
+                            }}
+                            aria-label={member.name}
+                          />
+                        </TableCell>
+                      )}
+                      <TableCell className="font-medium">
+                        {member.name}
+                      </TableCell>
+                      <TableCell
+                        title={member.email}
+                        className="max-w-[220px] truncate text-muted-foreground"
+                      >
+                        {member.email}
+                      </TableCell>
+                      <CenterCell>{statusPill(member)}</CenterCell>
+                      <CenterCell>{tagPicker(member)}</CenterCell>
+                      <CenterCell className="text-sm text-muted-foreground">
+                        {formatDate(member.updated_at, i18n.language)}
+                      </CenterCell>
+                      <CenterCell>{deleteButton(member)}</CenterCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Cartões no celular, sem caixa de seleção, como nos mentorandos. */}
+          <ul className="grid gap-3 md:hidden">
+            {pageMembers.map((member) => (
+              <li
+                key={member.id}
+                className="min-w-0 rounded-lg border border-border bg-card p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium break-words text-foreground">
+                      {member.name}
+                    </p>
+                    <p className="text-sm break-all text-muted-foreground">
+                      {member.email}
+                    </p>
+                  </div>
+                  {statusPill(member)}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                  {tagPicker(member)}
+                  <span>{formatDate(member.updated_at, i18n.language)}</span>
+                  <span className="ml-auto">{deleteButton(member)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <TableFooter
         selected={selectable ? selectedOnPage.length : undefined}
@@ -306,60 +334,6 @@ export function MembersTable({
         onPrevious={pagination.previous}
         onNext={pagination.next}
       />
-
-      <Dialog
-        open={details !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setDetails(null);
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t('organizations:members.detailsTitle')}</DialogTitle>
-            <DialogDescription>{details?.name}</DialogDescription>
-          </DialogHeader>
-          {details && (
-            <dl className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <dt className="text-muted-foreground">
-                  {t('organizations:members.columnNames.email')}
-                </dt>
-                <dd className="font-medium break-all">{details.email}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">
-                  {t('organizations:members.columnNames.status')}
-                </dt>
-                <dd>
-                  <StatusPill
-                    tone={details.status === 'ativo' ? 'success' : 'warning'}
-                  >
-                    {t(`organizations:members.status.${details.status}`)}
-                  </StatusPill>
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">
-                  {t('organizations:members.columnNames.tag')}
-                </dt>
-                <dd>
-                  <DepartmentTag department={details.tag} />
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">
-                  {t('organizations:members.columnNames.updatedAt')}
-                </dt>
-                <dd className="font-medium">
-                  {formatDate(details.updated_at, i18n.language)}
-                </dd>
-              </div>
-            </dl>
-          )}
-        </DialogContent>
-      </Dialog>
 
       <ConfirmDeleteDialog
         open={deleteTarget !== null}

@@ -16,18 +16,21 @@ const mentees: Mentee[] = [
   {
     id: '1',
     name: 'Enner Valência',
+    email: 'enner@example.com',
     status: 'active',
     hasAnsweredCurrent: true,
   },
   {
     id: '2',
     name: 'Volante Ronaldo',
+    email: 'volante@example.com',
     status: 'inactive',
     hasAnsweredCurrent: false,
   },
   {
     id: '3',
     name: 'José Maurides',
+    email: 'jose@example.com',
     status: 'active',
     hasAnsweredCurrent: true,
   },
@@ -58,10 +61,18 @@ describe('MenteesTable', () => {
     const table = screen.getByRole('table');
 
     expect(
-      screen.getByRole('searchbox', { name: 'Pesquisar mentorandos' }),
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar mentorandos por nome',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar mentorandos por email',
+      }),
     ).toBeInTheDocument();
     for (const coluna of [
       'Nome',
+      'Email',
       'Questionário',
       'Resultados',
       'Status',
@@ -132,7 +143,11 @@ describe('MenteesTable', () => {
     renderTable();
     const table = screen.getByRole('table');
 
-    await user.click(screen.getByRole('searchbox'));
+    await user.click(
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar mentorandos por nome',
+      }),
+    );
     await user.paste('JOSE');
 
     expect(within(table).getByText('José Maurides')).toBeInTheDocument();
@@ -146,7 +161,11 @@ describe('MenteesTable', () => {
     const user = userEvent.setup();
     renderTable();
 
-    await user.click(screen.getByRole('searchbox'));
+    await user.click(
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar mentorandos por nome',
+      }),
+    );
     await user.paste('zzz');
 
     expect(
@@ -161,7 +180,56 @@ describe('MenteesTable', () => {
     expect(
       screen.getByText('Nenhum mentorando cadastrado ainda.'),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+    expect(screen.queryAllByRole('searchbox')).toHaveLength(0);
+  });
+
+  it('filtra pelo email e combina com a busca por nome', async () => {
+    const user = userEvent.setup();
+    renderTable();
+    const table = screen.getByRole('table');
+
+    await user.type(
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar mentorandos por email',
+      }),
+      'example.com',
+    );
+    expect(within(table).getAllByRole('row')).toHaveLength(4);
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Pesquisar mentorandos por nome' }),
+      'enner',
+    );
+    expect(within(table).getByText('Enner Valência')).toBeInTheDocument();
+    expect(within(table).queryByText('José Maurides')).not.toBeInTheDocument();
+
+    await user.clear(
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar mentorandos por email',
+      }),
+    );
+    await user.type(
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar mentorandos por email',
+      }),
+      'volante',
+    );
+    expect(
+      screen.getByText('Nenhum mentorando encontrado para essa pesquisa.'),
+    ).toBeInTheDocument();
+  });
+
+  it('ordena pelo status: ativos antes no crescente, inativos no decrescente', async () => {
+    const user = userEvent.setup();
+    renderTable();
+    const primeiraLinha = () =>
+      within(screen.getByRole('table')).getAllByRole('row')[1];
+
+    const ordenar = screen.getByRole('button', { name: 'Ordenar por status' });
+    await user.click(ordenar);
+    expect(primeiraLinha()).toHaveTextContent('Ativo');
+    await user.click(ordenar);
+    expect(primeiraLinha()).toHaveTextContent('Volante Ronaldo');
   });
 
   it('só exclui depois de confirmar', async () => {
@@ -274,7 +342,7 @@ describe('MenteesTable', () => {
     const user = userEvent.setup();
     renderTable({ selectable: true });
     const busca = screen.getByRole('searchbox', {
-      name: 'Pesquisar mentorandos',
+      name: 'Pesquisar mentorandos por nome',
     });
 
     await user.type(busca, 'jose');
@@ -305,53 +373,6 @@ describe('MenteesTable', () => {
       }),
     ).toBeInTheDocument();
     expect(within(table).getByText('Inactive')).toBeInTheDocument();
-  });
-
-  it('esconde e mostra colunas pelo menu Colunas, menos o Nome', async () => {
-    const user = userEvent.setup();
-    renderTable();
-    const table = screen.getByRole('table');
-
-    await user.click(screen.getByRole('button', { name: 'Colunas' }));
-    const menu = screen.getByRole('menu');
-    expect(within(menu).getAllByRole('menuitemcheckbox')).toHaveLength(4);
-    expect(
-      within(menu).queryByRole('menuitemcheckbox', { name: 'Nome' }),
-    ).not.toBeInTheDocument();
-
-    await user.click(
-      within(menu).getByRole('menuitemcheckbox', { name: 'Status' }),
-    );
-    // Com o menu aberto, o resto da página fica oculto para leitores de tela
-    // (e, por isso, para o getByRole). Fecha o menu antes de conferir a tabela.
-    await user.keyboard('{Escape}');
-    await waitFor(() => {
-      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    });
-
-    expect(
-      within(table).queryByRole('columnheader', { name: 'Status' }),
-    ).not.toBeInTheDocument();
-    expect(within(table).queryByText('Inativo')).not.toBeInTheDocument();
-    expect(
-      within(table).getByRole('columnheader', { name: 'Nome' }),
-    ).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: 'Colunas' }));
-    await user.click(
-      within(screen.getByRole('menu')).getByRole('menuitemcheckbox', {
-        name: 'Status',
-      }),
-    );
-    await user.keyboard('{Escape}');
-    await waitFor(() => {
-      expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    });
-
-    expect(
-      within(table).getByRole('columnheader', { name: 'Status' }),
-    ).toBeInTheDocument();
-    expect(within(table).getByText('Inativo')).toBeInTheDocument();
   });
 
   it('Esc e clique fora não fecham o diálogo: destacam o Cancelar', async () => {

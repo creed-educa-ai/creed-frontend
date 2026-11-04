@@ -48,19 +48,6 @@ interface MenteesTableProps {
   selectable?: boolean;
 }
 
-type ColumnKey = 'questionnaire' | 'results' | 'status' | 'delete';
-
-// Colunas que a pessoa pode esconder, na ordem da tabela. "Nome" fica sempre:
-// sem ela não dá para saber de quem é a linha.
-// > 🟡 Premissa — o mockup não diz quais colunas são opcionais. Assumimos
-// > todas, menos o nome. A escolha não é guardada ao recarregar.
-const TOGGLEABLE_COLUMNS: ColumnKey[] = [
-  'questionnaire',
-  'results',
-  'status',
-  'delete',
-];
-
 // Cor cheia e texto branco nos dois status, como no mockup. Contraste abaixo do
 // mínimo AA (4,5:1): ~3:1 no verde e ~4,2:1 no vermelho. Desvio a validar
 // com o supervisor.
@@ -75,6 +62,14 @@ function StatusBadge({ status }: { status: Mentee['status'] }) {
   );
 }
 
+// Ordem do status no crescente.
+// > 🟡 Premissa — "Ativo" antes de "Inativo", não a ordem alfabética do
+// > rótulo, que muda com o idioma.
+const STATUS_ORDER: Record<Mentee['status'], number> = {
+  active: 0,
+  inactive: 1,
+};
+
 export function MenteesTable({
   mentees,
   onViewResults,
@@ -83,11 +78,9 @@ export function MenteesTable({
   selectable = false,
 }: MenteesTableProps) {
   const { t, i18n } = useTranslation(['mentees', 'comum']);
-  const [query, setQuery] = useState('');
+  const [nameQuery, setNameQuery] = useState('');
+  const [emailQuery, setEmailQuery] = useState('');
   const [menteeToDelete, setMenteeToDelete] = useState<Mentee | null>(null);
-  const [visibleColumns, setVisibleColumns] = useState<
-    Record<ColumnKey, boolean>
-  >({ questionnaire: true, results: true, status: true, delete: true });
   // Linhas marcadas na tabela. Por ora só marca e desmarca: nada sai do
   // componente e nenhuma ação usa a seleção.
   // > 🟡 Premissa — o mockup tem caixas de seleção para exportar resultados no
@@ -95,16 +88,26 @@ export function MenteesTable({
   // > sem prop de saída, e os cartões (celular) não têm caixa.
   const selection = useRowSelection();
 
-  const { sorting, toggle: toggleSort, directionOf } = useTableSort<'name'>();
+  const {
+    sorting,
+    toggle: toggleSort,
+    directionOf,
+  } = useTableSort<'name' | 'status'>();
 
-  const visible = mentees.filter((mentee) =>
-    normalizeForSearch(mentee.name).includes(normalizeForSearch(query)),
+  // As duas buscas valem juntas: a linha precisa bater com as duas.
+  const visible = mentees.filter(
+    (mentee) =>
+      normalizeForSearch(mentee.name).includes(normalizeForSearch(nameQuery)) &&
+      normalizeForSearch(mentee.email).includes(normalizeForSearch(emailQuery)),
   );
   if (sorting) {
     visible.sort((a, b) => {
-      const cmp = a.name.localeCompare(b.name, i18n.resolvedLanguage, {
-        sensitivity: 'base',
-      });
+      const cmp =
+        sorting.column === 'status'
+          ? STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
+          : a.name.localeCompare(b.name, i18n.resolvedLanguage, {
+              sensitivity: 'base',
+            });
       return sorting.direction === 'asc' ? cmp : -cmp;
     });
   }
@@ -174,21 +177,28 @@ export function MenteesTable({
       ) : (
         <>
           <TableToolbar
-            search={query}
-            onSearchChange={(value) => {
-              setQuery(value);
-              pagination.reset();
-            }}
-            searchLabel={t('mentees:search.label')}
-            searchPlaceholder={t('mentees:search.placeholder')}
-            columns={TOGGLEABLE_COLUMNS.map((column) => ({
-              key: column,
-              label: t(`mentees:columns.${column}`),
-              visible: visibleColumns[column],
-            }))}
-            onToggleColumn={(key, checked) => {
-              setVisibleColumns((current) => ({ ...current, [key]: checked }));
-            }}
+            searches={[
+              {
+                key: 'name',
+                value: nameQuery,
+                onChange: (value) => {
+                  setNameQuery(value);
+                  pagination.reset();
+                },
+                label: t('mentees:search.name.label'),
+                placeholder: t('mentees:search.name.placeholder'),
+              },
+              {
+                key: 'email',
+                value: emailQuery,
+                onChange: (value) => {
+                  setEmailQuery(value);
+                  pagination.reset();
+                },
+                label: t('mentees:search.email.label'),
+                placeholder: t('mentees:search.email.placeholder'),
+              },
+            ]}
           />
 
           {visible.length === 0 ? (
@@ -200,7 +210,9 @@ export function MenteesTable({
             </p>
           ) : (
             <>
-              <div className="hidden overflow-x-auto md:block">
+              {/* No desktop cheio (2xl) o painel do admin põe esta tabela ao lado
+                  da outra: as células apertam para as colunas caberem na metade. */}
+              <div className="hidden overflow-x-auto md:block 2xl:[&_td]:px-2 2xl:[&_th]:px-2">
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
@@ -224,32 +236,28 @@ export function MenteesTable({
                           toggleSort('name');
                         }}
                       />
-                      {visibleColumns.questionnaire && (
-                        <TableHead
-                          className={cn(tableHeadClass, 'text-center')}
-                        >
-                          {t('mentees:columns.questionnaire')}
-                        </TableHead>
-                      )}
-                      {visibleColumns.results && (
-                        <TableHead
-                          className={cn(tableHeadClass, 'text-center')}
-                        >
-                          {t('mentees:columns.results')}
-                        </TableHead>
-                      )}
-                      {visibleColumns.status && (
-                        <TableHead
-                          className={cn(tableHeadClass, 'text-center')}
-                        >
-                          {t('mentees:columns.status')}
-                        </TableHead>
-                      )}
-                      {visibleColumns.delete && (
-                        <TableHead className={tableHeadDangerClass}>
-                          {t('mentees:columns.delete')}
-                        </TableHead>
-                      )}
+                      <TableHead className={tableHeadClass}>
+                        {t('mentees:columns.email')}
+                      </TableHead>
+                      <TableHead className={cn(tableHeadClass, 'text-center')}>
+                        {t('mentees:columns.questionnaire')}
+                      </TableHead>
+                      <TableHead className={cn(tableHeadClass, 'text-center')}>
+                        {t('mentees:columns.results')}
+                      </TableHead>
+                      <SortableHead
+                        className="text-center"
+                        label={t('mentees:columns.status')}
+                        ariaLabel={t('comum:tabela.ordenarPorStatus')}
+                        direction={directionOf('status')}
+                        onToggle={() => {
+                          pagination.reset();
+                          toggleSort('status');
+                        }}
+                      />
+                      <TableHead className={tableHeadDangerClass}>
+                        {t('mentees:columns.delete')}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -271,20 +279,18 @@ export function MenteesTable({
                         <TableCell className="font-medium break-words">
                           {mentee.name}
                         </TableCell>
-                        {visibleColumns.questionnaire && (
-                          <CenterCell>{editButton(mentee)}</CenterCell>
-                        )}
-                        {visibleColumns.results && (
-                          <CenterCell>{resultsButton(mentee)}</CenterCell>
-                        )}
-                        {visibleColumns.status && (
-                          <CenterCell>
-                            <StatusBadge status={mentee.status} />
-                          </CenterCell>
-                        )}
-                        {visibleColumns.delete && (
-                          <CenterCell>{deleteButton(mentee)}</CenterCell>
-                        )}
+                        <TableCell
+                          title={mentee.email}
+                          className="max-w-[220px] truncate text-muted-foreground 2xl:max-w-[160px]"
+                        >
+                          {mentee.email}
+                        </TableCell>
+                        <CenterCell>{editButton(mentee)}</CenterCell>
+                        <CenterCell>{resultsButton(mentee)}</CenterCell>
+                        <CenterCell>
+                          <StatusBadge status={mentee.status} />
+                        </CenterCell>
+                        <CenterCell>{deleteButton(mentee)}</CenterCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -298,9 +304,14 @@ export function MenteesTable({
                     className="min-w-0 rounded-lg border border-border bg-card p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <p className="min-w-0 flex-1 font-medium break-words text-foreground">
-                        {mentee.name}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium break-words text-foreground">
+                          {mentee.name}
+                        </p>
+                        <p className="text-sm break-all text-muted-foreground">
+                          {mentee.email}
+                        </p>
+                      </div>
                       <StatusBadge status={mentee.status} />
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2">

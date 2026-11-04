@@ -8,6 +8,12 @@ import usersReducer from '@/features/users/usersSlice';
 import { usersApi, resetMembersMock } from '@/features/users/usersApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
+// Tabela e cartões do celular estão os dois no DOM (o jsdom não aplica o
+// `md:hidden`): as buscas olham a tabela.
+function tabela() {
+  return screen.getByRole('table', { hidden: true });
+}
+
 function renderizar() {
   const store = configureStore({
     reducer: {
@@ -34,8 +40,12 @@ describe('MembersSection', () => {
   it('lista os membros da empresa', async () => {
     renderizar();
 
-    expect(await screen.findByText('Enner Valência')).toBeInTheDocument();
-    expect(screen.getByText('Membros de Acme Inc.')).toBeInTheDocument();
+    expect(
+      within(await screen.findByRole('table')).getByText('Enner Valência'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Membros' }),
+    ).toBeInTheDocument();
     expect(screen.getAllByText('Ativo').length).toBeGreaterThan(0);
   });
 
@@ -55,44 +65,62 @@ describe('MembersSection', () => {
     expect(screen.queryByText(/Internal server error/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Cargando/)).not.toBeInTheDocument();
     expect(
-      screen.getByRole('heading', {
-        name: 'Miembros de la empresa',
-      }),
+      screen.getByRole('heading', { level: 3, name: 'Miembros' }),
     ).toBeInTheDocument();
   });
 
   it('filtra a lista pelo e-mail', async () => {
     renderizar();
-    await screen.findByText('Enner Valência');
+    await screen.findByRole('table');
 
     await userEvent.type(
-      screen.getByLabelText('Insira um Email'),
+      screen.getByRole('searchbox', { name: 'Pesquisar membros por email' }),
       'felicia.reid',
     );
 
-    expect(screen.getByText('Wilson Mathias')).toBeInTheDocument();
+    expect(within(tabela()).getByText('Wilson Mathias')).toBeInTheDocument();
     expect(screen.queryByText('Enner Valência')).not.toBeInTheDocument();
   });
 
   it('avança a paginação', async () => {
     renderizar();
-    await screen.findByText('Enner Valência');
+    await screen.findByRole('table');
 
-    expect(screen.getByText('Enner Valência')).toBeInTheDocument();
+    expect(within(tabela()).getByText('Enner Valência')).toBeInTheDocument();
     expect(screen.queryByText('Ana Souza')).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Próximo' }));
 
-    expect(screen.getByText('Ana Souza')).toBeInTheDocument();
+    expect(within(tabela()).getByText('Ana Souza')).toBeInTheDocument();
     expect(screen.queryByText('Enner Valência')).not.toBeInTheDocument();
+  });
+
+  it('troca a tag de um membro', async () => {
+    renderizar();
+    await screen.findByRole('table');
+
+    await userEvent.click(
+      within(tabela()).getByRole('button', {
+        name: 'Marketing: alterar a tag de Enner Valência',
+      }),
+    );
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'TI' }));
+
+    expect(
+      await within(tabela()).findByRole('button', {
+        name: 'TI: alterar a tag de Enner Valência',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('exclui um membro após confirmar', async () => {
     renderizar();
-    await screen.findByText('Enner Valência');
+    await screen.findByRole('table');
 
     await userEvent.click(
-      screen.getByRole('button', { name: 'Excluir Enner Valência' }),
+      within(tabela()).getByRole('button', {
+        name: 'Excluir Enner Valência',
+      }),
     );
 
     const dialogo = screen.getByRole('alertdialog');
@@ -103,44 +131,32 @@ describe('MembersSection', () => {
     );
 
     expect(screen.queryByText('Enner Valência')).not.toBeInTheDocument();
-    expect(screen.getByText('Wilson Mathias')).toBeInTheDocument();
+    expect(within(tabela()).getByText('Wilson Mathias')).toBeInTheDocument();
   });
 
-  it('traduz a tabela, detalhes e confirmação de exclusão para espanhol', async () => {
+  it('traduz a tabela e a confirmação de exclusão para espanhol', async () => {
     renderizar();
-    await screen.findByText('Enner Valência');
+    await screen.findByRole('table');
     await act(async () => {
       await i18n.changeLanguage('es');
     });
 
-    expect(screen.getByText('Miembros de Acme Inc.')).toBeInTheDocument();
     expect(
-      screen.getByRole('searchbox', {
-        name: 'Introduce un correo electrónico',
-      }),
+      screen.getByRole('heading', { level: 3, name: 'Miembros' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('searchbox', { name: 'Buscar miembros por correo' }),
     ).toBeInTheDocument();
     expect(screen.getByText('Página 1 de 2')).toBeInTheDocument();
     expect(screen.getAllByText('Activo').length).toBeGreaterThan(0);
-    expect(screen.getByText('18/10/26')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Columnas' }));
+    expect(within(tabela()).getByText('18/10/26')).toBeInTheDocument();
     expect(
-      within(screen.getByRole('menu')).getAllByRole('menuitemcheckbox'),
-    ).toHaveLength(5);
-    await userEvent.keyboard('{Escape}');
-    const tabela = screen.getByRole('table', {
-      name: 'Miembros de la empresa',
-    });
-    await userEvent.click(
-      within(
-        within(tabela).getByRole('row', { name: /Enner Valência/ }),
-      ).getByRole('button', { name: 'Ver' }),
-    );
-    expect(
-      screen.getByRole('dialog', { name: 'Datos del miembro' }),
+      screen.getByRole('table', { name: 'Miembros de la empresa' }),
     ).toBeInTheDocument();
-    await userEvent.keyboard('{Escape}');
     await userEvent.click(
-      screen.getByRole('button', { name: 'Eliminar Enner Valência' }),
+      within(tabela()).getByRole('button', {
+        name: 'Eliminar Enner Valência',
+      }),
     );
     const dialogo = screen.getByRole('alertdialog');
     expect(within(dialogo).getByText('Eliminar miembro')).toBeInTheDocument();
@@ -154,6 +170,6 @@ describe('MembersSection', () => {
     );
     await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }));
     expect(screen.getByText('Página 2 de 2')).toBeInTheDocument();
-    expect(screen.getByText('Ana Souza')).toBeInTheDocument();
+    expect(within(tabela()).getByText('Ana Souza')).toBeInTheDocument();
   });
 });

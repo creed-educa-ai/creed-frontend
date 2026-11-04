@@ -57,7 +57,7 @@ describe('AdminControlPanelView', () => {
     vi.restoreAllMocks();
   });
 
-  it('should render the admin header and the three section titles', () => {
+  it('should render the admin header, the section titles and the card titles', () => {
     renderizar();
 
     expect(
@@ -70,12 +70,22 @@ describe('AdminControlPanelView', () => {
       }),
     ).toBeInTheDocument();
     for (const titulo of [
+      i18n.t('painelControle:controles'),
+      i18n.t('painelControle:membros'),
+    ]) {
+      expect(
+        screen.getByRole('heading', { level: 2, name: titulo }),
+      ).toBeInTheDocument();
+    }
+    // "Adicionar mentorando" é o card de "Controles"; Empresas e Mentorandos,
+    // os cards de "Membros".
+    for (const titulo of [
       i18n.t('adicionarMentorando:titulo'),
       i18n.t('empresas:titulo'),
       i18n.t('mentees:title'),
     ]) {
       expect(
-        screen.getByRole('heading', { level: 2, name: titulo }),
+        screen.getByRole('heading', { level: 3, name: titulo }),
       ).toBeInTheDocument();
     }
   });
@@ -83,7 +93,9 @@ describe('AdminControlPanelView', () => {
   it('should list the companies and the mentees', async () => {
     renderizar();
 
-    expect(await screen.findByText('Tech Solutions')).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText('Tech Solutions')).length,
+    ).toBeGreaterThan(0);
     expect(
       (await screen.findAllByText('Wilson Mathias')).length,
     ).toBeGreaterThan(0);
@@ -99,28 +111,42 @@ describe('AdminControlPanelView', () => {
     ).toHaveAttribute('aria-current', 'page');
   });
 
-  it('should hand the typed email to the placeholder handler', async () => {
+  it('should hand the typed name and email to the placeholder handler', async () => {
     const consoleSpy = vi
       .spyOn(console, 'log')
       .mockImplementation(() => undefined);
     const user = userEvent.setup();
     renderizar();
 
+    // Sem seletor de função: o mentorando entra como respondente.
+    expect(
+      screen.queryByRole('combobox', {
+        name: i18n.t('organizations:addMember.role.label'),
+      }),
+    ).not.toBeInTheDocument();
     await user.type(
       screen.getByRole('textbox', {
-        name: i18n.t('adicionarMentorando:email.label'),
+        name: i18n.t('organizations:addMember.name.label'),
+      }),
+      'Ana Souza',
+    );
+    await user.type(
+      screen.getByRole('textbox', {
+        name: i18n.t('organizations:addMember.email.label'),
       }),
       'ana@exemplo.com',
     );
     await user.click(
       screen.getByRole('button', {
-        name: i18n.t('adicionarMentorando:adicionar'),
+        name: i18n.t('organizations:addMember.submit'),
       }),
     );
 
     await waitFor(() => {
       expect(consoleSpy).toHaveBeenCalledWith('Mentorando adicionado:', {
+        name: 'Ana Souza',
         email: 'ana@exemplo.com',
+        role: 'respondente',
       });
     });
   });

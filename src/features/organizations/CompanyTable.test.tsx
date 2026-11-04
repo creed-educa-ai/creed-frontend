@@ -68,20 +68,19 @@ describe('CompanyTable', () => {
   it('renderiza as empresas, seus status e os controles da tabela', () => {
     renderTabela();
 
-    expect(screen.getByText('Acme Inc.')).toBeInTheDocument();
-    expect(screen.getByText('Tech Solutions')).toBeInTheDocument();
-    expect(screen.getByText('Inova Tech')).toBeInTheDocument();
+    const tabela = screen.getByRole('table');
+    expect(within(tabela).getByText('Acme Inc.')).toBeInTheDocument();
+    expect(within(tabela).getByText('Tech Solutions')).toBeInTheDocument();
+    expect(within(tabela).getByText('Inova Tech')).toBeInTheDocument();
 
-    expect(screen.getAllByText('Pendente')).toHaveLength(2);
-    expect(screen.getByText('Ativo')).toBeInTheDocument();
+    expect(within(tabela).getAllByText('Pendente')).toHaveLength(2);
+    expect(within(tabela).getByText('Ativo')).toBeInTheDocument();
 
     expect(
-      screen.getByRole('searchbox', { name: 'Pesquise' }),
+      screen.getByRole('searchbox', { name: 'Pesquisar empresas por nome' }),
     ).toBeInTheDocument();
 
-    expect(screen.getByRole('button', { name: 'Colunas' })).toBeInTheDocument();
-
-    // A aprovação é pelo selo "Pendente": a tabela não tem caixas de seleção.
+    // A aprovação é pelo botão "Pendente": a tabela não tem caixas de seleção.
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
   });
 
@@ -90,11 +89,13 @@ describe('CompanyTable', () => {
     renderTabela();
 
     await user.type(
-      screen.getByRole('searchbox', { name: 'Pesquise' }),
+      screen.getByRole('searchbox', { name: 'Pesquisar empresas por nome' }),
       'Acme',
     );
 
-    expect(screen.getByText('Acme Inc.')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).getByText('Acme Inc.'),
+    ).toBeInTheDocument();
     expect(screen.queryByText('Tech Solutions')).not.toBeInTheDocument();
     expect(screen.queryByText('Inova Tech')).not.toBeInTheDocument();
   });
@@ -130,7 +131,11 @@ describe('CompanyTable', () => {
     const user = userEvent.setup();
     const { onExcluir } = renderTabela();
 
-    await user.click(screen.getByRole('button', { name: 'Excluir Acme Inc.' }));
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Excluir Acme Inc.',
+      }),
+    );
     // Só exclui depois de confirmar, como nas outras tabelas.
     expect(onExcluir).not.toHaveBeenCalled();
     await user.click(
@@ -142,12 +147,14 @@ describe('CompanyTable', () => {
     expect(onExcluir).toHaveBeenCalledWith('1');
   });
 
-  it('abre o modal de aceite ao clicar no selo Pendente', async () => {
+  it('abre o modal de aceite ao clicar no botão Pendente', async () => {
     const user = userEvent.setup();
     const { onAceitar } = renderTabela();
 
     await user.click(
-      screen.getByRole('button', { name: 'Analisar o cadastro de Acme Inc.' }),
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Pendente: analisar o cadastro de Acme Inc.',
+      }),
     );
 
     const tituloModal = await screen.findByRole('heading', {
@@ -174,17 +181,108 @@ describe('CompanyTable', () => {
     expect(onAceitar).not.toHaveBeenCalled();
   });
 
-  it('só o selo das pendentes abre o aceite', () => {
+  it('só as pendentes têm o botão de aceite; as ativas têm o selo', () => {
     renderTabela();
 
     expect(
-      screen.getByRole('button', { name: 'Analisar o cadastro de Inova Tech' }),
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Pendente: analisar o cadastro de Inova Tech',
+      }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('button', {
-        name: 'Analisar o cadastro de Tech Solutions',
+        name: 'Pendente: analisar o cadastro de Tech Solutions',
       }),
     ).not.toBeInTheDocument();
+    const linhaTech = screen.getByRole('row', { name: /Tech Solutions/ });
+    expect(within(linhaTech).getByText('Ativo').tagName).toBe('SPAN');
+  });
+
+  it('filtra pelo email, separado do nome', async () => {
+    const user = userEvent.setup();
+    renderTabela();
+    const tabela = screen.getByRole('table');
+
+    expect(
+      screen.getByRole('searchbox', { name: 'Pesquisar empresas por email' }),
+    ).toBeInTheDocument();
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Pesquisar empresas por email' }),
+      'techsolutions',
+    );
+    expect(within(tabela).getByText('Tech Solutions')).toBeInTheDocument();
+    expect(within(tabela).queryByText('Acme Inc.')).not.toBeInTheDocument();
+
+    // O nome não é procurado no campo de email.
+    await user.clear(
+      screen.getByRole('searchbox', { name: 'Pesquisar empresas por email' }),
+    );
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Pesquisar empresas por email' }),
+      'Inova Tech',
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Nenhuma empresa encontrada.',
+    );
+  });
+
+  it('ordena pelo status: pendentes no crescente, ativas no decrescente', async () => {
+    const user = userEvent.setup();
+    renderTabela();
+    const nomes = () =>
+      within(screen.getByRole('table'))
+        .getAllByRole('row')
+        .slice(1)
+        .map((linha) => linha.querySelector('td')?.textContent);
+
+    const ordenar = screen.getByRole('button', { name: 'Ordenar por status' });
+    await user.click(ordenar);
+    expect(nomes()).toEqual(['Acme Inc.', 'Inova Tech', 'Tech Solutions']);
+    await user.click(ordenar);
+    expect(nomes()).toEqual(['Tech Solutions', 'Acme Inc.', 'Inova Tech']);
+  });
+
+  it('mostra cada empresa também como cartão, para o celular', async () => {
+    const user = userEvent.setup();
+    const { onVerResultados } = renderTabela();
+
+    const [cartaoAcme, , cartaoTech] = within(
+      screen.getByRole('list'),
+    ).getAllByRole('listitem');
+    if (!cartaoAcme || !cartaoTech) throw new Error('faltam cartões');
+
+    // Mesma ordem da tabela: pendentes no topo.
+    expect(within(cartaoTech).getByText('Tech Solutions')).toBeInTheDocument();
+    expect(
+      within(cartaoTech).getByText('contato@techsolutions.com'),
+    ).toBeInTheDocument();
+
+    await user.click(
+      within(cartaoTech).getByRole('button', { name: 'Ver Resultados' }),
+    );
+    expect(onVerResultados).toHaveBeenCalledWith('2');
+
+    expect(
+      within(cartaoAcme).getByRole('button', {
+        name: 'Pendente: analisar o cadastro de Acme Inc.',
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('mostra o aviso de vazio quando nenhuma empresa bate com a pesquisa', async () => {
+    const user = userEvent.setup();
+    renderTabela();
+
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Pesquisar empresas por nome' }),
+      'nada disso',
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Nenhuma empresa encontrada.',
+    );
+    expect(screen.queryByRole('table')).toBeNull();
   });
 
   it('mostra as pendentes primeiro', () => {
@@ -217,7 +315,9 @@ describe('CompanyTable', () => {
     const { onAceitar } = renderTabela();
 
     await user.click(
-      screen.getByRole('button', { name: 'Analisar o cadastro de Acme Inc.' }),
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Pendente: analisar o cadastro de Acme Inc.',
+      }),
     );
 
     await user.click(await screen.findByRole('button', { name: 'Aceitar' }));
@@ -230,7 +330,9 @@ describe('CompanyTable', () => {
     const { onRejeitar } = renderTabela();
 
     await user.click(
-      screen.getByRole('button', { name: 'Analisar o cadastro de Acme Inc.' }),
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Pendente: analisar o cadastro de Acme Inc.',
+      }),
     );
 
     await user.click(await screen.findByRole('button', { name: 'Rejeitar' }));

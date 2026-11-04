@@ -5,6 +5,15 @@ import type { DepartmentType } from '@/types/api';
 // Financeiro do azul de "vendas" de lá; Administrativo e TI são tons novos no
 // mesmo estilo (saturados, com texto claro). Quando a identidade visual
 // fechar, viram tokens do tema em `src/index.css` e saem do hex.
+// Os setores que existem, na ordem em que aparecem nos menus.
+export const DEPARTMENTS: DepartmentType[] = [
+  'Marketing',
+  'Financeiro',
+  'Administrativo',
+  'RecursosHumanos',
+  'TecnologiaInformacao',
+];
+
 export const DEPARTMENT_COLORS: Record<DepartmentType, string> = {
   Marketing: 'bg-[#009E4F]',
   Financeiro: 'bg-[#008AC9]',

@@ -44,10 +44,13 @@ export function TableFooter({
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {t('comum:tabela.pagina', { current: page, total: totalPages })}
         </p>
+        {/* Desabilitado igual aos botões das linhas: cinza cheio, sem a
+            borda roxa do outline. */}
         <Button
           type="button"
           variant="outline"
           size="sm"
+          className="disabled:border-transparent"
           disabled={page <= 1}
           onClick={onPrevious}
         >
@@ -57,6 +60,7 @@ export function TableFooter({
           type="button"
           variant="outline"
           size="sm"
+          className="disabled:border-transparent"
           disabled={page >= totalPages}
           onClick={onNext}
         >

@@ -9,49 +9,16 @@ const tones = {
   destructive: 'bg-destructive',
 };
 
-// Hover de cada tom quando o selo vira botão (sem ele, o Button troca para o
-// roxo do hover padrão).
-const hoverTones = {
-  success: 'hover:bg-success/90',
-  warning: 'hover:bg-warning/90',
-  destructive: 'hover:bg-destructive/90',
-};
-
 // Selo de status (Ativo, Pendente…). Cor cheia e texto claro, como no Figma.
-// Com `onClick` vira botão, com o formato dos botões da linha e a cor do
-// status: é o caso do "Pendente" das empresas, que abre o aceite. `label` é o
-// nome acessível, que diz o que o clique faz.
 export function StatusPill({
   tone,
   className,
   children,
-  onClick,
-  label,
 }: {
   tone?: keyof typeof tones;
   className?: string;
   children: ReactNode;
-  onClick?: () => void;
-  label?: string;
 }) {
-  if (onClick) {
-    return (
-      <RowActionButton
-        onClick={onClick}
-        aria-label={label}
-        title={label}
-        className={cn(
-          'text-primary-foreground',
-          tone && tones[tone],
-          tone && hoverTones[tone],
-          className,
-        )}
-      >
-        {children}
-      </RowActionButton>
-    );
-  }
-
   return (
     <span
       className={cn(

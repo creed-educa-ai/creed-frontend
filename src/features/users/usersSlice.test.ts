@@ -4,6 +4,7 @@ import reducer, {
   deleteMentee,
   loadMembers,
   loadMentees,
+  updateMemberTag,
 } from '@/features/users/usersSlice';
 import type { MemberList, Member, Mentee } from '@/types/api';
 
@@ -51,6 +52,26 @@ describe('usersSlice', () => {
     expect(estado.total).toBe(0);
   });
 
+  it('troca a tag do membro, e aceita ficar sem tag', () => {
+    const cheio = { ...estadoInicial, members: [membro] };
+    const comTi = reducer(
+      cheio,
+      updateMemberTag.fulfilled({ id: '1', tag: 'TecnologiaInformacao' }, '', {
+        id: '1',
+        tag: 'TecnologiaInformacao',
+      }),
+    );
+    expect(comTi.members[0]?.tag).toBe('TecnologiaInformacao');
+    const semTag = reducer(
+      comTi,
+      updateMemberTag.fulfilled({ id: '1', tag: null }, '', {
+        id: '1',
+        tag: null,
+      }),
+    );
+    expect(semTag.members[0]?.tag).toBeNull();
+  });
+
   it('registra uma chave traduzível em caso de falha de carregamento', () => {
     const estado = reducer(
       estadoInicial,
@@ -79,6 +100,7 @@ describe('usersSlice', () => {
 const mentorando: Mentee = {
   id: '1',
   name: 'Enner Valência',
+  email: 'enner@example.com',
   status: 'active',
   hasAnsweredCurrent: true,
 };
