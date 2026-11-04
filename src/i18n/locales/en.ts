@@ -15,7 +15,7 @@ export const en: typeof ptBR = {
     // Textos que as tabelas compartilham (src/components/table).
     tabela: {
       ordenarPorNome: 'Sort by name',
-      colunas: 'Columns',
+      ordenarPorStatus: 'Sort by status',
       paginacao: 'Pagination',
       pagina: 'Page {{current}} of {{total}}',
       anterior: 'Previous',
@@ -380,11 +380,18 @@ export const en: typeof ptBR = {
   mentees: {
     title: 'Mentees',
     loadError: 'Could not load the mentees.',
-    search: { label: 'Search mentees', placeholder: 'Search' },
+    search: {
+      name: { label: 'Search mentees by name', placeholder: 'Search by name' },
+      email: {
+        label: 'Search mentees by email',
+        placeholder: 'Search by email',
+      },
+    },
     columnsMenu: 'Columns',
     select: { all: 'Select all', row: 'Select {{name}}' },
     columns: {
       name: 'Name',
+      email: 'Email',
       questionnaire: 'Questionnaire',
       results: 'Results',
       status: 'Status',
@@ -530,22 +537,35 @@ export const en: typeof ptBR = {
   organizations: {
     addMember: {
       name: {
-        label: 'Member name',
+        label: 'Name',
         placeholder: 'Enter a name',
       },
       email: {
-        label: 'Member email',
+        label: 'Email',
         placeholder: 'Enter an email',
       },
-      submit: 'Add member',
+      submit: 'Add',
       role: {
         label: 'Role',
         options: { respondente: 'Respondent', gestor: 'Manager' },
       },
     },
     members: {
-      title: 'Members of {{organization}}',
-      searchEmail: 'Enter an Email',
+      title: 'Members',
+      tags: {
+        none: 'No tag',
+        change: '{{tag}}: change the tag of {{name}}',
+      },
+      search: {
+        name: {
+          label: 'Search members by name',
+          placeholder: 'Search by name',
+        },
+        email: {
+          label: 'Search members by email',
+          placeholder: 'Search by email',
+        },
+      },
       columns: 'Columns',
       columnsMenu: 'Toggle columns',
       table: 'Company members',
@@ -560,19 +580,17 @@ export const en: typeof ptBR = {
       selected_other: '{{count}} of {{total}} row(s) selected.',
       previous: 'Previous',
       next: 'Next',
-      view: 'View',
       empty: 'No members associated with the company yet.',
-      emptySearch: 'No members found for this email.',
-      detailsTitle: 'Member details',
+      emptySearch: 'No members found for this search.',
       confirmDeleteTitle: 'Delete member',
       confirmDeleteDescription:
         'Remove {{name}} from the company member list? This action cannot be undone.',
       delete: 'Delete',
       sortByDate: 'Sort by recent date',
+      sortByTag: 'Sort by tag',
       columnNames: {
         name: 'Name',
         email: 'Email',
-        action: 'Action',
         status: 'Status',
         tag: 'Tag',
         updatedAt: 'Updated',
@@ -597,7 +615,14 @@ export const en: typeof ptBR = {
   empresas: {
     titulo: 'Companies',
     erroAoCarregar: 'Could not load the companies.',
-    pesquisar: 'Search',
+    pesquisarNome: {
+      label: 'Search companies by name',
+      placeholder: 'Search by name',
+    },
+    pesquisarEmail: {
+      label: 'Search companies by email',
+      placeholder: 'Search by email',
+    },
     colunas: {
       titulo: 'Columns',
       aprovar: 'Approve',
@@ -615,7 +640,7 @@ export const en: typeof ptBR = {
     selecionadas: '{{selecionadas}} of {{total}} row(s) selected.',
     selecionarLinha: 'Select {{nome}}',
     excluirEmpresa: 'Delete {{nome}}',
-    analisarCadastro: 'Review the sign-up of {{nome}}',
+    analisarCadastro: 'Pending: review the sign-up of {{nome}}',
     confirmarExclusao: {
       titulo: 'Delete company',
       descricao: 'Are you sure you want to delete {{nome}}?',
@@ -623,8 +648,10 @@ export const en: typeof ptBR = {
     vazio: 'No companies found.',
   },
   painelControle: {
+    controles: 'Controls',
     administradora: 'Administrator',
     titulo: 'Control Panel',
+    membros: 'Members',
     gerenciar: 'Manage Questionnaire',
     adicionarMembro: 'Add Member',
     inicio: 'Start',
@@ -651,11 +678,5 @@ export const en: typeof ptBR = {
   },
   adicionarMentorando: {
     titulo: 'Add mentee',
-    adicionar: 'Add',
-    email: { label: "Mentee's email", placeholder: 'Enter an email' },
-    erros: {
-      emailObrigatorio: "Enter the mentee's email.",
-      emailInvalido: 'Enter a valid email.',
-    },
   },
 };

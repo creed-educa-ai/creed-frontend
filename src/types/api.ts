@@ -489,8 +489,9 @@ export interface Member {
   // No back, `RecordStatus` (`active`/`inactive`); "pendente" (convite não
   // aceito) não existe.
   status: MemberStatus;
-  // O setor do vínculo (`links.department_id` → `DepartmentType`).
-  tag: DepartmentType;
+  // O setor do vínculo (`links.department_id` → `DepartmentType`). Nulo até
+  // a empresa escolher: o membro entra sem tag, como o `department_id`.
+  tag: DepartmentType | null;
   updated_at: string;
 }
 
@@ -504,6 +505,7 @@ export interface MemberList extends ListaPaginada<Member> {
 export interface Mentee {
   id: string;
   name: string;
+  email: string;
   status: RecordStatus;
   // Já respondeu o questionário atual? Enquanto não, "Editar" e "Ver
   // Resultados" ficam desabilitados.

@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { SectionHeader } from '@/components/layout/sectionHeader';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CompanyTable } from '@/features/organizations/CompanyTable';
 import {
@@ -42,35 +41,35 @@ export function CompaniesSection() {
   };
 
   return (
-    <section className="flex flex-col gap-4">
-      <SectionHeader>{t('empresas:titulo')}</SectionHeader>
-      <div className="flex-1 rounded-3xl bg-card p-6 shadow-sm">
-        {status === 'loading' && (
-          <div className="space-y-3" aria-live="polite">
-            <p className="text-sm text-muted-foreground">{t('carregando')}</p>
-            <Skeleton className="h-40 w-full" />
-          </div>
-        )}
+    // O card é a seção: o título fica dentro dele, como nos cards do
+    // dashboard. O separador ("Membros") é do painel.
+    <section className="flex flex-col gap-4 rounded-3xl bg-card p-6 shadow-sm">
+      <h3 className="text-xl font-bold text-heading">{t('empresas:titulo')}</h3>
+      {status === 'loading' && (
+        <div className="space-y-3" aria-live="polite">
+          <p className="text-sm text-muted-foreground">{t('carregando')}</p>
+          <Skeleton className="h-40 w-full" />
+        </div>
+      )}
 
-        {status === 'error' && (
-          <p
-            role="alert"
-            className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-destructive"
-          >
-            {error && t(error)} {t('tenteRecarregar')}
-          </p>
-        )}
+      {status === 'error' && (
+        <p
+          role="alert"
+          className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-destructive"
+        >
+          {error && t(error)} {t('tenteRecarregar')}
+        </p>
+      )}
 
-        {status === 'ready' && (
-          <CompanyTable
-            empresas={companies}
-            onVerResultados={handleVerResultados}
-            onExcluir={handleExcluir}
-            onAceitar={handleAceitar}
-            onRejeitar={handleRejeitar}
-          />
-        )}
-      </div>
+      {status === 'ready' && (
+        <CompanyTable
+          empresas={companies}
+          onVerResultados={handleVerResultados}
+          onExcluir={handleExcluir}
+          onAceitar={handleAceitar}
+          onRejeitar={handleRejeitar}
+        />
+      )}
     </section>
   );
 }

@@ -1,9 +1,10 @@
-import { useId, useState } from 'react';
+import { useId, useState, type ComponentProps, type ReactNode } from 'react';
 import { format, parseISO, max, startOfToday } from 'date-fns';
 import { ptBR, es, enUS, type Locale } from 'date-fns/locale';
-import { CalendarIcon, Clock } from 'lucide-react';
+import { CalendarIcon, Check, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -59,177 +60,161 @@ export function ManageQuestionnaire({
     : hoje;
 
   return (
-    // O título da seção ("Gerenciar Questionário") é de quem usa o componente.
-    <section className="h-full w-full">
-      {/* Uma linha por período (rótulo, data, hora) e o Confirmar à direita
-          das duas: duas linhas de controles, a mesma altura do card de
-          adicionar membro ao lado. Sem largura, o Confirmar desce. */}
-      <div className="flex h-full flex-wrap items-center gap-4 rounded-3xl bg-card p-6 shadow-sm">
-        <div className="flex min-w-72 flex-1 flex-col gap-3">
-          {/* LINHA INÍCIO */}
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-20 shrink-0 items-center text-sm font-bold text-primary">
-              {t('painelControle:inicio')}
-            </span>
+    // O card e o título ("Gerenciar Questionário") são de quem usa o
+    // componente: aqui fica só o conteúdo.
+    // Uma linha por período (rótulo, data, hora) e o Confirmar embaixo, na
+    // largura toda: as mesmas três linhas do "Adicionar Membro" ao lado.
+    <div className="flex w-full flex-col gap-3">
+      <div className="flex flex-col gap-3">
+        {/* LINHA INÍCIO */}
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-20 shrink-0 items-center text-sm font-bold text-primary">
+            {t('painelControle:inicio')}
+          </span>
 
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              {/* DATA INÍCIO */}
-              <Controller
-                name="dataInicio"
-                control={control}
-                render={({ field }) => (
-                  <Popover open={openInicio} onOpenChange={setOpenInicio}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        {...ligacaoErro('dataInicio')}
-                        type="button"
-                        variant="outline"
-                        className="h-10 w-full justify-start gap-2 rounded-2xl border-primary px-3 text-primary hover:bg-accent"
-                      >
-                        <CalendarIcon size={18} />
-                        {field.value
-                          ? format(parseISO(field.value), 'P', {
-                              locale: currentLocale,
-                            })
-                          : t('painelControle:selecionarData')}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        locale={currentLocale}
-                        selected={
-                          field.value ? parseISO(field.value) : undefined
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            {/* DATA INÍCIO */}
+            <Controller
+              name="dataInicio"
+              control={control}
+              render={({ field }) => (
+                <Popover open={openInicio} onOpenChange={setOpenInicio}>
+                  <PopoverTrigger asChild>
+                    <PickerTrigger
+                      {...ligacaoErro('dataInicio')}
+                      icon={<CalendarIcon />}
+                      filled={Boolean(field.value)}
+                    >
+                      {field.value
+                        ? format(parseISO(field.value), 'P', {
+                            locale: currentLocale,
+                          })
+                        : t('painelControle:selecionarData')}
+                    </PickerTrigger>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      locale={currentLocale}
+                      selected={field.value ? parseISO(field.value) : undefined}
+                      disabled={{ before: hoje }}
+                      onSelect={(date) => {
+                        if (date) {
+                          field.onChange(format(date, 'yyyy-MM-dd'));
+                          setOpenInicio(false);
                         }
-                        disabled={{ before: hoje }}
-                        onSelect={(date) => {
-                          if (date) {
-                            field.onChange(format(date, 'yyyy-MM-dd'));
-                            setOpenInicio(false);
-                          }
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                )}
-              />
-              <MensagemErro
-                id={erroId('dataInicio')}
-                mensagem={errors.dataInicio?.message}
-              />
-            </div>
-
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              {/* HORA INÍCIO */}
-              <Controller
-                name="horaInicio"
-                control={control}
-                render={({ field }) => (
-                  <TimePickerPopover
-                    {...ligacaoErro('horaInicio')}
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder={t('painelControle:selecionarHora')}
-                  />
-                )}
-              />
-              <MensagemErro
-                id={erroId('horaInicio')}
-                mensagem={errors.horaInicio?.message}
-              />
-            </div>
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+            <MensagemErro
+              id={erroId('dataInicio')}
+              mensagem={errors.dataInicio?.message}
+            />
           </div>
 
-          {/* LINHA TÉRMINO */}
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-20 shrink-0 items-center text-sm font-bold text-primary">
-              {t('painelControle:termino')}
-            </span>
-
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              {/* DATA TÉRMINO */}
-              <Controller
-                name="dataLimite"
-                control={control}
-                render={({ field }) => (
-                  <Popover open={openLimite} onOpenChange={setOpenLimite}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        {...ligacaoErro('dataLimite')}
-                        type="button"
-                        variant="outline"
-                        className="h-10 w-full justify-start gap-2 rounded-2xl border-primary px-3 text-primary hover:bg-accent"
-                      >
-                        <CalendarIcon size={18} />
-                        {field.value
-                          ? format(parseISO(field.value), 'P', {
-                              locale: currentLocale,
-                            })
-                          : t('painelControle:selecionarData')}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        locale={currentLocale}
-                        selected={
-                          field.value ? parseISO(field.value) : undefined
-                        }
-                        disabled={{ before: minimoTermino }}
-                        defaultMonth={
-                          field.value ? parseISO(field.value) : minimoTermino
-                        }
-                        onSelect={(date) => {
-                          if (date) {
-                            field.onChange(format(date, 'yyyy-MM-dd'));
-                            setOpenLimite(false);
-                          }
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                )}
-              />
-              <MensagemErro
-                id={erroId('dataLimite')}
-                mensagem={errors.dataLimite?.message}
-              />
-            </div>
-
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-              {/* HORA TÉRMINO */}
-              <Controller
-                name="horaLimite"
-                control={control}
-                render={({ field }) => (
-                  <TimePickerPopover
-                    {...ligacaoErro('horaLimite')}
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder={t('painelControle:selecionarHora')}
-                  />
-                )}
-              />
-              <MensagemErro
-                id={erroId('horaLimite')}
-                mensagem={errors.horaLimite?.message}
-              />
-            </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            {/* HORA INÍCIO */}
+            <Controller
+              name="horaInicio"
+              control={control}
+              render={({ field }) => (
+                <TimePickerPopover
+                  {...ligacaoErro('horaInicio')}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder={t('painelControle:selecionarHora')}
+                />
+              )}
+            />
+            <MensagemErro
+              id={erroId('horaInicio')}
+              mensagem={errors.horaInicio?.message}
+            />
           </div>
         </div>
 
-        <div className="ml-auto">
-          <Button
-            type="button"
-            variant="default"
-            onClick={onConfirmar}
-            className="h-10 px-6"
-          >
-            {t('painelControle:confirmar')}
-          </Button>
+        {/* LINHA TÉRMINO */}
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-20 shrink-0 items-center text-sm font-bold text-primary">
+            {t('painelControle:termino')}
+          </span>
+
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            {/* DATA TÉRMINO */}
+            <Controller
+              name="dataLimite"
+              control={control}
+              render={({ field }) => (
+                <Popover open={openLimite} onOpenChange={setOpenLimite}>
+                  <PopoverTrigger asChild>
+                    <PickerTrigger
+                      {...ligacaoErro('dataLimite')}
+                      icon={<CalendarIcon />}
+                      filled={Boolean(field.value)}
+                    >
+                      {field.value
+                        ? format(parseISO(field.value), 'P', {
+                            locale: currentLocale,
+                          })
+                        : t('painelControle:selecionarData')}
+                    </PickerTrigger>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      locale={currentLocale}
+                      selected={field.value ? parseISO(field.value) : undefined}
+                      disabled={{ before: minimoTermino }}
+                      defaultMonth={
+                        field.value ? parseISO(field.value) : minimoTermino
+                      }
+                      onSelect={(date) => {
+                        if (date) {
+                          field.onChange(format(date, 'yyyy-MM-dd'));
+                          setOpenLimite(false);
+                        }
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+            <MensagemErro
+              id={erroId('dataLimite')}
+              mensagem={errors.dataLimite?.message}
+            />
+          </div>
+
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            {/* HORA TÉRMINO */}
+            <Controller
+              name="horaLimite"
+              control={control}
+              render={({ field }) => (
+                <TimePickerPopover
+                  {...ligacaoErro('horaLimite')}
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder={t('painelControle:selecionarHora')}
+                />
+              )}
+            />
+            <MensagemErro
+              id={erroId('horaLimite')}
+              mensagem={errors.horaLimite?.message}
+            />
+          </div>
         </div>
       </div>
-    </section>
+
+      <Button type="button" onClick={onConfirmar} className="h-10 w-full">
+        <Check aria-hidden="true" />
+        {t('painelControle:confirmar')}
+      </Button>
+    </div>
   );
 }
 
@@ -257,19 +242,11 @@ function TimePickerPopover({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button
-          {...ariaErro}
-          type="button"
-          variant="outline"
-          className="h-10 w-full justify-start gap-2 rounded-2xl border-primary px-3 text-primary hover:bg-accent"
-        >
-          <Clock size={18} />
-          <span>
-            {value
-              ? t('painelControle:seletorHora.valor', { hora: h, minuto: m })
-              : placeholder}
-          </span>
-        </Button>
+        <PickerTrigger {...ariaErro} icon={<Clock />} filled={Boolean(value)}>
+          {value
+            ? t('painelControle:seletorHora.valor', { hora: h, minuto: m })
+            : placeholder}
+        </PickerTrigger>
       </PopoverTrigger>
       <PopoverContent className="w-56 rounded-2xl border border-border bg-popover p-2 shadow-md">
         <div className="flex h-48 gap-2">
@@ -286,11 +263,11 @@ function TimePickerPopover({
                 onClick={() => {
                   onChange(`${hour}:${m}`);
                 }}
-                className={`w-full cursor-pointer rounded-lg py-1.5 text-center text-sm transition-colors ${
-                  h === hour
-                    ? 'bg-primary font-bold text-primary-foreground hover:bg-primary-hover'
-                    : ''
-                }`}
+                className={cn(
+                  'w-full cursor-pointer rounded-lg py-1.5 text-center text-sm transition-colors',
+                  h === hour &&
+                    'bg-primary font-bold text-primary-foreground hover:bg-primary-hover',
+                )}
               >
                 {t('painelControle:seletorHora.opcaoHora', { hora: hour })}
               </Button>
@@ -310,11 +287,11 @@ function TimePickerPopover({
                   onChange(`${h}:${min}`);
                   setOpen(false);
                 }}
-                className={`w-full cursor-pointer rounded-lg py-1.5 text-center text-sm transition-colors ${
-                  m === min
-                    ? 'bg-primary font-bold text-primary-foreground hover:bg-primary-hover'
-                    : ''
-                }`}
+                className={cn(
+                  'w-full cursor-pointer rounded-lg py-1.5 text-center text-sm transition-colors',
+                  m === min &&
+                    'bg-primary font-bold text-primary-foreground hover:bg-primary-hover',
+                )}
               >
                 {min}
               </Button>
@@ -323,6 +300,48 @@ function TimePickerPopover({
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+// Gatilho dos seletores de data e hora com a cara dos campos de texto do
+// projeto (`Input`/`InputGroup`): mesma borda, raio, fundo e altura, ícone à
+// esquerda em tom apagado e o vazio na cor de placeholder. É um botão, não um
+// input: abre o calendário ou a lista de horas.
+// Como os inputs, não tem hover; o anel aparece ao clicar. `focus` e não
+// `focus-visible`, que o navegador não liga no clique de um botão; e
+// `data-[state=open]` (do Radix) segura o anel enquanto o popover está aberto,
+// com o foco lá dentro.
+function PickerTrigger({
+  icon,
+  filled,
+  className,
+  children,
+  ...props
+}: ComponentProps<'button'> & { icon: ReactNode; filled: boolean }) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        'flex h-10 w-full min-w-0 cursor-pointer items-center gap-2 rounded-lg border border-primary bg-card px-2.5 text-left text-base transition-colors outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-[state=open]:border-ring data-[state=open]:ring-3 data-[state=open]:ring-ring/50 md:text-sm',
+        className,
+      )}
+      {...props}
+    >
+      <span
+        aria-hidden="true"
+        className="flex shrink-0 text-muted-foreground [&>svg]:size-4"
+      >
+        {icon}
+      </span>
+      <span
+        className={cn(
+          'truncate',
+          filled ? 'text-foreground' : 'text-placeholder',
+        )}
+      >
+        {children}
+      </span>
+    </button>
   );
 }
 

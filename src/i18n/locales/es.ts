@@ -15,7 +15,7 @@ export const es: typeof ptBR = {
     // Textos que as tabelas compartilham (src/components/table).
     tabela: {
       ordenarPorNome: 'Ordenar por nombre',
-      colunas: 'Columnas',
+      ordenarPorStatus: 'Ordenar por estado',
       paginacao: 'Paginación',
       pagina: 'Página {{current}} de {{total}}',
       anterior: 'Anterior',
@@ -384,11 +384,21 @@ export const es: typeof ptBR = {
   mentees: {
     title: 'Mentorados',
     loadError: 'No se pudieron cargar los mentorados.',
-    search: { label: 'Buscar mentorados', placeholder: 'Buscar' },
+    search: {
+      name: {
+        label: 'Buscar mentorados por nombre',
+        placeholder: 'Buscar por nombre',
+      },
+      email: {
+        label: 'Buscar mentorados por correo',
+        placeholder: 'Buscar por correo',
+      },
+    },
     columnsMenu: 'Columnas',
     select: { all: 'Seleccionar todos', row: 'Seleccionar {{name}}' },
     columns: {
       name: 'Nombre',
+      email: 'Correo',
       questionnaire: 'Cuestionario',
       results: 'Resultados',
       status: 'Estado',
@@ -535,22 +545,35 @@ export const es: typeof ptBR = {
   organizations: {
     addMember: {
       name: {
-        label: 'Nombre del miembro',
+        label: 'Nombre',
         placeholder: 'Ingresa un nombre',
       },
       email: {
-        label: 'Correo del miembro',
+        label: 'Correo',
         placeholder: 'Ingresa un correo',
       },
-      submit: 'Agregar miembro',
+      submit: 'Agregar',
       role: {
         label: 'Función',
         options: { respondente: 'Encuestado', gestor: 'Gestor' },
       },
     },
     members: {
-      title: 'Miembros de {{organization}}',
-      searchEmail: 'Introduce un correo electrónico',
+      title: 'Miembros',
+      tags: {
+        none: 'Sin etiqueta',
+        change: '{{tag}}: cambiar la etiqueta de {{name}}',
+      },
+      search: {
+        name: {
+          label: 'Buscar miembros por nombre',
+          placeholder: 'Buscar por nombre',
+        },
+        email: {
+          label: 'Buscar miembros por correo',
+          placeholder: 'Buscar por correo',
+        },
+      },
       columns: 'Columnas',
       columnsMenu: 'Mostrar columnas',
       table: 'Miembros de la empresa',
@@ -565,19 +588,17 @@ export const es: typeof ptBR = {
       selected_other: '{{count}} de {{total}} filas seleccionadas.',
       previous: 'Anterior',
       next: 'Siguiente',
-      view: 'Ver',
       empty: 'No hay miembros asociados a la empresa.',
-      emptySearch: 'No se encontraron miembros con este correo electrónico.',
-      detailsTitle: 'Datos del miembro',
+      emptySearch: 'No se encontraron miembros para esta búsqueda.',
       confirmDeleteTitle: 'Eliminar miembro',
       confirmDeleteDescription:
         '¿Quieres eliminar a {{name}} de la lista de miembros de la empresa? Esta acción no se puede deshacer.',
       delete: 'Eliminar',
       sortByDate: 'Ordenar por fecha reciente',
+      sortByTag: 'Ordenar por etiqueta',
       columnNames: {
         name: 'Nombre',
         email: 'Correo electrónico',
-        action: 'Acción',
         status: 'Estado',
         tag: 'Etiqueta',
         updatedAt: 'Fecha reciente',
@@ -602,7 +623,14 @@ export const es: typeof ptBR = {
   empresas: {
     titulo: 'Empresas',
     erroAoCarregar: 'No se pudieron cargar las empresas.',
-    pesquisar: 'Buscar',
+    pesquisarNome: {
+      label: 'Buscar empresas por nombre',
+      placeholder: 'Buscar por nombre',
+    },
+    pesquisarEmail: {
+      label: 'Buscar empresas por correo',
+      placeholder: 'Buscar por correo',
+    },
     colunas: {
       titulo: 'Columnas',
       aprovar: 'Aprobar',
@@ -620,7 +648,7 @@ export const es: typeof ptBR = {
     selecionadas: '{{selecionadas}} de {{total}} fila(s) seleccionada(s).',
     selecionarLinha: 'Seleccionar {{nome}}',
     excluirEmpresa: 'Eliminar {{nome}}',
-    analisarCadastro: 'Revisar el registro de {{nome}}',
+    analisarCadastro: 'Pendiente: revisar el registro de {{nome}}',
     confirmarExclusao: {
       titulo: 'Eliminar empresa',
       descricao: '¿Seguro que deseas eliminar {{nome}}?',
@@ -628,8 +656,10 @@ export const es: typeof ptBR = {
     vazio: 'No se encontraron empresas.',
   },
   painelControle: {
+    controles: 'Controles',
     administradora: 'Administradora',
     titulo: 'Panel de control',
+    membros: 'Miembros',
     gerenciar: 'Gestionar cuestionario',
     adicionarMembro: 'Agregar Miembro',
     inicio: 'Inicio',
@@ -659,11 +689,5 @@ export const es: typeof ptBR = {
   },
   adicionarMentorando: {
     titulo: 'Agregar mentoreado',
-    adicionar: 'Agregar',
-    email: { label: 'Correo del mentoreado', placeholder: 'Ingresa un correo' },
-    erros: {
-      emailObrigatorio: 'Ingresa el correo del mentoreado.',
-      emailInvalido: 'Ingresa un correo válido.',
-    },
   },
 };

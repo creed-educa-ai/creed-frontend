@@ -3,7 +3,7 @@
 // do usersApi até o back ter as rotas.
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { usersApi } from '@/features/users/usersApi';
-import type { Member, Mentee } from '@/types/api';
+import type { DepartmentType, Member, Mentee } from '@/types/api';
 
 type Status = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -40,6 +40,14 @@ export const deleteMember = createAsyncThunk(
   async (id: string) => {
     await usersApi.removeMember(id);
     return id;
+  },
+);
+
+export const updateMemberTag = createAsyncThunk(
+  'users/updateMemberTag',
+  async ({ id, tag }: { id: string; tag: DepartmentType | null }) => {
+    await usersApi.setMemberTag(id, tag);
+    return { id, tag };
   },
 );
 
@@ -81,6 +89,12 @@ const usersSlice = createSlice({
           (member) => member.id !== action.payload,
         );
         state.total = state.members.length;
+      })
+      .addCase(updateMemberTag.fulfilled, (state, action) => {
+        const member = state.members.find(
+          (item) => item.id === action.payload.id,
+        );
+        if (member) member.tag = action.payload.tag;
       })
       .addCase(loadMentees.pending, (state) => {
         state.mentees.status = 'loading';

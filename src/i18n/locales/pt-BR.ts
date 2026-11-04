@@ -13,7 +13,7 @@ export const ptBR = {
     // Textos que as tabelas compartilham (src/components/table).
     tabela: {
       ordenarPorNome: 'Ordenar por nome',
-      colunas: 'Colunas',
+      ordenarPorStatus: 'Ordenar por status',
       paginacao: 'Paginação',
       pagina: 'Página {{current}} de {{total}}',
       anterior: 'Anterior',
@@ -383,11 +383,21 @@ export const ptBR = {
   mentees: {
     title: 'Mentorandos',
     loadError: 'Não foi possível carregar os mentorandos.',
-    search: { label: 'Pesquisar mentorandos', placeholder: 'Pesquise' },
+    search: {
+      name: {
+        label: 'Pesquisar mentorandos por nome',
+        placeholder: 'Pesquise por nome',
+      },
+      email: {
+        label: 'Pesquisar mentorandos por email',
+        placeholder: 'Pesquise por email',
+      },
+    },
     columnsMenu: 'Colunas',
     select: { all: 'Selecionar todos', row: 'Selecionar {{name}}' },
     columns: {
       name: 'Nome',
+      email: 'Email',
       questionnaire: 'Questionário',
       results: 'Resultados',
       status: 'Status',
@@ -536,22 +546,36 @@ export const ptBR = {
   organizations: {
     addMember: {
       name: {
-        label: 'Nome do membro',
+        label: 'Nome',
         placeholder: 'Insira um nome',
       },
       email: {
-        label: 'E-mail do membro',
+        label: 'E-mail',
         placeholder: 'Insira um e-mail',
       },
-      submit: 'Adicionar membro',
+      submit: 'Adicionar',
       role: {
         label: 'Função',
         options: { respondente: 'Respondente', gestor: 'Gestor' },
       },
     },
     members: {
-      title: 'Membros de {{organization}}',
-      searchEmail: 'Insira um Email',
+      title: 'Membros',
+      tags: {
+        none: 'Sem tag',
+        // Começa pelo texto visível, para quem aciona o botão pela voz.
+        change: '{{tag}}: alterar a tag de {{name}}',
+      },
+      search: {
+        name: {
+          label: 'Pesquisar membros por nome',
+          placeholder: 'Pesquise por nome',
+        },
+        email: {
+          label: 'Pesquisar membros por email',
+          placeholder: 'Pesquise por email',
+        },
+      },
       columns: 'Colunas',
       columnsMenu: 'Exibir colunas',
       table: 'Membros da empresa',
@@ -566,19 +590,17 @@ export const ptBR = {
       selected_other: '{{count}} de {{total}} linha(s) selecionada(s).',
       previous: 'Anterior',
       next: 'Próximo',
-      view: 'Ver',
       empty: 'Nenhum membro associado à empresa.',
-      emptySearch: 'Nenhum membro encontrado para este e-mail.',
-      detailsTitle: 'Dados do membro',
+      emptySearch: 'Nenhum membro encontrado para essa pesquisa.',
       confirmDeleteTitle: 'Excluir membro',
       confirmDeleteDescription:
         'Remover {{name}} da lista de membros da empresa? Esta ação não pode ser desfeita.',
       delete: 'Excluir',
       sortByDate: 'Ordenar por data recente',
+      sortByTag: 'Ordenar por tag',
       columnNames: {
         name: 'Nome',
         email: 'Email',
-        action: 'Ação',
         status: 'Status',
         tag: 'Tag',
         updatedAt: 'Data recente',
@@ -603,7 +625,14 @@ export const ptBR = {
   empresas: {
     titulo: 'Empresas',
     erroAoCarregar: 'Não foi possível carregar as empresas.',
-    pesquisar: 'Pesquise',
+    pesquisarNome: {
+      label: 'Pesquisar empresas por nome',
+      placeholder: 'Pesquise por nome',
+    },
+    pesquisarEmail: {
+      label: 'Pesquisar empresas por email',
+      placeholder: 'Pesquise por email',
+    },
     colunas: {
       titulo: 'Colunas',
       aprovar: 'Aprovar',
@@ -621,7 +650,7 @@ export const ptBR = {
     selecionadas: '{{selecionadas}} de {{total}} linha(s) selecionada(s).',
     selecionarLinha: 'Selecionar {{nome}}',
     excluirEmpresa: 'Excluir {{nome}}',
-    analisarCadastro: 'Analisar o cadastro de {{nome}}',
+    analisarCadastro: 'Pendente: analisar o cadastro de {{nome}}',
     confirmarExclusao: {
       titulo: 'Excluir empresa',
       descricao: 'Tem certeza de que deseja excluir {{nome}}?',
@@ -629,8 +658,10 @@ export const ptBR = {
     vazio: 'Nenhuma empresa encontrada.',
   },
   painelControle: {
+    controles: 'Controles',
     administradora: 'Administradora',
     titulo: 'Painel de Controle',
+    membros: 'Membros',
     gerenciar: 'Gerenciar Questionário',
     adicionarMembro: 'Adicionar Membro',
     inicio: 'Início',
@@ -660,11 +691,5 @@ export const ptBR = {
   },
   adicionarMentorando: {
     titulo: 'Adicionar mentorando',
-    adicionar: 'Adicionar',
-    email: { label: 'E-mail do mentorando', placeholder: 'Insira um Email' },
-    erros: {
-      emailObrigatorio: 'Informe o e-mail do mentorando.',
-      emailInvalido: 'Informe um e-mail válido.',
-    },
   },
 };

@@ -1,80 +1,48 @@
-import { ChevronDown } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group';
 
-export interface ToolbarColumn {
+export interface TableSearch {
   key: string;
+  value: string;
+  onChange: (value: string) => void;
   label: string;
-  visible: boolean;
+  placeholder: string;
 }
 
 interface TableToolbarProps {
-  search: string;
-  onSearchChange: (value: string) => void;
-  searchLabel: string;
-  searchPlaceholder: string;
-  // Colunas que a pessoa pode esconder. O nome fica sempre: sem ele não dá
-  // para saber de quem é a linha.
-  columns: ToolbarColumn[];
-  onToggleColumn: (key: string, visible: boolean) => void;
+  // Um campo por busca, na ordem em que aparecem. No celular ficam um embaixo
+  // do outro; do `sm` em diante, lado a lado, encolhendo juntos quando a
+  // tabela é estreita.
+  searches: TableSearch[];
 }
 
-// Busca à esquerda e menu "Colunas" à direita, no topo de toda tabela.
-export function TableToolbar({
-  search,
-  onSearchChange,
-  searchLabel,
-  searchPlaceholder,
-  columns,
-  onToggleColumn,
-}: TableToolbarProps) {
-  const { t } = useTranslation(['comum']);
-
+// Busca no topo de toda tabela.
+export function TableToolbar({ searches }: TableToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <Input
-        type="search"
-        value={search}
-        onChange={(event) => {
-          onSearchChange(event.target.value);
-        }}
-        aria-label={searchLabel}
-        placeholder={searchPlaceholder}
-        className="h-10 w-full max-w-sm border-primary"
-      />
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button type="button" variant="outline" className="h-10">
-            {t('comum:tabela.colunas')}
-            <ChevronDown aria-hidden="true" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {columns.map((column) => (
-            <DropdownMenuCheckboxItem
-              key={column.key}
-              checked={column.visible}
-              onCheckedChange={(checked) => {
-                onToggleColumn(column.key, checked);
-              }}
-              // Mantém o menu aberto para esconder várias colunas seguidas.
-              onSelect={(event) => {
-                event.preventDefault();
-              }}
-            >
-              {column.label}
-            </DropdownMenuCheckboxItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="flex flex-col gap-3 sm:flex-row">
+      {searches.map((search) => (
+        <InputGroup
+          key={search.key}
+          className="h-10 sm:max-w-xs sm:min-w-0 sm:flex-1"
+        >
+          <InputGroupAddon>
+            <Search aria-hidden="true" />
+          </InputGroupAddon>
+          <InputGroupInput
+            type="search"
+            value={search.value}
+            onChange={(event) => {
+              search.onChange(event.target.value);
+            }}
+            aria-label={search.label}
+            placeholder={search.placeholder}
+          />
+        </InputGroup>
+      ))}
     </div>
   );
 }

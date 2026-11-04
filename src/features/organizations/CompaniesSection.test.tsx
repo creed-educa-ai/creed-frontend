@@ -21,7 +21,7 @@ async function renderizar() {
       <CompaniesSection />
     </Provider>,
   );
-  await screen.findByText('Acme Inc.');
+  await screen.findByRole('table');
 }
 
 async function confirmarExclusao(user: ReturnType<typeof userEvent.setup>) {
@@ -53,9 +53,15 @@ describe('CompaniesSection', () => {
       screen.getByRole('heading', { name: 'Empresas' }),
     ).toBeInTheDocument();
 
-    expect(screen.getByText('Acme Inc.')).toBeInTheDocument();
-    expect(screen.getByText('Tech Solutions')).toBeInTheDocument();
-    expect(screen.getByText('Inova Tech')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).getByText('Acme Inc.'),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).getByText('Tech Solutions'),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).getByText('Inova Tech'),
+    ).toBeInTheDocument();
   });
 
   it('altera o status da empresa para Ativo quando a aprovação é confirmada', async () => {
@@ -63,7 +69,9 @@ describe('CompaniesSection', () => {
     await renderizar();
 
     await user.click(
-      screen.getByRole('button', { name: 'Analisar o cadastro de Acme Inc.' }),
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Pendente: analisar o cadastro de Acme Inc.',
+      }),
     );
 
     expect(
@@ -79,6 +87,12 @@ describe('CompaniesSection', () => {
     });
 
     expect(within(linhaAcme).getByText('Ativo')).toBeInTheDocument();
+    // Aceita, vira o selo "Ativo": o botão de análise some.
+    expect(
+      within(linhaAcme).queryByRole('button', {
+        name: 'Pendente: analisar o cadastro de Acme Inc.',
+      }),
+    ).not.toBeInTheDocument();
 
     expect(
       within(linhaAcme).getByRole('button', {
@@ -92,7 +106,9 @@ describe('CompaniesSection', () => {
     await renderizar();
 
     await user.click(
-      screen.getByRole('button', { name: 'Analisar o cadastro de Acme Inc.' }),
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Pendente: analisar o cadastro de Acme Inc.',
+      }),
     );
 
     expect(
@@ -104,8 +120,12 @@ describe('CompaniesSection', () => {
     await user.click(screen.getByRole('button', { name: 'Rejeitar' }));
 
     expect(screen.queryByText('Acme Inc.')).not.toBeInTheDocument();
-    expect(screen.getByText('Tech Solutions')).toBeInTheDocument();
-    expect(screen.getByText('Inova Tech')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).getByText('Tech Solutions'),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).getByText('Inova Tech'),
+    ).toBeInTheDocument();
   });
 
   it('remove a empresa da lista quando ela é excluída', async () => {
@@ -113,25 +133,39 @@ describe('CompaniesSection', () => {
     await renderizar();
 
     await user.click(
-      screen.getByRole('button', { name: 'Excluir Tech Solutions' }),
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Excluir Tech Solutions',
+      }),
     );
     await confirmarExclusao(user);
 
     expect(screen.queryByText('Tech Solutions')).not.toBeInTheDocument();
-    expect(screen.getByText('Acme Inc.')).toBeInTheDocument();
-    expect(screen.getByText('Inova Tech')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).getByText('Acme Inc.'),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).getByText('Inova Tech'),
+    ).toBeInTheDocument();
   });
 
   it('mantém as demais empresas quando uma delas é excluída', async () => {
     const user = userEvent.setup();
     await renderizar();
 
-    await user.click(screen.getByRole('button', { name: 'Excluir Acme Inc.' }));
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Excluir Acme Inc.',
+      }),
+    );
     await confirmarExclusao(user);
 
     expect(screen.queryByText('Acme Inc.')).not.toBeInTheDocument();
-    expect(screen.getByText('Tech Solutions')).toBeInTheDocument();
-    expect(screen.getByText('Inova Tech')).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).getByText('Tech Solutions'),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).getByText('Inova Tech'),
+    ).toBeInTheDocument();
   });
 
   it('mostra o erro traduzido quando a lista não carrega', async () => {

@@ -109,7 +109,8 @@ describe('CompanyControlPanelView', () => {
   it('should render the organization name and the translated title', async () => {
     renderizar();
 
-    expect(await screen.findByText('Acme Inc.')).toBeInTheDocument();
+    // No cabeçalho, acima do título, e no separador do card "Membros".
+    expect(await screen.findAllByText('Acme Inc.')).toHaveLength(2);
     expect(
       screen.getByRole('heading', {
         level: 1,
@@ -384,23 +385,31 @@ describe('CompanyControlPanelView', () => {
   it('should render the three section titles, without collapsing', async () => {
     renderizar();
 
+    // "Controles" agrupa os dois cards de ação, cada um com o título dentro.
     expect(
       screen.getByRole('heading', {
         level: 2,
+        name: i18n.t('painelControle:controles'),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        level: 3,
         name: i18n.t('painelControle:adicionarMembro'),
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', {
-        level: 2,
+        level: 3,
         name: i18n.t('painelControle:gerenciar'),
       }),
     ).toBeInTheDocument();
+    // O separador leva o nome da empresa; "Membros" é o título do card.
     expect(
-      await screen.findByRole('heading', {
-        level: 2,
-        name: 'Membros de Acme Inc.',
-      }),
+      await screen.findByRole('heading', { level: 2, name: 'Acme Inc.' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Membros' }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole('button', {
@@ -412,7 +421,9 @@ describe('CompanyControlPanelView', () => {
   it('should list the organization members', async () => {
     renderizar();
 
-    expect(await screen.findByText('Enner Valência')).toBeInTheDocument();
+    expect(
+      within(await screen.findByRole('table')).getByText('Enner Valência'),
+    ).toBeInTheDocument();
   });
 
   it('should highlight the control panel in the menu', () => {

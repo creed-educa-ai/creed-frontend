@@ -16,10 +16,14 @@ import {
 } from '@/features/forms/manageQuestionnaireSchema';
 import { ManageQuestionnaire } from '@/features/forms/ManageQuestionnaire';
 
+// Card com o título dentro, como os do dashboard e o "Membros" logo abaixo.
+const cardClassName = 'flex flex-col gap-4 rounded-3xl bg-card p-6 shadow-sm';
+const cardTitleClassName = 'text-xl font-bold text-heading';
+
 // Painel de controle da empresa: convidar membros, abrir o período do
 // questionário e acompanhar os membros.
 export function CompanyControlPanelView() {
-  const { t } = useTranslation(['painelControle']);
+  const { t } = useTranslation(['painelControle', 'organizations']);
   // O nome chega junto com a lista de membros, que o MembersSection carrega.
   const organization = useAppSelector((state) => state.users.organization);
 
@@ -54,9 +58,10 @@ export function CompanyControlPanelView() {
     <div className="flex min-h-svh flex-col overflow-hidden bg-background">
       <PageHeader eyebrow={organization} title={t('painelControle:titulo')} />
 
-      {/* Ações lado a lado (adicionar membro, período do questionário) e a
-          tabela de membros embaixo, na largura toda. No celular, tudo numa
-          coluna, nessa ordem. */}
+      {/* "Controles": um separador só para os dois cards de ação (adicionar
+          membro, período do questionário), lado a lado, cada um com o título
+          dentro. Embaixo, na largura toda, o separador com o nome da empresa
+          e o card "Membros". No celular, tudo numa coluna, nessa ordem. */}
       <main
         className={cn(
           'flex flex-col gap-8 pb-10',
@@ -64,31 +69,43 @@ export function CompanyControlPanelView() {
           screenEnterClassName,
         )}
       >
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* Sem recolher, ao contrário do dashboard: o painel é curto e as
-              seções são as ações da tela. flex-1 nivela os cards da linha. */}
-          <section className="flex flex-col gap-4">
-            <SectionHeader>{t('painelControle:adicionarMembro')}</SectionHeader>
-            <div className="flex-1 rounded-3xl bg-card p-6 shadow-sm">
+        <section className="flex flex-col gap-4">
+          <SectionHeader>{t('painelControle:controles')}</SectionHeader>
+          {/* Sem recolher, ao contrário do dashboard: o painel é curto e os
+              cards são as ações da tela. O grid nivela a altura dos dois. */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <section className={cardClassName}>
+              <h3 className={cardTitleClassName}>
+                {t('painelControle:adicionarMembro')}
+              </h3>
               <AddMemberForm onSubmit={handleAddMember} />
-            </div>
-          </section>
+            </section>
 
-          <section className="flex flex-col gap-4">
-            <SectionHeader>{t('painelControle:gerenciar')}</SectionHeader>
-            <div className="flex-1">
-              <ManageQuestionnaire
-                control={control}
-                errors={errors}
-                onConfirmar={() => {
-                  void handleSubmit(onSubmit)();
-                }}
-              />
-            </div>
-          </section>
-        </div>
+            <section className={cardClassName}>
+              <h3 className={cardTitleClassName}>
+                {t('painelControle:gerenciar')}
+              </h3>
+              <div className="flex-1">
+                <ManageQuestionnaire
+                  control={control}
+                  errors={errors}
+                  onConfirmar={() => {
+                    void handleSubmit(onSubmit)();
+                  }}
+                />
+              </div>
+            </section>
+          </div>
+        </section>
 
-        <MembersSection />
+        {/* Sem o nome (carregando ou erro), o separador diz só "Membros da
+            empresa". */}
+        <section className="flex flex-col gap-4">
+          <SectionHeader>
+            {organization || t('organizations:members.table')}
+          </SectionHeader>
+          <MembersSection />
+        </section>
       </main>
     </div>
   );

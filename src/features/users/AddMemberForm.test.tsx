@@ -4,8 +4,8 @@ import { vi } from 'vitest';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { AddMemberForm } from '@/features/users/AddMemberForm';
 
-function renderForm(onSubmit = vi.fn()) {
-  render(<AddMemberForm onSubmit={onSubmit} />);
+function renderForm(onSubmit = vi.fn(), withRole = true) {
+  render(<AddMemberForm onSubmit={onSubmit} withRole={withRole} />);
   return { onSubmit };
 }
 
@@ -23,15 +23,15 @@ describe('AddMemberForm', () => {
   it('renderiza nome, e-mail, função e o botão de adicionar', () => {
     renderForm();
 
-    expect(screen.getByLabelText('Nome do membro')).toBeInTheDocument();
+    expect(screen.getByLabelText('Nome')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Insira um nome')).toBeInTheDocument();
-    expect(screen.getByLabelText('E-mail do membro')).toBeInTheDocument();
+    expect(screen.getByLabelText('E-mail')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Insira um e-mail')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Função' })).toHaveTextContent(
       'Respondente',
     );
     expect(
-      screen.getByRole('button', { name: 'Adicionar membro' }),
+      screen.getByRole('button', { name: 'Adicionar' }),
     ).toBeInTheDocument();
   });
 
@@ -39,7 +39,7 @@ describe('AddMemberForm', () => {
     const user = userEvent.setup();
     const { onSubmit } = renderForm();
 
-    await user.click(screen.getByRole('button', { name: 'Adicionar membro' }));
+    await user.click(screen.getByRole('button', { name: 'Adicionar' }));
 
     expect(
       await screen.findByText('Digite um nome de 2 a 200 caracteres.'),
@@ -52,14 +52,14 @@ describe('AddMemberForm', () => {
     const user = userEvent.setup();
     const { onSubmit } = renderForm();
 
-    await preencher(user, 'Nome do membro', 'A');
-    await preencher(user, 'E-mail do membro', 'ana@empresa.com.br');
-    await user.click(screen.getByRole('button', { name: 'Adicionar membro' }));
+    await preencher(user, 'Nome', 'A');
+    await preencher(user, 'E-mail', 'ana@empresa.com.br');
+    await user.click(screen.getByRole('button', { name: 'Adicionar' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Digite um nome de 2 a 200 caracteres.',
     );
-    expect(screen.getByLabelText('Nome do membro')).toHaveAttribute(
+    expect(screen.getByLabelText('Nome')).toHaveAttribute(
       'aria-invalid',
       'true',
     );
@@ -70,9 +70,9 @@ describe('AddMemberForm', () => {
     const user = userEvent.setup();
     const { onSubmit } = renderForm();
 
-    await preencher(user, 'Nome do membro', 'Ana Souza');
-    await preencher(user, 'E-mail do membro', 'isso-nao-e-email');
-    await user.click(screen.getByRole('button', { name: 'Adicionar membro' }));
+    await preencher(user, 'Nome', 'Ana Souza');
+    await preencher(user, 'E-mail', 'isso-nao-e-email');
+    await user.click(screen.getByRole('button', { name: 'Adicionar' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Digite um e-mail válido.',
@@ -80,13 +80,31 @@ describe('AddMemberForm', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it('sem a função, entrega respondente e deixa só o Adicionar na linha', async () => {
+    const user = userEvent.setup();
+    const { onSubmit } = renderForm(vi.fn(), false);
+
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    await preencher(user, 'Nome', 'Ana Souza');
+    await preencher(user, 'E-mail', 'ana@exemplo.com');
+    await user.click(screen.getByRole('button', { name: 'Adicionar' }));
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledWith({
+        name: 'Ana Souza',
+        email: 'ana@exemplo.com',
+        role: 'respondente',
+      });
+    });
+  });
+
   it('entrega nome, e-mail e função e limpa os campos quando é válido', async () => {
     const user = userEvent.setup();
     const { onSubmit } = renderForm();
 
-    await preencher(user, 'Nome do membro', '  Ana Souza ');
-    await preencher(user, 'E-mail do membro', 'ana@empresa.com.br');
-    await user.click(screen.getByRole('button', { name: 'Adicionar membro' }));
+    await preencher(user, 'Nome', '  Ana Souza ');
+    await preencher(user, 'E-mail', 'ana@empresa.com.br');
+    await user.click(screen.getByRole('button', { name: 'Adicionar' }));
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledTimes(1);
@@ -97,9 +115,9 @@ describe('AddMemberForm', () => {
       role: 'respondente',
     });
     await waitFor(() => {
-      expect(screen.getByLabelText('E-mail do membro')).toHaveValue('');
+      expect(screen.getByLabelText('E-mail')).toHaveValue('');
     });
-    expect(screen.getByLabelText('Nome do membro')).toHaveValue('');
+    expect(screen.getByLabelText('Nome')).toHaveValue('');
   });
 
   it('mantém o que foi digitado quando quem recebeu os dados falha', async () => {
@@ -107,30 +125,26 @@ describe('AddMemberForm', () => {
     const onSubmit = vi.fn().mockRejectedValue(new Error('falhou'));
     renderForm(onSubmit);
 
-    await preencher(user, 'Nome do membro', 'Ana Souza');
-    await preencher(user, 'E-mail do membro', 'ana@empresa.com.br');
-    await user.click(screen.getByRole('button', { name: 'Adicionar membro' }));
+    await preencher(user, 'Nome', 'Ana Souza');
+    await preencher(user, 'E-mail', 'ana@empresa.com.br');
+    await user.click(screen.getByRole('button', { name: 'Adicionar' }));
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalled();
     });
-    expect(screen.getByLabelText('Nome do membro')).toHaveValue('Ana Souza');
-    expect(screen.getByLabelText('E-mail do membro')).toHaveValue(
-      'ana@empresa.com.br',
-    );
+    expect(screen.getByLabelText('Nome')).toHaveValue('Ana Souza');
+    expect(screen.getByLabelText('E-mail')).toHaveValue('ana@empresa.com.br');
   });
 
   it('troca os textos quando o idioma muda', async () => {
     await i18n.changeLanguage('en');
     renderForm();
 
-    expect(screen.getByLabelText('Member name')).toBeInTheDocument();
-    expect(screen.getByLabelText('Member email')).toBeInTheDocument();
+    expect(screen.getByLabelText('Name')).toBeInTheDocument();
+    expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Role' })).toHaveTextContent(
       'Respondent',
     );
-    expect(
-      screen.getByRole('button', { name: 'Add member' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument();
   });
 });

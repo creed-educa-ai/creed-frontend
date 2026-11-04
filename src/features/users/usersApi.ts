@@ -8,6 +8,7 @@
 //   por um `apiClient.get` — a tela e o slice não mudam.
 import { apiClient } from '@/lib/apiClient';
 import type {
+  DepartmentType,
   Member,
   MemberInvite,
   MemberList,
@@ -18,7 +19,8 @@ import type {
 
 // ---------------------------------------------------------------------------
 // MOCK — membros da organização (painel da empresa)
-// Falta no back: `GET /organizations/{id}/members` e remover membro.
+// Falta no back: `GET /organizations/{id}/members`, remover membro e trocar o
+// setor do vínculo (`links.department_id` não tem rota de edição).
 // ---------------------------------------------------------------------------
 
 const memberSeed: Member[] = [
@@ -75,7 +77,7 @@ const memberSeed: Member[] = [
     name: 'Bruno Lima',
     email: 'bruno.lima@example.com',
     status: 'pendente',
-    tag: 'RecursosHumanos',
+    tag: null,
     updated_at: '2026-10-12T10:18:00.000Z',
   },
   {
@@ -83,7 +85,7 @@ const memberSeed: Member[] = [
     name: 'Carla Dias',
     email: 'carla.dias@example.com',
     status: 'ativo',
-    tag: 'Financeiro',
+    tag: null,
     updated_at: '2026-10-11T13:33:00.000Z',
   },
 ];
@@ -97,30 +99,35 @@ const menteeSeed: Mentee[] = [
   {
     id: '1',
     name: 'Enner Valência',
+    email: 'enner.valencia@example.com',
     status: 'active',
     hasAnsweredCurrent: true,
   },
   {
     id: '2',
     name: 'Wilson Mathias',
+    email: 'wilson.mathias@example.com',
     status: 'active',
     hasAnsweredCurrent: true,
   },
   {
     id: '3',
     name: 'Volante Ronaldo',
+    email: 'volante.ronaldo@example.com',
     status: 'active',
     hasAnsweredCurrent: false,
   },
   {
     id: '4',
     name: 'Maurides Cambalhota',
+    email: 'maurides.cambalhota@example.com',
     status: 'active',
     hasAnsweredCurrent: true,
   },
   {
     id: '5',
     name: 'Clayton Sampaio',
+    email: 'clayton.sampaio@example.com',
     status: 'inactive',
     hasAnsweredCurrent: false,
   },
@@ -177,6 +184,13 @@ export const usersApi = {
 
   removeMember: (id: string): Promise<void> => {
     memberRegistry = memberRegistry.filter((member) => member.id !== id);
+    return Promise.resolve();
+  },
+
+  setMemberTag: (id: string, tag: DepartmentType | null): Promise<void> => {
+    memberRegistry = memberRegistry.map((member) =>
+      member.id === id ? { ...member, tag } : member,
+    );
     return Promise.resolve();
   },
 
