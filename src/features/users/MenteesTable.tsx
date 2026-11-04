@@ -32,7 +32,7 @@ import { EmptyState } from '@/components/states/EmptyState';
 
 // > 🟡 Premissa — o Figma da tabela de mentorandos só mostra "Ativo".
 // > "Inativo" segue o `RecordStatus` do backend (`active` e `inactive`).
-// > 🟡 Premissa P-060 — `hasAnsweredCurrent` desabilita só "Ver Resultados":
+// > 🟡 Premissa P-064 — `hasAnsweredCurrent` desabilita só "Ver Resultados":
 // > sem resposta não há resultado. "Editar" fica sempre habilitado, porque é
 // > por ele que a super adm cria o questionário de quem ainda não tem (a spec
 // > e o Figma desabilitavam "Editar"). Confirmar na reunião.

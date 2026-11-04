@@ -142,7 +142,7 @@
   --chart-4: oklch(0.76 0.08 300);
   --chart-5: oklch(0.85 0.045 303);
 
-  /* 🟡 Premissa P-061 — cores dos setores. Confirmar com a cliente. */
+  /* 🟡 Premissa P-065 — cores dos setores. Confirmar com a cliente. */
   --department-marketing: oklch(0.46 0.2 265); /* #1F48C5 — azul royal */
   --department-finance: oklch(0.603 0.136 239.2); /* #008AC9 — azul */
   --department-administrative: oklch(0.626 0.154 55.6); /* #CC6A00 — laranja */
