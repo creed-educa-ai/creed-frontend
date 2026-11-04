@@ -21,7 +21,7 @@ export function PeriodFilter({ periods, value, onChange }: PeriodFilterProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="default" className="gap-2">
+        <Button type="button" variant="default">
           <ChevronDown />
           <span className="hidden sm:inline">{value}</span>
           <span className="sm:hidden">{t('dashboard:Periodo')}</span>

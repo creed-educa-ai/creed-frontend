@@ -9,6 +9,7 @@ import { resetCompaniesMock } from '@/features/organizations/organizationsApi';
 import organizationsReducer from '@/features/organizations/organizationsSlice';
 import { resetMenteesMock } from '@/features/users/usersApi';
 import usersReducer from '@/features/users/usersSlice';
+import { Toaster } from '@/components/ui/sonner';
 import { AdminControlPanelView } from './AdminControlPanelView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
@@ -42,6 +43,7 @@ function renderizar() {
       <MemoryRouter initialEntries={['/control-panel/admin']}>
         <AdminControlPanelView />
       </MemoryRouter>
+      <Toaster />
     </Provider>,
   );
 }
@@ -149,5 +151,9 @@ describe('AdminControlPanelView', () => {
         role: 'respondente',
       });
     });
+    expect(await screen.findByText('Convite enviado')).toBeInTheDocument();
+    expect(
+      screen.getByText('ana@exemplo.com vai receber o convite por e-mail.'),
+    ).toBeInTheDocument();
   });
 });

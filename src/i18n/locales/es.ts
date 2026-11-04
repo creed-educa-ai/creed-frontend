@@ -4,6 +4,9 @@ import type { ptBR } from './pt-BR';
 // faltando ou sobrando nas demais traduções.
 export const es: typeof ptBR = {
   comum: {
+    tenteNovamenteEmInstantes: 'Inténtalo de nuevo en unos instantes.',
+    // Região dos toasts (src/components/ui/sonner.tsx).
+    notificacoes: 'Notificaciones',
     // Setores (`DepartmentType` do back): tags, filtros e o mapa.
     setores: {
       Marketing: 'Marketing',
@@ -32,6 +35,7 @@ export const es: typeof ptBR = {
       obrigatorio: 'El campo es obligatorio',
     },
     acoes: {
+      fechar: 'Cerrar',
       tentarNovamente: 'Intentar de nuevo',
       cancelar: 'Cancelar',
       salvar: 'Guardar',
@@ -382,6 +386,16 @@ export const es: typeof ptBR = {
   },
 
   mentees: {
+    questionnaireDialog: {
+      title: 'Cuestionario de {{name}}',
+      description:
+        'Define el período en que {{name}} puede responder el cuestionario.',
+    },
+    toasts: {
+      questionnaireSaved: '{{name}} ya puede responder en el período definido.',
+      deleted: 'Mentoreado eliminado',
+      deletedDescription: '{{nome}} ya no tiene acceso a la plataforma.',
+    },
     title: 'Mentorados',
     loadError: 'No se pudieron cargar los mentorados.',
     search: {
@@ -543,6 +557,14 @@ export const es: typeof ptBR = {
     },
   },
   organizations: {
+    toasts: {
+      tagAtualizada: 'Etiqueta actualizada',
+      tagAtualizadaDescricao: '{{nome}} ahora está en {{tag}}.',
+      tagRemovidaDescricao: '{{nome}} se quedó sin etiqueta.',
+      erroTag: 'No se pudo cambiar la etiqueta',
+      membroExcluido: 'Miembro eliminado',
+      membroExcluidoDescricao: '{{nome}} ya no tiene acceso a la plataforma.',
+    },
     addMember: {
       name: {
         label: 'Nombre',
@@ -619,8 +641,24 @@ export const es: typeof ptBR = {
     responsavel: 'Responsable del registro',
     aceitar: 'Aceptar',
     rejeitar: 'Rechazar',
+    rejeitarConfirmacao: {
+      titulo: '¿Rechazar empresa?',
+      descricao:
+        'Vas a rechazar a {{nome}}. La empresa no tendrá acceso a la plataforma.',
+      rejeitando: 'Rechazando…',
+    },
   },
   empresas: {
+    toasts: {
+      aprovada: 'Empresa aprobada',
+      aprovadaDescricao: '{{nome}} ya tiene acceso a la plataforma.',
+      rejeitada: 'Empresa rechazada',
+      rejeitadaDescricao: '{{nome}} no tendrá acceso a la plataforma.',
+      erroAprovar: 'No se pudo aprobar la empresa',
+      erroRejeitar: 'No se pudo rechazar la empresa',
+      excluida: 'Empresa eliminada',
+      excluidaDescricao: '{{nome}} fue eliminada de la plataforma.',
+    },
     titulo: 'Empresas',
     erroAoCarregar: 'No se pudieron cargar las empresas.',
     pesquisarNome: {
@@ -656,6 +694,13 @@ export const es: typeof ptBR = {
     vazio: 'No se encontraron empresas.',
   },
   painelControle: {
+    toasts: {
+      conviteEnviado: 'Invitación enviada',
+      conviteEnviadoDescricao: '{{email}} recibirá la invitación por correo.',
+      questionarioNoAr: 'El cuestionario está en línea',
+      questionarioNoArDescricao:
+        'Las respuestas quedan abiertas en el período definido.',
+    },
     controles: 'Controles',
     administradora: 'Administradora',
     titulo: 'Panel de control',

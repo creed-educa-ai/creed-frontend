@@ -56,7 +56,7 @@ export function CompanyViewFilter({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="default" className="gap-2">
+        <Button type="button" variant="default">
           <ChevronDown />
           {value.department && (
             // Contorno claro: a cor do setor sobre o roxo do botão.

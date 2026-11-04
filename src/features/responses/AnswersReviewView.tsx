@@ -6,24 +6,6 @@ import wordmarkEscura from '@/components/logos/wordmark-dark.svg';
 import wordmarkClara from '@/components/logos/wordmark-light.svg';
 import { Button } from '@/components/ui/button';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Table,
   TableBody,
   TableCell,
@@ -31,11 +13,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  QuestionAnswerEditor,
-  type QuestionType,
-} from '@/features/responses/Question';
+import { EditAnswerDialog } from '@/features/responses/EditAnswerDialog';
+import { type QuestionType } from '@/features/responses/Question';
+import { SubmitConfirmationDialog } from '@/features/responses/SubmitConfirmationDialog';
 import { cn } from '@/lib/utils';
+import { Alert } from '@/components/ui/alert';
+import { pageTitleClassName } from '@/lib/typography';
 
 export type QuestionAnswer = string | null;
 
@@ -166,7 +149,9 @@ export function AnswersReviewView({
               é a tela de entrega do questionário (e o cabeçalho do PDF). */}
           <div className="flex items-center justify-between gap-4 rounded-xl bg-primary p-8 text-primary-foreground print:bg-transparent print:p-0 print:text-heading">
             <div className="flex flex-col gap-1">
-              <h1 className="text-xl font-bold text-balance">
+              <h1
+                className={cn(pageTitleClassName, 'text-balance text-inherit')}
+              >
                 {t('questionarioRevisao:titulo')}
               </h1>
               <p className="text-balance">
@@ -198,14 +183,13 @@ export function AnswersReviewView({
             ) : (
               <>
                 {unansweredRequired.length > 0 && (
-                  <p
-                    className="rounded-md border border-warning/50 bg-warning/10 px-3 py-2 text-sm text-foreground"
-                    role="status"
-                  >
-                    {t('questionarioRevisao:obrigatoriasPendentes', {
-                      count: unansweredRequired.length,
-                    })}
-                  </p>
+                  <Alert variant="warning" role="status">
+                    <p>
+                      {t('questionarioRevisao:obrigatoriasPendentes', {
+                        count: unansweredRequired.length,
+                      })}
+                    </p>
+                  </Alert>
                 )}
 
                 <div className="hidden overflow-hidden rounded-xl border border-border md:block">
@@ -272,7 +256,7 @@ export function AnswersReviewView({
                                   type="button"
                                   variant="outline"
                                   size="sm"
-                                  className="no-print h-7 rounded-full px-3 text-xs"
+                                  className="no-print"
                                   aria-label={t(
                                     'questionarioRevisao:revisarPergunta',
                                     {
@@ -339,7 +323,7 @@ export function AnswersReviewView({
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                className="no-print mt-3 h-8"
+                                className="no-print mt-3"
                                 aria-label={t(
                                   'questionarioRevisao:revisarPergunta',
                                   {
@@ -368,7 +352,6 @@ export function AnswersReviewView({
               <Button
                 type="button"
                 variant="outline"
-                className="gap-2"
                 aria-label={t('questionarioRevisao:gerarPdf')}
                 onClick={() => {
                   window.print();
@@ -393,7 +376,6 @@ export function AnswersReviewView({
               {questions.length > 0 && (
                 <Button
                   type="button"
-                  className="font-bold"
                   disabled={!canSubmit}
                   onClick={() => {
                     setConfirmOpen(true);
@@ -407,77 +389,27 @@ export function AnswersReviewView({
         </div>
       </div>
 
-      <Dialog
+      <EditAnswerDialog
         open={activeQuestionId !== null}
-        onOpenChange={(open) => {
-          if (!open) setActiveQuestionId(null);
+        onClose={() => {
+          setActiveQuestionId(null);
         }}
-      >
-        <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl">
-          {activeQuestion && (
-            <>
-              <DialogHeader>
-                <DialogTitle>
-                  {t('questionarioRevisao:modalTitulo', {
-                    numero:
-                      questions.findIndex(
-                        ({ id }) => id === activeQuestion.id,
-                      ) + 1,
-                  })}
-                </DialogTitle>
-                <DialogDescription>{activeQuestion.text}</DialogDescription>
-              </DialogHeader>
-              <QuestionAnswerEditor
-                tipo={activeQuestion.type}
-                opcoes={activeQuestion.options}
-                valor={draftAnswer ?? ''}
-                placeholder={t('formulario:textbox')}
-                onMudar={setDraftAnswer}
-              />
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setActiveQuestionId(null);
-                  }}
-                >
-                  {t('questionarioRevisao:cancelar')}
-                </Button>
-                <Button type="button" onClick={saveAnswer}>
-                  {t('questionarioRevisao:salvarResposta')}
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+        question={activeQuestion ?? null}
+        questionNumber={
+          questions.findIndex(({ id }) => id === activeQuestion?.id) + 1
+        }
+        value={draftAnswer ?? ''}
+        onChange={setDraftAnswer}
+        onSave={saveAnswer}
+      />
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t('questionarioRevisao:confirmarEnvioTitulo')}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('questionarioRevisao:confirmarEnvioDescricao')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              {t('questionarioRevisao:cancelar')}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(event) => {
-                event.preventDefault();
-                void confirmSubmission();
-              }}
-            >
-              {t('questionarioRevisao:confirmarEnvio')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <SubmitConfirmationDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        onConfirm={() => {
+          void confirmSubmission();
+        }}
+      />
     </main>
   );
 }

@@ -1,13 +1,16 @@
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
+  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface TermsModalProps {
   open: boolean;
@@ -25,6 +28,8 @@ export function TermsModal({
   onDecline,
 }: TermsModalProps) {
   const { t } = useTranslation(['termo']);
+  const aceitarRef = useRef<HTMLButtonElement>(null);
+  const [destacarAceitar, setDestacarAceitar] = useState(false);
 
   const handleAccept = () => {
     onOpenChange(false);
@@ -34,6 +39,13 @@ export function TermsModal({
   const handleDecline = () => {
     onOpenChange(false);
     onDecline?.();
+  };
+
+  // Clique fora ou Esc não fecham o termo: o foco vai para "Aceitar", com o
+  // anel de foco, mostrando que é preciso escolher (como no InfoModal).
+  const chamarAtencao = () => {
+    aceitarRef.current?.focus();
+    setDestacarAceitar(true);
   };
 
   return (
@@ -47,7 +59,16 @@ export function TermsModal({
         }
       }}
     >
-      <AlertDialogContent className="w-full !max-w-2xl bg-background">
+      {/* O texto do termo é longo: a largura sobe pela mesma variante do
+          tamanho padrão, que é a que o tailwind-merge substitui. */}
+      <AlertDialogContent
+        className="data-[size=default]:sm:max-w-2xl"
+        onOverlayClick={chamarAtencao}
+        onEscapeKeyDown={(event) => {
+          event.preventDefault();
+          chamarAtencao();
+        }}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>{t('termo:titulo')}</AlertDialogTitle>
         </AlertDialogHeader>
@@ -61,16 +82,21 @@ export function TermsModal({
           </div>
         </AlertDialogDescription>
 
-        {/* Botões */}
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={handleDecline}>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleDecline}>
             {t('termo:recusar')}
-          </Button>
-
-          <AlertDialogAction onClick={handleAccept}>
+          </AlertDialogCancel>
+          <AlertDialogAction
+            ref={aceitarRef}
+            onClick={handleAccept}
+            onBlur={() => {
+              setDestacarAceitar(false);
+            }}
+            className={cn(destacarAceitar && 'border-ring ring-3 ring-ring/50')}
+          >
             {t('termo:aceitar')}
           </AlertDialogAction>
-        </div>
+        </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );

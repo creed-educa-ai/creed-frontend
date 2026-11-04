@@ -2,6 +2,9 @@
 // compartilhado; cada feature ganha o seu.
 export const ptBR = {
   comum: {
+    tenteNovamenteEmInstantes: 'Tente novamente em alguns instantes.',
+    // Região dos toasts (src/components/ui/sonner.tsx).
+    notificacoes: 'Notificações',
     // Setores (`DepartmentType` do back): tags, filtros e o mapa.
     setores: {
       Marketing: 'Marketing',
@@ -30,6 +33,7 @@ export const ptBR = {
       obrigatorio: 'Campo obrigatório',
     },
     acoes: {
+      fechar: 'Fechar',
       tentarNovamente: 'Tentar novamente',
       cancelar: 'Cancelar',
       salvar: 'Salvar',
@@ -381,6 +385,16 @@ export const ptBR = {
   },
 
   mentees: {
+    questionnaireDialog: {
+      title: 'Questionário de {{name}}',
+      description:
+        'Defina o período em que {{name}} pode responder ao questionário.',
+    },
+    toasts: {
+      questionnaireSaved: '{{name}} já pode responder no período definido.',
+      deleted: 'Mentorando excluído',
+      deletedDescription: '{{nome}} não tem mais acesso à plataforma.',
+    },
     title: 'Mentorandos',
     loadError: 'Não foi possível carregar os mentorandos.',
     search: {
@@ -544,6 +558,14 @@ export const ptBR = {
     },
   },
   organizations: {
+    toasts: {
+      tagAtualizada: 'Tag atualizada',
+      tagAtualizadaDescricao: '{{nome}} agora está em {{tag}}.',
+      tagRemovidaDescricao: '{{nome}} ficou sem tag.',
+      erroTag: 'Não foi possível alterar a tag',
+      membroExcluido: 'Membro excluído',
+      membroExcluidoDescricao: '{{nome}} não tem mais acesso à plataforma.',
+    },
     addMember: {
       name: {
         label: 'Nome',
@@ -621,8 +643,24 @@ export const ptBR = {
     responsavel: 'Responsável pelo cadastro',
     aceitar: 'Aceitar',
     rejeitar: 'Rejeitar',
+    rejeitarConfirmacao: {
+      titulo: 'Rejeitar empresa?',
+      descricao:
+        'Você vai rejeitar {{nome}}. A empresa não terá acesso à plataforma.',
+      rejeitando: 'Rejeitando…',
+    },
   },
   empresas: {
+    toasts: {
+      aprovada: 'Empresa aprovada',
+      aprovadaDescricao: '{{nome}} já tem acesso à plataforma.',
+      rejeitada: 'Empresa rejeitada',
+      rejeitadaDescricao: '{{nome}} não terá acesso à plataforma.',
+      erroAprovar: 'Não foi possível aprovar a empresa',
+      erroRejeitar: 'Não foi possível rejeitar a empresa',
+      excluida: 'Empresa excluída',
+      excluidaDescricao: '{{nome}} foi removida da plataforma.',
+    },
     titulo: 'Empresas',
     erroAoCarregar: 'Não foi possível carregar as empresas.',
     pesquisarNome: {
@@ -658,6 +696,13 @@ export const ptBR = {
     vazio: 'Nenhuma empresa encontrada.',
   },
   painelControle: {
+    toasts: {
+      conviteEnviado: 'Convite enviado',
+      conviteEnviadoDescricao: '{{email}} vai receber o convite por e-mail.',
+      questionarioNoAr: 'O questionário está no ar',
+      questionarioNoArDescricao:
+        'As respostas ficam abertas no período definido.',
+    },
     controles: 'Controles',
     administradora: 'Administradora',
     titulo: 'Painel de Controle',

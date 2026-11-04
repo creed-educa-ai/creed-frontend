@@ -66,7 +66,7 @@ export interface PrismaComparison {
 
 /**
  * Quantas pessoas do recorte ficaram em cada faixa de nota de um prisma, e a
- * leitura disso. Faixas e regra do nível: P-057 e P-058.
+ * leitura disso. Faixas e regra do nível: P-061 e P-062.
  */
 export interface PrismaAlignment {
   bands: { baixa: number; media: number; alta: number };
@@ -423,7 +423,7 @@ const OVERALL_LEVELS: AlignmentLevel[] = [
   'dividido',
 ];
 
-// A regra da P-058, como o back faria: dividido quando baixa e alta passam de
+// A regra da P-062, como o back faria: dividido quando baixa e alta passam de
 // 30% cada; alinhado quando uma faixa só tem 70% ou mais.
 function levelOf(
   bands: PrismaAlignment['bands'],

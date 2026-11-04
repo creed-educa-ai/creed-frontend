@@ -336,6 +336,11 @@ describe('CompanyTable', () => {
     );
 
     await user.click(await screen.findByRole('button', { name: 'Rejeitar' }));
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Rejeitar',
+      }),
+    );
 
     expect(onRejeitar).toHaveBeenCalledWith(empresasTeste[0]);
   });

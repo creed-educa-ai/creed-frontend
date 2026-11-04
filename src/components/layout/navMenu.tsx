@@ -96,19 +96,26 @@ export function NavMenu() {
 
   return (
     <TooltipProvider>
+      {/* Uma linha só, em qualquer largura. Só no celular o menu ocupa a
+          largura toda e os itens se espalham; de sm para cima ele tem o
+          tamanho do conteúdo, como no desktop. Os ícones não encolhem abaixo
+          de 40px (alvo de toque); cabe até em 320px porque ali a marca é só o
+          símbolo. */}
       <nav
         aria-label={t('formulario:menuNavegacao')}
-        className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-border bg-background p-2 sm:justify-end"
+        className="flex w-full flex-nowrap items-center justify-between gap-0.5 rounded-2xl border border-border bg-background p-2 sm:w-auto sm:justify-end sm:gap-1"
       >
         {/* A marca abre o menu; o Sair fecha, separado dos destinos por ser
             uma ação, não uma tela. */}
-        <div className="mr-4 flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 sm:mr-4">
           {/* Ajuste ótico, medido em print: centrado na caixa do wordmark o
               símbolo parece alto (a haste do "d" puxa o centro para cima, e o
               corpo das letras fica ~3px abaixo); alinhado ao corpo, parece
               baixo. Metade do caminho é o que lê como centralizado. */}
           <CreedSymbol className="size-8 translate-y-[1.5px] text-primary" />
-          <img src={wordmark} alt="CREED.ai" className="h-5" />
+          {/* O nome por extenso só a partir de sm: no celular ele empurrava
+              os ícones para uma segunda linha. */}
+          <img src={wordmark} alt="CREED.ai" className="hidden h-5 sm:block" />
         </div>
         <NavMenuLink
           to={dashboardPath(role)}
@@ -134,7 +141,7 @@ export function NavMenu() {
             fixa prendia o separador no topo da linha. */}
         <Separator
           orientation="vertical"
-          className="mx-2 h-8 data-vertical:w-0.5 data-vertical:self-center"
+          className="mx-0.5 h-8 sm:mx-2 data-vertical:w-0.5 data-vertical:self-center"
         />
         <NavMenuHint label={t('formulario:menuSair')}>
           <button

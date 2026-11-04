@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { sectionTitleClassName } from '@/lib/typography';
 
 function SectionHeader({
   children,
@@ -18,14 +19,14 @@ function SectionHeader({
       className={cn('flex items-center gap-3', className)}
       {...props}
     >
-      <span className="size-1.5 shrink-0 rounded-full bg-primary/80" />
-      <h2 className="text-lg font-bold whitespace-nowrap text-heading">
+      <span className="size-1.5 shrink-0 rounded-full bg-primary" />
+      <h2 className={cn(sectionTitleClassName, 'whitespace-nowrap')}>
         {children}
       </h2>
 
       {action}
 
-      <Separator className="flex-1 bg-primary/50 data-horizontal:h-0.5" />
+      <Separator className="flex-1 bg-primary-soft data-horizontal:h-0.5" />
     </div>
   );
 }

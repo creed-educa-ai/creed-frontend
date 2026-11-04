@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   CompanyApprovalModal,
@@ -95,12 +95,49 @@ describe('CompanyApprovalModal', () => {
     expect(aoRejeitar).not.toHaveBeenCalled();
   });
 
-  it('ao clicar em Rejeitar, fecha o modal e avisa a rejeição', async () => {
+  it('ao clicar em Rejeitar, pede confirmação antes de rejeitar', async () => {
+    const user = userEvent.setup();
+    const { aoRejeitar } = renderizar();
+
+    await user.click(
+      screen.getByRole('button', { name: i18n.t('aceite:rejeitar') }),
+    );
+
+    const confirmacao = screen.getByRole('alertdialog');
+    expect(
+      within(confirmacao).getByText(/Você vai rejeitar Acme Inc\./),
+    ).toBeInTheDocument();
+    expect(aoRejeitar).not.toHaveBeenCalled();
+  });
+
+  it('cancelar a confirmação volta para o modal sem rejeitar', async () => {
+    const user = userEvent.setup();
+    const { aoRejeitar } = renderizar();
+
+    await user.click(
+      screen.getByRole('button', { name: i18n.t('aceite:rejeitar') }),
+    );
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Cancelar',
+      }),
+    );
+
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(aoRejeitar).not.toHaveBeenCalled();
+  });
+
+  it('ao confirmar a rejeição, fecha o modal e avisa a rejeição', async () => {
     const user = userEvent.setup();
     const { aoMudarAbertura, aoAceitar, aoRejeitar } = renderizar();
 
     await user.click(
       screen.getByRole('button', { name: i18n.t('aceite:rejeitar') }),
+    );
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: i18n.t('aceite:rejeitar'),
+      }),
     );
 
     expect(aoRejeitar).toHaveBeenCalledTimes(1);

@@ -2,6 +2,9 @@ import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 import { InfoTip } from './InfoTip';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { sectionTitleClassName } from '@/lib/typography';
 
 interface Metrica {
   titulo: string;
@@ -35,20 +38,28 @@ function CardMetrica({
   metrica,
 }: CardMetricaProps) {
   return (
-    <article className="rounded-2xl bg-card p-5 shadow-sm">
-      <p
-        className={`flex items-center gap-2 text-sm font-semibold ${corTexto}`}
-      >
-        <span
-          className={`size-2 rounded-full ${corPonto}`}
-          aria-hidden="true"
-        />
-        {rotulo} - {metrica.valor}
-        <InfoTip title={rotulo} text={info} />
-      </p>
-      <h3 className="mt-1 text-3xl font-bold text-heading">{metrica.titulo}</h3>
-      <p className="mt-2 text-xs text-card-foreground">{metrica.descricao}</p>
-    </article>
+    <Card asChild>
+      <article>
+        <CardContent>
+          <p
+            className={`flex items-center gap-2 text-sm font-semibold ${corTexto}`}
+          >
+            <span
+              className={`size-2 rounded-full ${corPonto}`}
+              aria-hidden="true"
+            />
+            {rotulo} - {metrica.valor}
+            <InfoTip title={rotulo} text={info} />
+          </p>
+          <h3 className="mt-1 text-3xl font-bold text-heading">
+            {metrica.titulo}
+          </h3>
+          <p className="mt-2 text-xs text-card-foreground">
+            {metrica.descricao}
+          </p>
+        </CardContent>
+      </article>
+    </Card>
   );
 }
 
@@ -85,7 +96,7 @@ export function SummaryCards({
               isOpen ? 'rotate-0' : '-rotate-90'
             }`}
           />
-          <h2 className="text-xl font-bold">
+          <h2 className={cn(sectionTitleClassName, 'text-inherit')}>
             {t('resultado:resumoEmpresa', { empresa: nomeEmpresa })}
           </h2>
         </button>
@@ -98,36 +109,42 @@ export function SummaryCards({
           className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
         >
           {/* CARD 1: TAXA DE CONCLUSÃO */}
-          <article className="rounded-2xl bg-card p-5 shadow-sm">
-            <div className="flex items-center gap-1.5">
-              <p className="text-sm text-card-foreground">
-                {t('resultado:taxaConclusao')}
-              </p>
-              <InfoTip
-                title={t('resultado:taxaConclusao')}
-                text={t('dashboard:info.taxaConclusao')}
-              />
-            </div>
-            <div className="mt-2 flex items-end justify-between">
-              <span className="text-6xl font-bold text-heading">{taxa}%</span>
-              <span className="text-sm text-muted-foreground">
-                {concluidos}/{convidados}
-              </span>
-            </div>
-            <div
-              role="progressbar"
-              aria-valuenow={taxa}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label={t('resultado:taxaConclusao')}
-              className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted"
-            >
-              <div
-                className="h-full rounded-full bg-primary"
-                style={{ width: `${String(taxa)}%` }}
-              />
-            </div>
-          </article>
+          <Card asChild>
+            <article>
+              <CardContent>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm text-card-foreground">
+                    {t('resultado:taxaConclusao')}
+                  </p>
+                  <InfoTip
+                    title={t('resultado:taxaConclusao')}
+                    text={t('dashboard:info.taxaConclusao')}
+                  />
+                </div>
+                <div className="mt-2 flex items-end justify-between">
+                  <span className="text-6xl font-bold text-heading">
+                    {taxa}%
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {concluidos}/{convidados}
+                  </span>
+                </div>
+                <div
+                  role="progressbar"
+                  aria-valuenow={taxa}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={t('resultado:taxaConclusao')}
+                  className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted"
+                >
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${String(taxa)}%` }}
+                  />
+                </div>
+              </CardContent>
+            </article>
+          </Card>
 
           {/* CARDS 2, 3 E 4: MÉTRICAS */}
           <CardMetrica

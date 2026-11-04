@@ -27,6 +27,8 @@ const localeMap: Record<string, Locale> = {
 interface ManageQuestionnaireProps {
   control: Control<ManageQuestionnaireFormValues>;
   errors: FieldErrors<ManageQuestionnaireFormValues>;
+  // Sem `onConfirmar`, o botão de confirmar não aparece: num modal, quem
+  // confirma é o rodapé do próprio modal (ManageQuestionnaireDialog).
   onConfirmar?: () => void;
 }
 
@@ -68,7 +70,7 @@ export function ManageQuestionnaire({
       <div className="flex flex-col gap-3">
         {/* LINHA INÍCIO */}
         <div className="flex items-start gap-3">
-          <span className="flex h-10 w-20 shrink-0 items-center text-sm font-bold text-primary">
+          <span className="flex h-10 w-20 shrink-0 items-center text-sm font-bold text-primary md:h-8">
             {t('painelControle:inicio')}
           </span>
 
@@ -138,7 +140,7 @@ export function ManageQuestionnaire({
 
         {/* LINHA TÉRMINO */}
         <div className="flex items-start gap-3">
-          <span className="flex h-10 w-20 shrink-0 items-center text-sm font-bold text-primary">
+          <span className="flex h-10 w-20 shrink-0 items-center text-sm font-bold text-primary md:h-8">
             {t('painelControle:termino')}
           </span>
 
@@ -210,10 +212,12 @@ export function ManageQuestionnaire({
         </div>
       </div>
 
-      <Button type="button" onClick={onConfirmar} className="h-10 w-full">
-        <Check aria-hidden="true" />
-        {t('painelControle:confirmar')}
-      </Button>
+      {onConfirmar && (
+        <Button type="button" onClick={onConfirmar} className="w-full">
+          <Check aria-hidden="true" />
+          {t('painelControle:confirmar')}
+        </Button>
+      )}
     </div>
   );
 }
@@ -259,15 +263,11 @@ function TimePickerPopover({
               <Button
                 key={hour}
                 type="button"
-                variant="ghost"
+                variant={h === hour ? 'default' : 'ghost'}
                 onClick={() => {
                   onChange(`${hour}:${m}`);
                 }}
-                className={cn(
-                  'w-full cursor-pointer rounded-lg py-1.5 text-center text-sm transition-colors',
-                  h === hour &&
-                    'bg-primary font-bold text-primary-foreground hover:bg-primary-hover',
-                )}
+                className="w-full"
               >
                 {t('painelControle:seletorHora.opcaoHora', { hora: hour })}
               </Button>
@@ -282,16 +282,12 @@ function TimePickerPopover({
               <Button
                 key={min}
                 type="button"
-                variant="ghost"
+                variant={m === min ? 'default' : 'ghost'}
                 onClick={() => {
                   onChange(`${h}:${min}`);
                   setOpen(false);
                 }}
-                className={cn(
-                  'w-full cursor-pointer rounded-lg py-1.5 text-center text-sm transition-colors',
-                  m === min &&
-                    'bg-primary font-bold text-primary-foreground hover:bg-primary-hover',
-                )}
+                className="w-full"
               >
                 {min}
               </Button>
@@ -322,7 +318,7 @@ function PickerTrigger({
     <button
       type="button"
       className={cn(
-        'flex h-10 w-full min-w-0 cursor-pointer items-center gap-2 rounded-lg border border-primary bg-card px-2.5 text-left text-base transition-colors outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-[state=open]:border-ring data-[state=open]:ring-3 data-[state=open]:ring-ring/50 md:text-sm',
+        'flex h-10 w-full min-w-0 cursor-pointer items-center gap-2 rounded-lg border border-primary bg-card px-2.5 text-left text-base transition-colors outline-none focus:border-ring focus:ring-3 focus:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-[state=open]:border-ring data-[state=open]:ring-3 data-[state=open]:ring-ring/50 md:h-8 md:text-sm',
         className,
       )}
       {...props}

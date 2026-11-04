@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom/vitest';
+import { afterEach } from 'vitest';
+import { toast } from 'sonner';
 // Mesmo motivo do main.tsx: componentes com useTranslation esperam o i18next
 // já configurado — aqui isso vale para toda a suíte.
 import '@/i18n/config';
@@ -44,3 +46,9 @@ global.ResizeObserver = class ResizeObserver {
     return undefined;
   }
 };
+
+// O sonner guarda os toasts num estado global do módulo: sem dispensar, o
+// toast de um teste aparece no Toaster do teste seguinte.
+afterEach(() => {
+  toast.dismiss();
+});

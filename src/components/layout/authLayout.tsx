@@ -41,7 +41,7 @@ export function AuthLayout({
       {/* No mobile a seta fica sobre o painel roxo do topo: por isso a cor
           clara abaixo de lg. */}
       {exibirNavegacao && (
-        <BackButton className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground lg:text-foreground lg:hover:bg-accent lg:hover:text-accent-foreground" />
+        <BackButton className="text-primary-foreground hover:bg-primary-hover hover:text-primary-foreground lg:text-foreground lg:hover:bg-accent lg:hover:text-accent-foreground" />
       )}
 
       {/* ESQUERDA — conteúdo da tela */}

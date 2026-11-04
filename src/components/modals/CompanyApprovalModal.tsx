@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ConfirmDeleteDialog } from '@/components/table/confirmDeleteDialog';
 import { Button } from '@/components/ui/button';
 import type { CompanyRegistration } from '@/types/api';
 
@@ -41,6 +44,9 @@ export function CompanyApprovalModal({
   onReject,
 }: CompanyApprovalModalProps) {
   const { t } = useTranslation(['aceite', 'cadastro']);
+  // Rejeitar é destrutivo: passa por uma confirmação por cima deste modal.
+  // Cancelar ali volta para os dados da empresa.
+  const [confirmandoRejeicao, setConfirmandoRejeicao] = useState(false);
 
   if (!empresa) return null;
 
@@ -56,7 +62,7 @@ export function CompanyApprovalModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-background">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('aceite:titulo')}</DialogTitle>
         </DialogHeader>
@@ -84,13 +90,32 @@ export function CompanyApprovalModal({
           />
         </div>
 
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={handleReject}>
+        <DialogFooter>
+          <Button
+            variant="destructive-solid"
+            onClick={() => {
+              setConfirmandoRejeicao(true);
+            }}
+          >
             {t('aceite:rejeitar')}
           </Button>
           <Button onClick={handleAccept}>{t('aceite:aceitar')}</Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
+
+      <ConfirmDeleteDialog
+        open={confirmandoRejeicao}
+        title={t('aceite:rejeitarConfirmacao.titulo')}
+        description={t('aceite:rejeitarConfirmacao.descricao', {
+          nome: empresa.nomeEmpresa,
+        })}
+        confirmLabel={t('aceite:rejeitar')}
+        pendingLabel={t('aceite:rejeitarConfirmacao.rejeitando')}
+        onConfirm={handleReject}
+        onClose={() => {
+          setConfirmandoRejeicao(false);
+        }}
+      />
     </Dialog>
   );
 }

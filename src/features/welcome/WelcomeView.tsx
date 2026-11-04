@@ -4,6 +4,7 @@ import { AuthLayout } from '@/components/layout/authLayout';
 import { useNavigate } from 'react-router-dom';
 import { ContactModal } from '@/components/modals/ContactModal';
 import { useState } from 'react';
+import { pageTitleClassName } from '@/lib/typography';
 
 export function WelcomeView() {
   // Os namespaces usados na tela precisam ser declarados aqui: é o que dá o
@@ -16,9 +17,7 @@ export function WelcomeView() {
     <AuthLayout titulo={t('boasVindas:tagline')}>
       <div className="flex flex-col gap-8">
         <div>
-          <h1 className="text-3xl font-bold text-heading">
-            {t('boasVindas:titulo')}
-          </h1>
+          <h1 className={pageTitleClassName}>{t('boasVindas:titulo')}</h1>
           <p className="mt-3 text-sm text-muted-foreground">
             {t('boasVindas:apresentacao')}
           </p>

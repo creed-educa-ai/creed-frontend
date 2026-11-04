@@ -32,6 +32,8 @@ interface ComparisonFilterProps<T extends string> {
   onChange: (id: T) => void;
   // "Sem comparação" limpa este botão e o outro também.
   onClear: () => void;
+  // Largura do botão (no celular os dois dividem a linha).
+  className?: string;
 }
 
 // Um dos dois botões de comparação da seção (período e setor). Cada um escolhe
@@ -43,6 +45,7 @@ export function ComparisonFilter<T extends string>({
   value,
   onChange,
   onClear,
+  className,
 }: ComparisonFilterProps<T>) {
   const { t } = useTranslation(['dashboardPrisma']);
   const selected = options.find((option) => option.id === value);
@@ -50,7 +53,7 @@ export function ComparisonFilter<T extends string>({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="outline" className="gap-2">
+        <Button type="button" variant="outline" className={className}>
           <ChevronDown />
           {selected?.icon}
           {selected?.label ?? placeholder}

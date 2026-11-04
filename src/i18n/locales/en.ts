@@ -4,6 +4,9 @@ import type { ptBR } from './pt-BR';
 // faltando ou sobrando nas demais traduções.
 export const en: typeof ptBR = {
   comum: {
+    tenteNovamenteEmInstantes: 'Please try again in a moment.',
+    // Região dos toasts (src/components/ui/sonner.tsx).
+    notificacoes: 'Notifications',
     // Setores (`DepartmentType` do back): tags, filtros e o mapa.
     setores: {
       Marketing: 'Marketing',
@@ -32,6 +35,7 @@ export const en: typeof ptBR = {
       obrigatorio: 'Field is required',
     },
     acoes: {
+      fechar: 'Close',
       tentarNovamente: 'Try again',
       cancelar: 'Cancel',
       salvar: 'Save',
@@ -378,6 +382,16 @@ export const en: typeof ptBR = {
   },
 
   mentees: {
+    questionnaireDialog: {
+      title: "{{name}}'s questionnaire",
+      description:
+        'Set the period in which {{name}} can answer the questionnaire.',
+    },
+    toasts: {
+      questionnaireSaved: '{{name}} can now answer during the period you set.',
+      deleted: 'Mentee deleted',
+      deletedDescription: '{{nome}} no longer has access to the platform.',
+    },
     title: 'Mentees',
     loadError: 'Could not load the mentees.',
     search: {
@@ -535,6 +549,14 @@ export const en: typeof ptBR = {
     },
   },
   organizations: {
+    toasts: {
+      tagAtualizada: 'Tag updated',
+      tagAtualizadaDescricao: '{{nome}} is now in {{tag}}.',
+      tagRemovidaDescricao: '{{nome}} no longer has a tag.',
+      erroTag: 'Could not change the tag',
+      membroExcluido: 'Member deleted',
+      membroExcluidoDescricao: '{{nome}} no longer has access to the platform.',
+    },
     addMember: {
       name: {
         label: 'Name',
@@ -611,8 +633,24 @@ export const en: typeof ptBR = {
     responsavel: 'Registered by',
     aceitar: 'Accept',
     rejeitar: 'Reject',
+    rejeitarConfirmacao: {
+      titulo: 'Reject company?',
+      descricao:
+        'You are about to reject {{nome}}. The company will not have access to the platform.',
+      rejeitando: 'Rejecting…',
+    },
   },
   empresas: {
+    toasts: {
+      aprovada: 'Company approved',
+      aprovadaDescricao: '{{nome}} now has access to the platform.',
+      rejeitada: 'Company rejected',
+      rejeitadaDescricao: '{{nome}} will not have access to the platform.',
+      erroAprovar: 'Could not approve the company',
+      erroRejeitar: 'Could not reject the company',
+      excluida: 'Company deleted',
+      excluidaDescricao: '{{nome}} was removed from the platform.',
+    },
     titulo: 'Companies',
     erroAoCarregar: 'Could not load the companies.',
     pesquisarNome: {
@@ -648,6 +686,14 @@ export const en: typeof ptBR = {
     vazio: 'No companies found.',
   },
   painelControle: {
+    toasts: {
+      conviteEnviado: 'Invitation sent',
+      conviteEnviadoDescricao:
+        '{{email}} will receive the invitation by email.',
+      questionarioNoAr: 'The questionnaire is live',
+      questionarioNoArDescricao:
+        'Responses are open during the period you set.',
+    },
     controles: 'Controls',
     administradora: 'Administrator',
     titulo: 'Control Panel',

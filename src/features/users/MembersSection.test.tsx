@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Toaster } from '@/components/ui/sonner';
 import { MembersSection } from '@/features/users/MembersSection';
 import usersReducer from '@/features/users/usersSlice';
 import { usersApi, resetMembersMock } from '@/features/users/usersApi';
@@ -24,6 +25,7 @@ function renderizar() {
   return render(
     <Provider store={store}>
       <MembersSection />
+      <Toaster />
     </Provider>,
   );
 }
@@ -111,6 +113,34 @@ describe('MembersSection', () => {
         name: 'TI: alterar a tag de Enner Valência',
       }),
     ).toBeInTheDocument();
+    expect(await screen.findByText('Tag atualizada')).toBeInTheDocument();
+    expect(
+      screen.getByText('Enner Valência agora está em TI.'),
+    ).toBeInTheDocument();
+  });
+
+  it('avisa por toast quando a troca de tag falha', async () => {
+    vi.spyOn(usersApi, 'setMemberTag').mockRejectedValueOnce(
+      new Error('falhou'),
+    );
+    renderizar();
+    await screen.findByRole('table');
+
+    await userEvent.click(
+      within(tabela()).getByRole('button', {
+        name: 'Marketing: alterar a tag de Enner Valência',
+      }),
+    );
+    await userEvent.click(screen.getByRole('menuitemradio', { name: 'TI' }));
+
+    expect(
+      await screen.findByText('Não foi possível alterar a tag'),
+    ).toBeInTheDocument();
+    expect(
+      within(tabela()).getByRole('button', {
+        name: 'Marketing: alterar a tag de Enner Valência',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('exclui um membro após confirmar', async () => {
@@ -130,8 +160,34 @@ describe('MembersSection', () => {
       within(dialogo).getByRole('button', { name: 'Excluir' }),
     );
 
-    expect(screen.queryByText('Enner Valência')).not.toBeInTheDocument();
+    expect(await screen.findByText('Membro excluído')).toBeInTheDocument();
+    expect(
+      screen.getByText('Enner Valência não tem mais acesso à plataforma.'),
+    ).toBeInTheDocument();
+    expect(within(tabela()).queryByText('Enner Valência')).toBeNull();
     expect(within(tabela()).getByText('Wilson Mathias')).toBeInTheDocument();
+  });
+
+  it('não confirma a exclusão quando ela falha', async () => {
+    vi.spyOn(usersApi, 'removeMember').mockRejectedValueOnce(
+      new Error('falhou'),
+    );
+    renderizar();
+    await screen.findByRole('table');
+
+    await userEvent.click(
+      within(tabela()).getByRole('button', {
+        name: 'Excluir Enner Valência',
+      }),
+    );
+    const dialogo = screen.getByRole('alertdialog');
+    await userEvent.click(
+      within(dialogo).getByRole('button', { name: 'Excluir' }),
+    );
+
+    // Quem avisa da falha é o diálogo, que continua aberto; toast, nenhum.
+    expect(await within(dialogo).findByRole('alert')).toBeInTheDocument();
+    expect(screen.queryByText('Membro excluído')).toBeNull();
   });
 
   it('traduz a tabela e a confirmação de exclusão para espanhol', async () => {

@@ -1,5 +1,6 @@
 import { NavMenu } from '@/components/layout/navMenu';
 import { pageGutterClassName } from '@/lib/layout';
+import { pageTitleClassName } from '@/lib/typography';
 import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
@@ -29,12 +30,12 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'flex w-full flex-col items-center justify-center gap-4 py-10 sm:flex-row sm:items-start sm:justify-between',
+        'flex w-full flex-col items-center justify-center gap-4 py-10 lg:flex-row lg:items-start lg:justify-between',
         pageGutterClassName,
         className,
       )}
     >
-      <div className="text-center sm:text-left">
+      <div className="text-center lg:text-left">
         {/* min-h-5: sem eyebrow, a linha fica reservada e o título não sobe. */}
         <p
           className={cn(
@@ -46,15 +47,23 @@ export function PageHeader({
         </p>
         <h1
           className={cn(
-            'text-3xl font-bold',
-            isBrand ? 'text-primary-foreground' : 'text-heading',
+            pageTitleClassName,
+            isBrand && 'text-primary-foreground',
           )}
         >
           {title}
         </h1>
       </div>
 
-      {showNavMenu && <NavMenu />}
+      {/* Até lg o menu vem antes do título (order-first): lado a lado, título
+          e menu não cabem no tablet. No celular ocupa a largura toda; no
+          tablet tem o próprio tamanho, centralizado. No desktop, volta à
+          direita, na mesma linha. */}
+      {showNavMenu && (
+        <div className="order-first w-full sm:w-auto lg:order-none">
+          <NavMenu />
+        </div>
+      )}
     </header>
   );
 }

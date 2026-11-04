@@ -2,12 +2,18 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '@/components/ui/sonner';
 import { MembersTable } from '@/features/users/MembersTable';
 import {
   deleteMember,
   loadMembers,
   updateMemberTag,
 } from '@/features/users/usersSlice';
+import type { DepartmentType } from '@/types/api';
+import { Card, CardContent } from '@/components/ui/card';
+import { ErrorState } from '@/components/states/ErrorState';
+import { LoadingState } from '@/components/states/LoadingState';
+import { cardTitleClassName } from '@/lib/typography';
 
 // Card "Membros": carrega os membros e cobre os estados de carregando, erro e
 // pronto. O separador com o nome da empresa é do painel de controle.
@@ -20,43 +26,67 @@ export function MembersSection() {
     void dispatch(loadMembers());
   }, [dispatch]);
 
+  // O toast vem depois do `unwrap`: se a exclusão falhar, quem avisa é o
+  // diálogo de confirmação, que continua aberto.
   async function handleDelete(id: string) {
+    const name = members.find((member) => member.id === id)?.name ?? '';
     await dispatch(deleteMember(id)).unwrap();
+    toast.success(t('organizations:toasts.membroExcluido'), {
+      description: t('organizations:toasts.membroExcluidoDescricao', {
+        nome: name,
+      }),
+    });
+  }
+
+  // A troca de tag é imediata, sem botão de salvar: o toast confirma.
+  async function handleChangeTag(id: string, tag: DepartmentType | null) {
+    const name = members.find((member) => member.id === id)?.name ?? '';
+    try {
+      await dispatch(updateMemberTag({ id, tag })).unwrap();
+      toast.success(t('organizations:toasts.tagAtualizada'), {
+        description: tag
+          ? t('organizations:toasts.tagAtualizadaDescricao', {
+              nome: name,
+              tag: t(`setores.${tag}`),
+            })
+          : t('organizations:toasts.tagRemovidaDescricao', { nome: name }),
+      });
+    } catch {
+      toast.error(t('organizations:toasts.erroTag'), {
+        description: t('tenteNovamenteEmInstantes'),
+      });
+    }
   }
 
   return (
     // O card é a seção: o título fica dentro dele, como nos cards do
     // dashboard e do painel do admin.
-    <section className="flex flex-col gap-4 rounded-3xl bg-card p-6 shadow-sm">
-      <h3 className="text-xl font-bold text-heading">
-        {t('organizations:members.title')}
-      </h3>
-      {status === 'loading' && (
-        <div className="space-y-3" aria-live="polite">
-          <p className="text-sm text-muted-foreground">{t('carregando')}</p>
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-40 w-full" />
-        </div>
-      )}
+    <Card asChild>
+      <section>
+        <CardContent className="flex flex-col gap-4">
+          <h3 className={cardTitleClassName}>
+            {t('organizations:members.title')}
+          </h3>
+          {status === 'loading' && (
+            <LoadingState>
+              <Skeleton className="h-8 w-64" />
+              <Skeleton className="h-40 w-full" />
+            </LoadingState>
+          )}
 
-      {status === 'error' && (
-        <p
-          role="alert"
-          className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-destructive"
-        >
-          {error && t(error)} {t('tenteRecarregar')}
-        </p>
-      )}
+          {status === 'error' && <ErrorState message={error && t(error)} />}
 
-      {status === 'ready' && (
-        <MembersTable
-          members={members}
-          onDelete={handleDelete}
-          onChangeTag={(id, tag) => {
-            void dispatch(updateMemberTag({ id, tag }));
-          }}
-        />
-      )}
-    </section>
+          {status === 'ready' && (
+            <MembersTable
+              members={members}
+              onDelete={handleDelete}
+              onChangeTag={(id, tag) => {
+                void handleChangeTag(id, tag);
+              }}
+            />
+          )}
+        </CardContent>
+      </section>
+    </Card>
   );
 }

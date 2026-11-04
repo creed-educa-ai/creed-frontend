@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppDispatch } from '@/app/hooks';
 import { registerCompany } from '@/features/organizations/organizationsSlice';
 import { signUpSchema, type SignUpForm } from '@/lib/validators';
+import { pageTitleClassName } from '@/lib/typography';
 
 export function SignUpView() {
   const { t } = useTranslation(['comum', 'cadastro']);
@@ -63,9 +64,7 @@ export function SignUpView() {
       carregando={isSubmitting}
       exibirNavegacao
     >
-      <h1 className="text-3xl font-semibold text-heading">
-        {t('cadastro:titulo')}
-      </h1>
+      <h1 className={pageTitleClassName}>{t('cadastro:titulo')}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {t('cadastro:subtitulo')}
       </p>

@@ -25,7 +25,7 @@ export function DashboardToolbar({ filters }: DashboardToolbarProps) {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="default" className="gap-2">
+          <Button type="button" variant="default">
             <ChevronDown />
             {t('dashboard:Baixar')}
           </Button>

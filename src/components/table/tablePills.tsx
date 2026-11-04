@@ -34,22 +34,16 @@ export function StatusPill({
 
 // Botão de ação da linha (Ver, Editar, Ver Resultados): retângulo de cantos
 // arredondados, como os da paginação, para não ser confundido com um selo.
-// `muted` é a versão clara, para linhas em que a ação existe mas não é a
-// principal.
+// A versão apagada é o próprio `disabled` do Button.
 export function RowActionButton({
-  muted = false,
   className,
   ...props
-}: ComponentProps<typeof Button> & { muted?: boolean }) {
+}: ComponentProps<typeof Button>) {
   return (
     <Button
       type="button"
       size="sm"
-      className={cn(
-        'h-7 px-3 text-xs whitespace-nowrap',
-        muted && 'bg-accent text-accent-foreground hover:bg-accent/80',
-        className,
-      )}
+      className={cn('h-7 px-3 text-xs whitespace-nowrap', className)}
       {...props}
     />
   );
@@ -73,7 +67,7 @@ export function DeleteRowButton({
       aria-label={label}
       onClick={onClick}
       className={cn(
-        'size-8 text-destructive hover:bg-destructive/10 hover:text-destructive',
+        'size-8 text-destructive hover:bg-destructive hover:text-primary-foreground',
         className,
       )}
     >

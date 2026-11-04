@@ -16,7 +16,7 @@ export function ContactModal({ open, onOpenChange }: ContactModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-background">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>{t('contato:titulo')}</DialogTitle>
         </DialogHeader>
