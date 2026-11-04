@@ -27,7 +27,7 @@ export function TableToolbar({ searches }: TableToolbarProps) {
       {searches.map((search) => (
         <InputGroup
           key={search.key}
-          className="h-10 sm:max-w-xs sm:min-w-0 sm:flex-1"
+          className="sm:max-w-xs sm:min-w-0 sm:flex-1"
         >
           <InputGroupAddon>
             <Search aria-hidden="true" />

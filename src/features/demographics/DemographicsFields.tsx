@@ -68,7 +68,7 @@ export function SingleChoiceField({
               onBlur={field.onBlur}
               aria-invalid={fieldState.invalid}
               aria-describedby={fieldState.error ? `${name}-error` : undefined}
-              className="min-h-10 w-full"
+              className="w-full"
             >
               <SelectValue placeholder={t('escolher')} />
             </SelectTrigger>
@@ -88,7 +88,6 @@ export function SingleChoiceField({
             <Button
               type="button"
               variant="ghost"
-              className="min-h-10"
               onClick={() => {
                 field.onChange(null);
                 afterChange?.();
@@ -140,7 +139,7 @@ export function MultipleChoiceField({
             open={open}
             onOpenChange={setOpen}
           >
-            <ComboboxChips ref={anchor} className="min-h-10 min-w-0">
+            <ComboboxChips ref={anchor} className="min-w-0">
               <ComboboxValue>
                 {(values: string[]) =>
                   values.map((value) => (

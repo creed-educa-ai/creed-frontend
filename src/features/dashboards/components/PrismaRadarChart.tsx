@@ -7,11 +7,13 @@ import {
   RadarChart,
   Tooltip,
 } from 'recharts';
+import { Card, CardContent } from '@/components/ui/card';
 import { ChartContainer } from '@/components/ui/chart';
 import { PRISMAS } from '@/features/dashboards/prismas';
 import type { Prisma } from '@/types/api';
 import { InfoTip } from './InfoTip';
 import { ShownChip } from './ShownChip';
+import { cardTitleClassName, sectionTitleClassName } from '@/lib/typography';
 
 export type PrismaScores = Record<Prisma, number>;
 
@@ -269,13 +271,133 @@ export function PrismaRadarChart({
     : t('dashboardPrisma:descricaoSemComparacao', { atual: current.label });
   const names = PRISMAS.map((prisma) => t(`dashboardPrisma:prismas.${prisma}`));
 
+  // O gráfico com a legenda: o mesmo nos dois modos; muda só a moldura.
+  const plot = (
+    <>
+      {/* Na versão compacta título e legenda ficam dentro do card, como no
+            Figma. */}
+      {compact && (
+        <>
+          <div className="flex items-center gap-1.5">
+            <h3 className={cardTitleClassName}>
+              {t('dashboardPrisma:titulo')}
+            </h3>
+            <InfoTip
+              title={t('dashboardPrisma:titulo')}
+              text={t('dashboard:info.prisma')}
+            />
+          </div>
+          <div className="mt-3">
+            <PeriodLegend current={current} comparison={comparison} />
+          </div>
+        </>
+      )}
+
+      {/* Na versão compacta o radar ocupa a altura que sobra no card, com
+            300px de piso para quando o card estiver sozinho (celular). */}
+      <ChartContainer
+        id="prisma-radar"
+        config={chartConfig}
+        className={compact ? 'mt-4 min-h-[300px] flex-1 text-xs' : 'text-xs'}
+        style={{
+          height: compact ? undefined : 'clamp(350px, 55vw, 430px)',
+          color: 'var(--foreground)',
+        }}
+        aria-label={label}
+      >
+        <RadarChart
+          data={chartData}
+          outerRadius={compact ? '100%' : '62%'}
+          margin={
+            compact
+              ? compactMargin(names, comparison !== undefined)
+              : { top: 20, right: 32, bottom: 20, left: 32 }
+          }
+        >
+          <PolarGrid stroke="var(--border)" />
+          <PolarAngleAxis
+            dataKey="prisma"
+            tick={(tick) => (
+              <RadarMetricTick
+                tick={tick as TickProps}
+                current={current.scores}
+                comparison={comparison?.scores}
+                compact={compact}
+              />
+            )}
+          />
+          <PolarRadiusAxis
+            domain={[0, 100]}
+            tickCount={6}
+            axisLine={false}
+            tickLine={false}
+            tick={false}
+          />
+          <Tooltip
+            content={({ active, payload }) => {
+              const firstPayload = payload.at(0);
+              if (!active || !firstPayload) return null;
+              const point = firstPayload.payload as
+                (typeof chartData)[number] | undefined;
+              if (!point) return null;
+
+              return (
+                <div
+                  className="rounded-md border border-border bg-popover px-3 py-2 text-popover-foreground shadow-md"
+                  style={{
+                    borderColor: 'var(--border)',
+                    backgroundColor: 'var(--popover)',
+                    color: 'var(--popover-foreground)',
+                  }}
+                >
+                  <p className="font-medium">
+                    {t(`dashboardPrisma:prismas.${point.prisma}`)}
+                  </p>
+                  <p style={{ color: chartConfig.current.color }}>
+                    {current.label}: {String(point.current)}
+                  </p>
+                  {comparison !== undefined && (
+                    <p style={{ color: chartConfig.comparison.color }}>
+                      {comparison.label}: {String(point.comparison)}
+                    </p>
+                  )}
+                </div>
+              );
+            }}
+          />
+          <Radar
+            name={current.label}
+            dataKey="current"
+            stroke="var(--color-current)"
+            fill="var(--color-current)"
+            fillOpacity={0.18}
+            strokeWidth={2}
+            isAnimationActive={false}
+          />
+          {comparison && (
+            <Radar
+              name={comparison.label}
+              dataKey="comparison"
+              stroke="var(--color-comparison)"
+              fill="var(--color-comparison)"
+              fillOpacity={0.1}
+              strokeWidth={2}
+              strokeDasharray="5 4"
+              isAnimationActive={false}
+            />
+          )}
+        </RadarChart>
+      </ChartContainer>
+    </>
+  );
+
   return (
     <figure className={compact ? `h-full ${className ?? ''}` : className}>
       {/* Título e legenda: só na versão completa */}
       {!compact && (
         <>
           <figcaption className="mb-3">
-            <h2 className="text-lg font-semibold text-heading">
+            <h2 className={sectionTitleClassName}>
               {t('dashboardPrisma:titulo')}
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">{label}</p>
@@ -287,129 +409,18 @@ export function PrismaRadarChart({
         </>
       )}
 
-      <div
-        className={
-          compact
-            ? 'flex h-full flex-col rounded-2xl bg-card p-5 shadow-sm'
-            : 'rounded-lg border border-border bg-card px-2 py-3 shadow-sm sm:px-5 sm:py-4'
-        }
-        style={{ backgroundColor: 'var(--card)' }}
-      >
-        {/* Na versão compacta título e legenda ficam dentro do card, como no
-            Figma. */}
-        {compact && (
-          <>
-            <div className="flex items-center gap-1.5">
-              <h3 className="text-xl font-bold text-heading">
-                {t('dashboardPrisma:titulo')}
-              </h3>
-              <InfoTip
-                title={t('dashboardPrisma:titulo')}
-                text={t('dashboard:info.prisma')}
-              />
-            </div>
-            <div className="mt-3">
-              <PeriodLegend current={current} comparison={comparison} />
-            </div>
-          </>
-        )}
-
-        {/* Na versão compacta o radar ocupa a altura que sobra no card, com
-            300px de piso para quando o card estiver sozinho (celular). */}
-        <ChartContainer
-          id="prisma-radar"
-          config={chartConfig}
-          className={compact ? 'mt-4 min-h-[300px] flex-1 text-xs' : 'text-xs'}
-          style={{
-            height: compact ? undefined : 'clamp(350px, 55vw, 430px)',
-            color: 'var(--foreground)',
-          }}
-          aria-label={label}
+      {compact ? (
+        <Card className="h-full">
+          <CardContent className="flex flex-1 flex-col">{plot}</CardContent>
+        </Card>
+      ) : (
+        <div
+          className="rounded-lg border border-border bg-card px-2 py-3 shadow-sm sm:px-5 sm:py-4"
+          style={{ backgroundColor: 'var(--card)' }}
         >
-          <RadarChart
-            data={chartData}
-            outerRadius={compact ? '100%' : '62%'}
-            margin={
-              compact
-                ? compactMargin(names, comparison !== undefined)
-                : { top: 20, right: 32, bottom: 20, left: 32 }
-            }
-          >
-            <PolarGrid stroke="var(--border)" />
-            <PolarAngleAxis
-              dataKey="prisma"
-              tick={(tick) => (
-                <RadarMetricTick
-                  tick={tick as TickProps}
-                  current={current.scores}
-                  comparison={comparison?.scores}
-                  compact={compact}
-                />
-              )}
-            />
-            <PolarRadiusAxis
-              domain={[0, 100]}
-              tickCount={6}
-              axisLine={false}
-              tickLine={false}
-              tick={false}
-            />
-            <Tooltip
-              content={({ active, payload }) => {
-                const firstPayload = payload.at(0);
-                if (!active || !firstPayload) return null;
-                const point = firstPayload.payload as
-                  (typeof chartData)[number] | undefined;
-                if (!point) return null;
-
-                return (
-                  <div
-                    className="rounded-md border border-border bg-popover px-3 py-2 text-popover-foreground shadow-md"
-                    style={{
-                      borderColor: 'var(--border)',
-                      backgroundColor: 'var(--popover)',
-                      color: 'var(--popover-foreground)',
-                    }}
-                  >
-                    <p className="font-medium">
-                      {t(`dashboardPrisma:prismas.${point.prisma}`)}
-                    </p>
-                    <p style={{ color: chartConfig.current.color }}>
-                      {current.label}: {String(point.current)}
-                    </p>
-                    {comparison !== undefined && (
-                      <p style={{ color: chartConfig.comparison.color }}>
-                        {comparison.label}: {String(point.comparison)}
-                      </p>
-                    )}
-                  </div>
-                );
-              }}
-            />
-            <Radar
-              name={current.label}
-              dataKey="current"
-              stroke="var(--color-current)"
-              fill="var(--color-current)"
-              fillOpacity={0.18}
-              strokeWidth={2}
-              isAnimationActive={false}
-            />
-            {comparison && (
-              <Radar
-                name={comparison.label}
-                dataKey="comparison"
-                stroke="var(--color-comparison)"
-                fill="var(--color-comparison)"
-                fillOpacity={0.1}
-                strokeWidth={2}
-                strokeDasharray="5 4"
-                isAnimationActive={false}
-              />
-            )}
-          </RadarChart>
-        </ChartContainer>
-      </div>
+          {plot}
+        </div>
+      )}
 
       {/* O sr-only fica num div em volta, e não na tabela: o navegador desenha
           o <caption> fora da caixa da tabela, e ele aparecia embaixo do card. */}

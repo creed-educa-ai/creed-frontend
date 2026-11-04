@@ -6,6 +6,8 @@ import { PRISMAS } from '@/features/dashboards/prismas';
 import { cn } from '@/lib/utils';
 import type { Prisma } from '@/types/api';
 import { InfoTip } from './InfoTip';
+import { Card, CardContent } from '@/components/ui/card';
+import { cardTitleClassName, sectionTitleClassName } from '@/lib/typography';
 
 interface ResultTextProps extends CreedSummary {
   // A recomendação é só da visão da empresa.
@@ -25,30 +27,34 @@ function PrismaCard({ prisma, texto, marca }: PrismaCardProps) {
   const nome = t(`dashboardPrisma:prismas.${prisma}`);
 
   return (
-    <article className="flex flex-col rounded-2xl bg-card p-5 shadow-sm">
-      {marca && (
-        <p
-          className={cn(
-            'mb-1 flex items-center gap-2 text-sm font-semibold',
-            marca === 'destaque' ? 'text-success' : 'text-warning',
+    <Card asChild>
+      <article>
+        <CardContent className="flex flex-1 flex-col">
+          {marca && (
+            <p
+              className={cn(
+                'mb-1 flex items-center gap-2 text-sm font-semibold',
+                marca === 'destaque' ? 'text-success' : 'text-warning',
+              )}
+            >
+              <span
+                className={cn(
+                  'size-2 rounded-full',
+                  marca === 'destaque' ? 'bg-success' : 'bg-warning',
+                )}
+                aria-hidden="true"
+              />
+              {t(`resultado:${marca}`)}
+            </p>
           )}
-        >
-          <span
-            className={cn(
-              'size-2 rounded-full',
-              marca === 'destaque' ? 'bg-success' : 'bg-warning',
-            )}
-            aria-hidden="true"
-          />
-          {t(`resultado:${marca}`)}
-        </p>
-      )}
-      <div className="flex items-center gap-1.5">
-        <h3 className="text-lg font-bold text-heading">{nome}</h3>
-        <InfoTip title={nome} text={t('dashboard:info.creedPrisma')} />
-      </div>
-      <p className="mt-2 text-sm text-card-foreground">{texto}</p>
-    </article>
+          <div className="flex items-center gap-1.5">
+            <h3 className={cardTitleClassName}>{nome}</h3>
+            <InfoTip title={nome} text={t('dashboard:info.creedPrisma')} />
+          </div>
+          <p className="mt-2 text-sm text-card-foreground">{texto}</p>
+        </CardContent>
+      </article>
+    </Card>
   );
 }
 
@@ -90,7 +96,9 @@ export function ResultText({
               isOpen ? 'rotate-0' : '-rotate-90'
             }`}
           />
-          <h2 className="text-xl font-bold">{t('resultado:creedAi')}</h2>
+          <h2 className={cn(sectionTitleClassName, 'text-inherit')}>
+            {t('resultado:creedAi')}
+          </h2>
         </button>
         <div className="h-px flex-1 bg-primary" aria-hidden="true" />
       </div>
@@ -104,44 +112,57 @@ export function ResultText({
               empresa && 'lg:grid-cols-[2fr_1fr]',
             )}
           >
-            <article className="rounded-2xl bg-card p-6 shadow-sm">
-              <div className="flex items-center gap-1.5">
-                <h3 className="text-2xl font-bold text-heading">
-                  {t('resultado:analise')}
-                </h3>
-                <InfoTip
-                  title={t('resultado:analise')}
-                  text={t('dashboard:info.creedAnalise')}
-                />
-              </div>
-              <div className="mt-3 flex flex-col gap-4 text-sm text-card-foreground">
-                {analiseTexto.map((paragrafo) => (
-                  <p key={paragrafo}>{paragrafo}</p>
-                ))}
-              </div>
-            </article>
+            <Card asChild>
+              <article>
+                <CardContent>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className={cardTitleClassName}>
+                      {t('resultado:analise')}
+                    </h3>
+                    <InfoTip
+                      title={t('resultado:analise')}
+                      text={t('dashboard:info.creedAnalise')}
+                    />
+                  </div>
+                  <div className="mt-3 flex flex-col gap-4 text-sm text-card-foreground">
+                    {analiseTexto.map((paragrafo) => (
+                      <p key={paragrafo}>{paragrafo}</p>
+                    ))}
+                  </div>
+                </CardContent>
+              </article>
+            </Card>
 
             {empresa && (
-              <article className="rounded-2xl bg-card p-5 shadow-sm">
-                <div className="flex items-center gap-1.5">
-                  <h3 className="flex items-center gap-2 text-2xl font-bold text-heading">
-                    <span
-                      className="bg-brand size-2.5 rounded-full"
-                      aria-hidden="true"
-                    />
-                    {t('resultado:recomendacao')}
-                  </h3>
-                  <InfoTip
-                    title={t('resultado:recomendacao')}
-                    text={t('dashboard:info.creedRecomendacao')}
-                  />
-                </div>
-                <div className="mt-2 flex flex-col gap-2 text-sm text-card-foreground">
-                  {recomendacaoTexto.map((paragrafo) => (
-                    <p key={paragrafo}>{paragrafo}</p>
-                  ))}
-                </div>
-              </article>
+              <Card asChild>
+                <article>
+                  <CardContent>
+                    <div className="flex items-center gap-1.5">
+                      <h3
+                        className={cn(
+                          cardTitleClassName,
+                          'flex items-center gap-2',
+                        )}
+                      >
+                        <span
+                          className="bg-brand size-2.5 rounded-full"
+                          aria-hidden="true"
+                        />
+                        {t('resultado:recomendacao')}
+                      </h3>
+                      <InfoTip
+                        title={t('resultado:recomendacao')}
+                        text={t('dashboard:info.creedRecomendacao')}
+                      />
+                    </div>
+                    <div className="mt-2 flex flex-col gap-2 text-sm text-card-foreground">
+                      {recomendacaoTexto.map((paragrafo) => (
+                        <p key={paragrafo}>{paragrafo}</p>
+                      ))}
+                    </div>
+                  </CardContent>
+                </article>
+              </Card>
             )}
           </div>
 

@@ -1,10 +1,7 @@
 import type { DepartmentType } from '@/types/api';
 
-// PLACEHOLDER: a cor de cada setor ainda não foi definida com a cliente.
-// Marketing e Recursos Humanos vêm das tags antigas da tabela de membros, e
-// Financeiro do azul de "vendas" de lá; Administrativo e TI são tons novos no
-// mesmo estilo (saturados, com texto claro). Quando a identidade visual
-// fechar, viram tokens do tema em `src/index.css` e saem do hex.
+// A cor de cada setor é token do tema (`--department-*` em `src/index.css`):
+// o critério da escolha está comentado lá.
 // Os setores que existem, na ordem em que aparecem nos menus.
 export const DEPARTMENTS: DepartmentType[] = [
   'Marketing',
@@ -15,9 +12,9 @@ export const DEPARTMENTS: DepartmentType[] = [
 ];
 
 export const DEPARTMENT_COLORS: Record<DepartmentType, string> = {
-  Marketing: 'bg-[#009E4F]',
-  Financeiro: 'bg-[#008AC9]',
-  Administrativo: 'bg-[#C25E00]',
-  RecursosHumanos: 'bg-[#8B1E8B]',
-  TecnologiaInformacao: 'bg-[#C2185B]',
+  Marketing: 'bg-department-marketing',
+  Financeiro: 'bg-department-finance',
+  Administrativo: 'bg-department-administrative',
+  RecursosHumanos: 'bg-department-human-resources',
+  TecnologiaInformacao: 'bg-department-it',
 };

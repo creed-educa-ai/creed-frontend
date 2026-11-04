@@ -5,6 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { sectionTitleClassName } from '@/lib/typography';
 
 export type QuestionType = 'objetiva' | 'dissertativa' | 'quantitativa';
 
@@ -284,7 +285,9 @@ export function Questions({
             )}
           >
             <p className="text-xs whitespace-pre-line">{subtitulo}</p>
-            <h2 className="text-xl font-bold">{titulo}</h2>
+            <h2 className={cn(sectionTitleClassName, 'text-inherit')}>
+              {titulo}
+            </h2>
           </div>
 
           {/* Respostas: só animam quando as opções mudam (outro tipo de
@@ -307,7 +310,6 @@ export function Questions({
           <footer className="flex w-full items-center justify-between gap-2 rounded-2xl border border-border bg-background p-2">
             <Button
               variant="outline"
-              className="text-brand"
               onClick={() => {
                 onVoltar();
               }}
@@ -329,7 +331,6 @@ export function Questions({
               )}
             </div>
             <Button
-              className="font-bold"
               onClick={() => {
                 onProximo();
               }}
@@ -406,7 +407,9 @@ export function QuestionsCompleted({
               aria-hidden="true"
               className="size-12 animate-in delay-300 duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] fill-mode-backwards zoom-in-0 spin-in-90 motion-reduce:animate-none"
             />
-            <h2 className="text-xl font-bold text-balance">
+            <h2
+              className={cn(sectionTitleClassName, 'text-balance text-inherit')}
+            >
               {todasRespondidas
                 ? t('formulario:concluidoTitulo')
                 : t('formulario:fimDasPerguntasTitulo')}
@@ -417,7 +420,7 @@ export function QuestionsCompleted({
           {/* Botão no mesmo lugar do "Avançar": quem acabou de clicar nele
               na última pergunta já está com o cursor (ou o dedo) ali. */}
           <div className="flex w-full items-center justify-end rounded-2xl border border-border bg-background p-2">
-            <Button type="button" className="font-bold" onClick={onRevisar}>
+            <Button type="button" onClick={onRevisar}>
               {t('formulario:revisarEEnviar')}
             </Button>
           </div>

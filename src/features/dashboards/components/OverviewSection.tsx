@@ -107,7 +107,12 @@ export function OverviewSection({
           aria-label={t('dashboardPrisma:compararCom')}
           className="flex flex-wrap items-center gap-2"
         >
-          <span className="text-sm text-muted-foreground" aria-hidden="true">
+          {/* No celular: o rótulo numa linha e os dois botões dividindo a de
+              baixo. De sm para cima, os três na linha do título. */}
+          <span
+            className="basis-full text-sm text-muted-foreground sm:basis-auto"
+            aria-hidden="true"
+          >
             {t('dashboardPrisma:compararCom')}
           </span>
           <ComparisonFilter
@@ -121,6 +126,7 @@ export function OverviewSection({
             value={shownComparedPeriod}
             onChange={setComparedPeriod}
             onClear={clear}
+            className="min-w-0 flex-1 sm:flex-none"
           />
           {comparisonOptions.departments.length > 0 && (
             <ComparisonFilter
@@ -141,6 +147,7 @@ export function OverviewSection({
               value={comparedScope}
               onChange={setComparedScope}
               onClear={clear}
+              className="min-w-0 flex-1 sm:flex-none"
             />
           )}
         </div>

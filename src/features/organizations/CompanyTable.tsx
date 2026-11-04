@@ -27,6 +27,7 @@ import { useTablePage } from '@/hooks/useTablePage';
 import { useTableSort } from '@/hooks/useTableSort';
 import { cn, normalizeForSearch } from '@/lib/utils';
 import type { Company } from '@/types/api';
+import { EmptyState } from '@/components/states/EmptyState';
 
 interface CompanyTableProps {
   empresas: Company[];
@@ -171,12 +172,7 @@ export function CompanyTable({
       />
 
       {empresasDaPagina.length === 0 ? (
-        <p
-          role="status"
-          className="rounded-lg border border-border px-4 py-8 text-center text-sm text-muted-foreground"
-        >
-          {t('empresas:vazio')}
-        </p>
+        <EmptyState>{t('empresas:vazio')}</EmptyState>
       ) : (
         <>
           {/* No desktop cheio (2xl) o painel do admin põe esta tabela ao lado

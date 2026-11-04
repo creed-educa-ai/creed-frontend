@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { TermsModal } from '@/components/modals/TermsModal';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
@@ -82,5 +83,25 @@ describe('TermsModal', () => {
 
     expect(descriptionId).toBeTruthy();
     expect(document.getElementById(descriptionId!)).toBeInTheDocument();
+  });
+
+  it('não fecha com Esc nem com clique fora: destaca o Aceitar', async () => {
+    const onOpenChange = vi.fn();
+    render(
+      <TermsModal open={true} onOpenChange={onOpenChange} onAccept={vi.fn()} />,
+    );
+
+    await userEvent.keyboard('{Escape}');
+    const aceitar = screen.getByRole('button', { name: 'Aceitar' });
+    expect(aceitar).toHaveFocus();
+
+    const overlay = document.querySelector(
+      '[data-slot="alert-dialog-overlay"]',
+    );
+    if (!overlay) throw new Error('overlay não encontrado');
+    await userEvent.click(overlay);
+
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
+    expect(aceitar).toHaveFocus();
   });
 });

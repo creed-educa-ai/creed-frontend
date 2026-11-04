@@ -50,7 +50,6 @@ export function TableFooter({
           type="button"
           variant="outline"
           size="sm"
-          className="disabled:border-transparent"
           disabled={page <= 1}
           onClick={onPrevious}
         >
@@ -60,7 +59,6 @@ export function TableFooter({
           type="button"
           variant="outline"
           size="sm"
-          className="disabled:border-transparent"
           disabled={page >= totalPages}
           onClick={onNext}
         >

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import { setPerspective } from './demographicsSlice';
+import { pageTitleClassName } from '@/lib/typography';
 
 // Só esta tela usa o schema, então ele nasce na feature (formularios.md,
 // regra 2). A pergunta é opcional e a cliente não definiu limite de tamanho
@@ -66,9 +67,7 @@ export function DemographicsStep3View({
 
   return (
     <FormLayout>
-      <h1 className="text-2xl font-bold text-heading">
-        {t('demograficos3.titulo')}
-      </h1>
+      <h1 className={pageTitleClassName}>{t('demograficos3.titulo')}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {t('demograficos3.subtitulo')}
       </p>
@@ -89,17 +88,13 @@ export function DemographicsStep3View({
         </Field>
 
         <div className="mt-2 flex flex-col gap-2">
-          <Button
-            type="submit"
-            className="min-h-10 w-full"
-            disabled={isSubmitting}
-          >
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
             {t('avancar')}
           </Button>
           <Button
             type="button"
             variant="outline"
-            className="min-h-10 w-full"
+            className="w-full"
             onClick={pular}
             disabled={isSubmitting}
           >

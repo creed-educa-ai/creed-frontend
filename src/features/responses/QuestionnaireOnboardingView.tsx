@@ -6,6 +6,7 @@ import { screenEnterClassName } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { sectionTitleClassName } from '@/lib/typography';
 
 export function QuestionnaireOnboardingView() {
   const { t } = useTranslation(['onboardQuestionario']);
@@ -37,7 +38,12 @@ export function QuestionnaireOnboardingView() {
         >
           <div className="w-full rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex flex-col items-start justify-start gap-1 rounded-xl bg-primary p-8 text-primary-foreground">
-              <h2 className="text-xl font-bold text-balance">
+              <h2
+                className={cn(
+                  sectionTitleClassName,
+                  'text-balance text-inherit',
+                )}
+              >
                 {t('onboardQuestionario:start')}
               </h2>
               <p className="text-balance">

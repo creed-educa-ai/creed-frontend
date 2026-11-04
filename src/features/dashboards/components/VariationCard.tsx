@@ -5,6 +5,8 @@ import { InfoTip } from './InfoTip';
 import { ShownChip } from './ShownChip';
 import { PRISMAS } from '@/features/dashboards/prismas';
 import type { PrismaScores } from './PrismaRadarChart';
+import { Card, CardContent } from '@/components/ui/card';
+import { cardTitleClassName } from '@/lib/typography';
 
 interface VariationCardProps {
   scores: PrismaScores;
@@ -56,86 +58,92 @@ export function VariationCard({
   );
 
   return (
-    <article className="flex h-full flex-col rounded-2xl bg-card p-5 shadow-sm">
-      <div className="flex items-center gap-1.5">
-        <h3 className="text-xl font-bold text-heading">
-          {t('dashboardPrisma:variacao.titulo')}
-        </h3>
-        <InfoTip
-          title={t('dashboardPrisma:variacao.titulo')}
-          text={t('dashboard:info.variacao')}
-        />
-      </div>
-      {/* Os recortes em etiqueta, com a ligação em texto. O leitor de tela
+    <Card asChild className="h-full">
+      <article>
+        <CardContent className="flex flex-1 flex-col">
+          <div className="flex items-center gap-1.5">
+            <h3 className={cardTitleClassName}>
+              {t('dashboardPrisma:variacao.titulo')}
+            </h3>
+            <InfoTip
+              title={t('dashboardPrisma:variacao.titulo')}
+              text={t('dashboard:info.variacao')}
+            />
+          </div>
+          {/* Os recortes em etiqueta, com a ligação em texto. O leitor de tela
           ouve a frase inteira, traduzida de uma vez. */}
-      <p className="mt-3 text-sm text-muted-foreground">
-        <span
-          aria-hidden="true"
-          className="flex flex-wrap items-center gap-x-2 gap-y-1"
-        >
-          <ShownChip>{shownLabel}</ShownChip>
-          {comparison ? (
-            <>
-              {t('dashboardPrisma:variacao.emRelacaoA')}
-              <ShownChip>{comparison.label}</ShownChip>
-            </>
-          ) : (
-            t('dashboardPrisma:variacao.semReferencia')
-          )}
-        </span>
-        <span className="sr-only">
-          {comparison
-            ? t('dashboardPrisma:variacao.comparadoCom', {
-                exibido: shownLabel,
-                referencia: comparison.label,
-              })
-            : t('dashboardPrisma:variacao.semComparacao', {
-                exibido: shownLabel,
-              })}
-        </span>
-      </p>
-
-      {/* As linhas dividem a altura do card: ao lado do radar, os dois cards
-          ficam nivelados sem sobrar espaço embaixo da lista. */}
-      <ul className="mt-3 flex flex-1 flex-col divide-y divide-border">
-        {ordered.map((prisma) => {
-          // Primeira palavra em destaque, o resto em cinza (como no Figma).
-          const [first, ...rest] = t(`dashboardPrisma:prismas.${prisma}`).split(
-            ' ',
-          );
-
-          return (
-            <li
-              key={prisma}
-              className="flex flex-1 items-center justify-between gap-3 py-2.5"
+          <p className="mt-3 text-sm text-muted-foreground">
+            <span
+              aria-hidden="true"
+              className="flex flex-wrap items-center gap-x-2 gap-y-1"
             >
-              {/* A palavra em roxo um tom acima do resto, em cinza. */}
-              <span className="text-base">
-                <span className="text-lg font-bold text-heading">{first}</span>
-                {rest.length > 0 && (
-                  <span className="font-medium text-muted-foreground">
-                    {' '}
-                    {rest.join(' ')}
-                  </span>
-                )}
-              </span>
+              <ShownChip>{shownLabel}</ShownChip>
+              {comparison ? (
+                <>
+                  {t('dashboardPrisma:variacao.emRelacaoA')}
+                  <ShownChip>{comparison.label}</ShownChip>
+                </>
+              ) : (
+                t('dashboardPrisma:variacao.semReferencia')
+              )}
+            </span>
+            <span className="sr-only">
+              {comparison
+                ? t('dashboardPrisma:variacao.comparadoCom', {
+                    exibido: shownLabel,
+                    referencia: comparison.label,
+                  })
+                : t('dashboardPrisma:variacao.semComparacao', {
+                    exibido: shownLabel,
+                  })}
+            </span>
+          </p>
 
-              {/* A seta vem antes da nota, e sem comparação o espaço dela
+          {/* As linhas dividem a altura do card: ao lado do radar, os dois cards
+          ficam nivelados sem sobrar espaço embaixo da lista. */}
+          <ul className="mt-3 flex flex-1 flex-col divide-y divide-border">
+            {ordered.map((prisma) => {
+              // Primeira palavra em destaque, o resto em cinza (como no Figma).
+              const [first, ...rest] = t(
+                `dashboardPrisma:prismas.${prisma}`,
+              ).split(' ');
+
+              return (
+                <li
+                  key={prisma}
+                  className="flex flex-1 items-center justify-between gap-3 py-2.5"
+                >
+                  {/* A palavra em roxo um tom acima do resto, em cinza. */}
+                  <span className="text-base">
+                    <span className="text-lg font-bold text-heading">
+                      {first}
+                    </span>
+                    {rest.length > 0 && (
+                      <span className="font-medium text-muted-foreground">
+                        {' '}
+                        {rest.join(' ')}
+                      </span>
+                    )}
+                  </span>
+
+                  {/* A seta vem antes da nota, e sem comparação o espaço dela
                   fica reservado: a nota não muda de lugar ao trocar. */}
-              <span className="flex items-center gap-2">
-                {comparison ? (
-                  <VariationBadge value={comparison.variation[prisma]} />
-                ) : (
-                  <span className="w-14" aria-hidden="true" />
-                )}
-                <span className="text-xl font-bold text-heading">
-                  {scores[prisma]}
-                </span>
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-    </article>
+                  <span className="flex items-center gap-2">
+                    {comparison ? (
+                      <VariationBadge value={comparison.variation[prisma]} />
+                    ) : (
+                      <span className="w-14" aria-hidden="true" />
+                    )}
+                    <span className="text-xl font-bold text-heading">
+                      {scores[prisma]}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </CardContent>
+      </article>
+    </Card>
   );
 }

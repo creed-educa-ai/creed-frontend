@@ -13,6 +13,7 @@ import {
   clearPasswordReset,
   requestPasswordReset,
 } from '@/features/authentication/authenticationSlice';
+import { pageTitleClassName } from '@/lib/typography';
 
 // "Esqueci minha senha": a tela só pede o e-mail. Quem define a senha nova é
 // a página do Keycloak, aberta pelo link que o back manda (P-012).
@@ -76,7 +77,7 @@ export function PasswordResetView() {
       carregando={isSubmitting}
       exibirNavegacao
     >
-      <h1 className="text-3xl font-bold text-heading">
+      <h1 className={pageTitleClassName}>
         {t('autenticacao:recuperarSenha.titulo')}
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">

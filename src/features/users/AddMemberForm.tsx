@@ -81,7 +81,7 @@ export function AddMemberForm({
         <FieldLabel htmlFor="member-name" className="sr-only">
           {t('organizations:addMember.name.label')}
         </FieldLabel>
-        <InputGroup className="h-10">
+        <InputGroup>
           <InputGroupAddon>
             <User aria-hidden="true" />
           </InputGroupAddon>
@@ -102,7 +102,7 @@ export function AddMemberForm({
         <FieldLabel htmlFor="member-email" className="sr-only">
           {t('organizations:addMember.email.label')}
         </FieldLabel>
-        <InputGroup className="h-10">
+        <InputGroup>
           <InputGroupAddon>
             <Mail aria-hidden="true" />
           </InputGroupAddon>
@@ -136,10 +136,7 @@ export function AddMemberForm({
               name="role"
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger
-                    id="member-role"
-                    className="w-full data-[size=default]:h-10"
-                  >
+                  <SelectTrigger id="member-role" className="w-full">
                     <span className="flex gap-1">
                       <span className="text-muted-foreground">
                         {t('organizations:addMember.role.label')}:
@@ -163,7 +160,7 @@ export function AddMemberForm({
 
         <Button
           type="submit"
-          className={cn('h-10 w-full', !withRole && 'md:px-6')}
+          className={cn('w-full', !withRole && 'md:px-6')}
           disabled={isSubmitting}
         >
           <Plus aria-hidden="true" />

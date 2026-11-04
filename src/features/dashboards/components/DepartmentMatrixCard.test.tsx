@@ -62,8 +62,10 @@ describe('DepartmentMatrixCard', () => {
   it('mostra cada setor como tag, com a cor dele', () => {
     render(<DepartmentMatrixCard rows={ROWS} period="2026/1" />);
 
-    expect(screen.getByText('Marketing')).toHaveClass('bg-[#009E4F]');
-    expect(screen.getByText('Financeiro')).toHaveClass('bg-[#008AC9]');
+    expect(screen.getByText('Marketing')).toHaveClass(
+      'bg-department-marketing',
+    );
+    expect(screen.getByText('Financeiro')).toHaveClass('bg-department-finance');
   });
 
   it('sem setores cadastrados mostra o aviso no lugar da tabela', () => {

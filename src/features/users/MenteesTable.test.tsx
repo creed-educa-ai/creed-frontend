@@ -92,15 +92,16 @@ describe('MenteesTable', () => {
     ).toHaveLength(3);
   });
 
-  it('desabilita Editar e Ver Resultados de quem ainda não respondeu', () => {
+  it('desabilita só Ver Resultados de quem ainda não respondeu', () => {
     renderTable();
     const table = screen.getByRole('table');
 
+    // Editar continua habilitado: é por ele que se cria o questionário.
     expect(
       within(table).getByRole('button', {
         name: 'Editar questionário de Volante Ronaldo',
       }),
-    ).toBeDisabled();
+    ).toBeEnabled();
     expect(
       within(table).getByRole('button', {
         name: 'Ver resultados de Volante Ronaldo',

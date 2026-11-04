@@ -23,7 +23,7 @@ export function LanguageSelector() {
             key={idioma}
             type="button"
             size="sm"
-            variant={ativo ? 'secondary' : 'ghost'}
+            variant={ativo ? 'outline' : 'ghost'}
             aria-pressed={ativo}
             onClick={() => {
               void i18n.changeLanguage(idioma);

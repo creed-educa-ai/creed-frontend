@@ -25,6 +25,7 @@ import { useTableSort } from '@/hooks/useTableSort';
 import { normalizeForSearch } from '@/lib/utils';
 import { MemberTagPicker } from '@/features/users/MemberTagPicker';
 import type { DepartmentType, Member } from '@/types/api';
+import { EmptyState } from '@/components/states/EmptyState';
 
 type SortableColumn = 'name' | 'status' | 'tag' | 'updatedAt';
 
@@ -183,14 +184,11 @@ export function MembersTable({
       />
 
       {pageMembers.length === 0 ? (
-        <p
-          role="status"
-          className="rounded-lg border border-border px-4 py-8 text-center text-sm text-muted-foreground"
-        >
+        <EmptyState>
           {searching
             ? t('organizations:members.emptySearch')
             : t('organizations:members.empty')}
-        </p>
+        </EmptyState>
       ) : (
         <>
           <div className="hidden overflow-x-auto md:block">

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { setName } from './demographicsSlice';
+import { pageTitleClassName } from '@/lib/typography';
 
 const demograficos1Schema = z.object({
   name: z.string().trim().min(1, {
@@ -45,9 +46,7 @@ export function DemographicsStep1View({ onContinue }: Demograficos1ViewProps) {
   return (
     <FormLayout>
       <div className="mx-auto w-full max-w-sm lg:max-w-none">
-        <h1 className="text-2xl font-bold text-heading">
-          {t('demograficos1.titulo')}
-        </h1>
+        <h1 className={pageTitleClassName}>{t('demograficos1.titulo')}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {t('demograficos1.descricaoNome')}
         </p>
@@ -62,7 +61,6 @@ export function DemographicsStep1View({ onContinue }: Demograficos1ViewProps) {
             </FieldLabel>
             <Input
               id="name"
-              className="min-h-10"
               placeholder={t('campos.nomePlaceholder')}
               aria-invalid={nomeInvalido}
               aria-describedby={nomeInvalido ? 'name-erro' : undefined}
@@ -76,11 +74,7 @@ export function DemographicsStep1View({ onContinue }: Demograficos1ViewProps) {
             )}
           </Field>
 
-          <Button
-            type="submit"
-            className="min-h-10 w-full"
-            disabled={isSubmitting}
-          >
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
             {t('avancar')}
           </Button>
         </form>

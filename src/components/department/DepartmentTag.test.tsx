@@ -10,7 +10,7 @@ describe('DepartmentTag', () => {
   it('mostra o nome traduzido do setor com a cor dele', () => {
     render(<DepartmentTag department="TecnologiaInformacao" />);
 
-    expect(screen.getByText('TI')).toHaveClass('bg-[#C2185B]');
+    expect(screen.getByText('TI')).toHaveClass('bg-department-it');
   });
 
   it('traduz o nome do setor', async () => {
@@ -26,7 +26,7 @@ describe('DepartmentDot', () => {
     const { container } = render(<DepartmentDot department="Marketing" />);
 
     const dot = container.firstElementChild;
-    expect(dot).toHaveClass('bg-[#009E4F]');
+    expect(dot).toHaveClass('bg-department-marketing');
     expect(dot).toHaveAttribute('aria-hidden', 'true');
   });
 });

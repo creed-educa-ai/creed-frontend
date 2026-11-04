@@ -19,6 +19,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from '@/components/ui/input-group';
+import { pageTitleClassName } from '@/lib/typography';
 
 export function LoginView() {
   const { t } = useTranslation(['autenticacao']);
@@ -69,9 +70,7 @@ export function LoginView() {
       carregando={isSubmitting}
       exibirNavegacao
     >
-      <h1 className="text-3xl font-bold text-heading">
-        {t('autenticacao:login.titulo')}
-      </h1>
+      <h1 className={pageTitleClassName}>{t('autenticacao:login.titulo')}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {t('autenticacao:login.subtitulo')}
       </p>

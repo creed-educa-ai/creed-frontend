@@ -4,10 +4,13 @@ import { pageGutterClassName } from '@/lib/layout';
 import { screenEnterClassName } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 import { SectionHeader } from '@/components/layout/sectionHeader';
+import { toast } from '@/components/ui/sonner';
 import { MenteesSection } from '@/features/users/MenteesSection';
 import { CompaniesSection } from '@/features/organizations/CompaniesSection';
 import { AddMemberForm } from '@/features/users/AddMemberForm';
 import type { AddMemberValues } from '@/features/users/addMemberSchema';
+import { Card, CardContent } from '@/components/ui/card';
+import { cardTitleClassName } from '@/lib/typography';
 
 // Painel de controle do super adm (a cliente): convidar mentorandos e
 // acompanhar empresas e mentorandos.
@@ -21,6 +24,12 @@ export function AdminControlPanelView() {
     // TODO: integração — `usersApi.inviteMember(<id da organização CREED>,
     // { name, email, role: 'respondente', type: 'mentoria' })`. Falta à tela
     // o id da organização CREED.
+    // Integrado, o toast vem depois do `await` do convite.
+    toast.success(t('painelControle:toasts.conviteEnviado'), {
+      description: t('painelControle:toasts.conviteEnviadoDescricao', {
+        email: values.email,
+      }),
+    });
   }
 
   return (
@@ -44,12 +53,16 @@ export function AdminControlPanelView() {
       >
         <section className="flex flex-col gap-4">
           <SectionHeader>{t('painelControle:controles')}</SectionHeader>
-          <section className="flex flex-col gap-4 rounded-3xl bg-card p-6 shadow-sm">
-            <h3 className="text-xl font-bold text-heading">
-              {t('adicionarMentorando:titulo')}
-            </h3>
-            <AddMemberForm onSubmit={handleAdicionar} withRole={false} />
-          </section>
+          <Card asChild>
+            <section>
+              <CardContent className="flex flex-col gap-4">
+                <h3 className={cardTitleClassName}>
+                  {t('adicionarMentorando:titulo')}
+                </h3>
+                <AddMemberForm onSubmit={handleAdicionar} withRole={false} />
+              </CardContent>
+            </section>
+          </Card>
         </section>
 
         <section className="flex flex-col gap-4">

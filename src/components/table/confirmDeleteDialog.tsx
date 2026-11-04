@@ -22,9 +22,14 @@ interface ConfirmDeleteDialogProps {
   // rejeitada, mostra o erro e continua aberto para tentar de novo.
   onConfirm: () => void | Promise<void>;
   onClose: () => void;
+  // Para outra ação destrutiva que não a exclusão (ex.: rejeitar empresa).
+  // Sem eles, os botões dizem "Excluir" e "Excluindo…".
+  confirmLabel?: string;
+  pendingLabel?: string;
 }
 
-// Confirmação de exclusão, igual em todas as tabelas.
+// Confirmação de exclusão, igual em todas as tabelas — e de qualquer outra
+// ação destrutiva que precise do mesmo cuidado.
 export function ConfirmDeleteDialog({
   open,
   title,
@@ -32,6 +37,8 @@ export function ConfirmDeleteDialog({
   errorMessage,
   onConfirm,
   onClose,
+  confirmLabel,
+  pendingLabel,
 }: ConfirmDeleteDialogProps) {
   const { t } = useTranslation(['comum']);
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -108,7 +115,9 @@ export function ConfirmDeleteDialog({
               void confirm();
             }}
           >
-            {deleting ? t('comum:tabela.excluindo') : t('comum:tabela.excluir')}
+            {deleting
+              ? (pendingLabel ?? t('comum:tabela.excluindo'))
+              : (confirmLabel ?? t('comum:tabela.excluir'))}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

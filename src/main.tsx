@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { RouterProvider } from 'react-router-dom';
 import { store } from '@/app/store';
 import { router } from '@/app/routes';
+import { Toaster } from '@/components/ui/sonner';
 import '@fontsource/atkinson-hyperlegible/400.css';
 import '@fontsource/atkinson-hyperlegible/700.css';
 // Efeito colateral: inicializa o i18next antes do primeiro render.
@@ -17,6 +18,8 @@ createRoot(container).render(
   <StrictMode>
     <Provider store={store}>
       <RouterProvider router={router} />
+      {/* Fora do roteador: o toast continua visível ao trocar de tela. */}
+      <Toaster />
     </Provider>
   </StrictMode>,
 );

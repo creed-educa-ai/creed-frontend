@@ -507,8 +507,8 @@ export interface Mentee {
   name: string;
   email: string;
   status: RecordStatus;
-  // Já respondeu o questionário atual? Enquanto não, "Editar" e "Ver
-  // Resultados" ficam desabilitados.
+  // Já respondeu o questionário atual? Enquanto não, "Ver Resultados" fica
+  // desabilitado ("Editar" não: é por ele que se cria o questionário).
   hasAnsweredCurrent: boolean;
 }
 

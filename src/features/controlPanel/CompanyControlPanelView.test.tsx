@@ -4,6 +4,7 @@ import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { MemoryRouter } from 'react-router-dom';
+import { Toaster } from '@/components/ui/sonner';
 import { CompanyControlPanelView } from './CompanyControlPanelView';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import usersReducer from '@/features/users/usersSlice';
@@ -40,6 +41,7 @@ function renderizar() {
       <MemoryRouter initialEntries={['/control-panel']}>
         <CompanyControlPanelView />
       </MemoryRouter>
+      <Toaster />
     </Provider>,
   );
 }
@@ -378,6 +380,9 @@ describe('CompanyControlPanelView', () => {
         horaLimite: '18:30',
       });
     });
+    expect(
+      await screen.findByText('O questionário está no ar'),
+    ).toBeInTheDocument();
 
     consoleSpy.mockRestore();
   });

@@ -6,6 +6,8 @@ import wordmark from '@/components/logos/wordmark-light.svg';
 import { Button } from '@/components/ui/button';
 import { useBrandAnimationDelay } from '@/hooks/useBrandAnimationDelay';
 import { dashboardPath } from '@/lib/dashboardPath';
+import { cn } from '@/lib/utils';
+import { pageTitleClassName } from '@/lib/typography';
 
 // Tela de "respostas enviadas", depois de confirmar o envio na revisão.
 // Copiada da AwaitingConfirmationView: mesmo fundo da marca girando e mesmo
@@ -30,7 +32,7 @@ export function SubmissionConfirmationView() {
         </div>
 
         <div className="mt-6">
-          <h1 className="text-2xl font-bold">
+          <h1 className={cn(pageTitleClassName, 'text-inherit')}>
             {t('respostasEnviadas:titulo')}
           </h1>
           <p className="mt-2 max-w-sm text-sm/relaxed opacity-90">

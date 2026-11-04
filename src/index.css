@@ -29,6 +29,11 @@
   --color-primary-hover: var(--primary-hover);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-destructive-surface: var(--destructive-surface);
+  --color-destructive-border: var(--destructive-border);
+  --color-warning-surface: var(--warning-surface);
+  --color-warning-border: var(--warning-border);
+  --color-primary-soft: var(--primary-soft);
   --color-disabled: var(--disabled);
   --color-disabled-foreground: var(--disabled-foreground);
   --color-background: var(--background);
@@ -55,6 +60,11 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-department-marketing: var(--department-marketing);
+  --color-department-finance: var(--department-finance);
+  --color-department-administrative: var(--department-administrative);
+  --color-department-human-resources: var(--department-human-resources);
+  --color-department-it: var(--department-it);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -81,6 +91,8 @@
   --primary: oklch(0.393 0.148 299.2); /* #532B88 */
   --primary-foreground: oklch(0.985 0 0); /* branco */
   --primary-hover: oklch(0.446 0.163 300.9); /* #6438A0 */
+  /* roxo suave, para linha e detalhe que não podem pesar como o primary */
+  --primary-soft: color-mix(in oklch, var(--primary) 50%, var(--background));
 
   /* accent -> lavanda sutil */
   --accent: oklch(0.914 0.031 304.3); /* #E7DEF4 */
@@ -98,6 +110,22 @@
   --success: oklch(0.654 0.078 148.5); /* #6F9E76 */
   --warning: oklch(0.742 0.117 78.7); /* #D3A24E */
 
+  /* fundo e borda de aviso (Alert): a cor semântica misturada ao card, na
+     proporção que as telas usavam com transparência — mesma aparência, mas
+     cor sólida e do tema. */
+  --destructive-surface: color-mix(
+    in oklch,
+    var(--destructive) 10%,
+    var(--card)
+  );
+  --destructive-border: color-mix(
+    in oklch,
+    var(--destructive) 30%,
+    var(--card)
+  );
+  --warning-surface: color-mix(in oklch, var(--warning) 10%, var(--card));
+  --warning-border: color-mix(in oklch, var(--warning) 50%, var(--card));
+
   /* disabled */
   --disabled: oklch(0.89 0.015 299.2); /*  #D9D6E0 */
   --disabled-foreground: oklch(0.73 0.011 296.5); /* #A9A6B0 */
@@ -113,6 +141,13 @@
   --chart-3: oklch(0.678 0.121 301.4); /* #A585D6 */
   --chart-4: oklch(0.76 0.08 300);
   --chart-5: oklch(0.85 0.045 303);
+
+  /* 🟡 Premissa P-061 — cores dos setores. Confirmar com a cliente. */
+  --department-marketing: oklch(0.46 0.2 265); /* #1F48C5 — azul royal */
+  --department-finance: oklch(0.603 0.136 239.2); /* #008AC9 — azul */
+  --department-administrative: oklch(0.626 0.154 55.6); /* #CC6A00 — laranja */
+  --department-human-resources: oklch(0.439 0.14 0); /* #8B264F — vinho */
+  --department-it: oklch(0.596 0.209 355.5); /* #D63384 — rosa */
 
   /* radius */
   --radius: 0.625rem;

@@ -23,6 +23,7 @@ import {
   brazilStateValues,
   portugalRegionValues,
 } from './demographicsOptions';
+import { pageTitleClassName } from '@/lib/typography';
 
 interface Demograficos2ViewProps {
   // A CREED-20.7 conecta estas ações ao fluxo e à API, sem rotas fictícias aqui.
@@ -72,9 +73,7 @@ export function DemographicsStep2View({
 
   return (
     <FormLayout>
-      <h1 className="text-2xl font-bold text-heading">
-        {t('demograficos2.titulo')}
-      </h1>
+      <h1 className={pageTitleClassName}>{t('demograficos2.titulo')}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {t('demograficos2.subtitulo')}
       </p>
@@ -155,25 +154,17 @@ export function DemographicsStep2View({
             <FieldLabel htmlFor="other_nationality">
               {t('campos.nacionalidadeOutra')}
             </FieldLabel>
-            <Input
-              id="other_nationality"
-              className="min-h-10"
-              {...register('other_nationality')}
-            />
+            <Input id="other_nationality" {...register('other_nationality')} />
           </Field>
         )}
         <div className="mt-2 flex flex-col gap-2">
-          <Button
-            type="submit"
-            className="min-h-10 w-full"
-            disabled={isSubmitting}
-          >
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
             {t('avancar')}
           </Button>
           <Button
             type="button"
             variant="outline"
-            className="min-h-10 w-full"
+            className="w-full"
             onClick={skipStep}
             disabled={isSubmitting}
           >

@@ -17,6 +17,8 @@ import { OverviewSection } from './components/OverviewSection';
 import { PeriodFilter } from './components/PeriodFilter';
 import { ResultText } from './components/ResultText';
 import { SummaryCards } from './components/SummaryCards';
+import { ErrorState } from '@/components/states/ErrorState';
+import { LoadingState } from '@/components/states/LoadingState';
 
 // Dashboard da organização: resultado agregado, com recorte por setor ou membro.
 export function CompanyDashboardView() {
@@ -69,20 +71,12 @@ export function CompanyDashboardView() {
         {/* Esqueleto só na primeira carga: ao trocar o filtro, a tela fica
             com o dado anterior até o novo chegar. */}
         {status === 'loading' && !data && (
-          <div className="space-y-3" aria-live="polite">
-            <p className="text-sm text-muted-foreground">{t('carregando')}</p>
-            <Skeleton className="h-80 w-full rounded-3xl" />
-          </div>
+          <LoadingState>
+            <Skeleton className="h-80 w-full rounded-2xl" />
+          </LoadingState>
         )}
 
-        {status === 'error' && (
-          <p
-            role="alert"
-            className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-destructive"
-          >
-            {error && t(error)} {t('tenteRecarregar')}
-          </p>
-        )}
+        {status === 'error' && <ErrorState message={error && t(error)} />}
 
         {data && (
           <>

@@ -5,20 +5,19 @@ import { useAppSelector } from '@/app/hooks';
 import { PageHeader } from '@/components/layout/pageHeader';
 import { pageGutterClassName } from '@/lib/layout';
 import { SectionHeader } from '@/components/layout/sectionHeader';
+import { toast } from '@/components/ui/sonner';
 import { AddMemberForm } from '@/features/users/AddMemberForm';
 import type { AddMemberValues } from '@/features/users/addMemberSchema';
 import { MembersSection } from '@/features/users/MembersSection';
 import { screenEnterClassName } from '@/lib/animations';
+import { cardTitleClassName } from '@/lib/typography';
 import { cn } from '@/lib/utils';
 import {
   manageQuestionnaireSchema,
   type ManageQuestionnaireFormValues,
 } from '@/features/forms/manageQuestionnaireSchema';
 import { ManageQuestionnaire } from '@/features/forms/ManageQuestionnaire';
-
-// Card com o título dentro, como os do dashboard e o "Membros" logo abaixo.
-const cardClassName = 'flex flex-col gap-4 rounded-3xl bg-card p-6 shadow-sm';
-const cardTitleClassName = 'text-xl font-bold text-heading';
+import { Card, CardContent } from '@/components/ui/card';
 
 // Painel de controle da empresa: convidar membros, abrir o período do
 // questionário e acompanhar os membros.
@@ -45,6 +44,10 @@ export function CompanyControlPanelView() {
     console.log('Dados salvos:', data);
     // TODO: integração — o back não tem onde guardar o período: `FormRead`
     // não tem início nem término, só `status` (draft/published/closed).
+    // Integrado, o toast vem depois do `await` do salvamento.
+    toast.success(t('painelControle:toasts.questionarioNoAr'), {
+      description: t('painelControle:toasts.questionarioNoArDescricao'),
+    });
   };
 
   function handleAddMember(values: AddMemberValues) {
@@ -52,6 +55,12 @@ export function CompanyControlPanelView() {
     // TODO: integração — `usersApi.inviteMember(organization_id da sessão,
     // values)`, por um thunk no usersSlice. A rota está na branch
     // feat/86e35vhxm-convite-de-membro do back, ainda fora da dev.
+    // Integrado, o toast vem depois do `await` do convite.
+    toast.success(t('painelControle:toasts.conviteEnviado'), {
+      description: t('painelControle:toasts.conviteEnviadoDescricao', {
+        email: values.email,
+      }),
+    });
   }
 
   return (
@@ -74,27 +83,35 @@ export function CompanyControlPanelView() {
           {/* Sem recolher, ao contrário do dashboard: o painel é curto e os
               cards são as ações da tela. O grid nivela a altura dos dois. */}
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <section className={cardClassName}>
-              <h3 className={cardTitleClassName}>
-                {t('painelControle:adicionarMembro')}
-              </h3>
-              <AddMemberForm onSubmit={handleAddMember} />
-            </section>
+            <Card asChild>
+              <section>
+                <CardContent className="flex flex-col gap-4">
+                  <h3 className={cardTitleClassName}>
+                    {t('painelControle:adicionarMembro')}
+                  </h3>
+                  <AddMemberForm onSubmit={handleAddMember} />
+                </CardContent>
+              </section>
+            </Card>
 
-            <section className={cardClassName}>
-              <h3 className={cardTitleClassName}>
-                {t('painelControle:gerenciar')}
-              </h3>
-              <div className="flex-1">
-                <ManageQuestionnaire
-                  control={control}
-                  errors={errors}
-                  onConfirmar={() => {
-                    void handleSubmit(onSubmit)();
-                  }}
-                />
-              </div>
-            </section>
+            <Card asChild>
+              <section>
+                <CardContent className="flex flex-col gap-4">
+                  <h3 className={cardTitleClassName}>
+                    {t('painelControle:gerenciar')}
+                  </h3>
+                  <div className="flex-1">
+                    <ManageQuestionnaire
+                      control={control}
+                      errors={errors}
+                      onConfirmar={() => {
+                        void handleSubmit(onSubmit)();
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </section>
+            </Card>
           </div>
         </section>
 

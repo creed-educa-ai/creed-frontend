@@ -28,11 +28,14 @@ import { useTablePage } from '@/hooks/useTablePage';
 import { useTableSort } from '@/hooks/useTableSort';
 import { cn, normalizeForSearch } from '@/lib/utils';
 import type { Mentee } from '@/types/api';
+import { EmptyState } from '@/components/states/EmptyState';
 
 // > 🟡 Premissa — o Figma da tabela de mentorandos só mostra "Ativo".
 // > "Inativo" segue o `RecordStatus` do backend (`active` e `inactive`).
-// > 🟡 Premissa — `hasAnsweredCurrent` desabilita "Editar" e "Ver Resultados";
-// > a spec só pede isso para "Editar", o Figma desabilita os dois.
+// > 🟡 Premissa P-060 — `hasAnsweredCurrent` desabilita só "Ver Resultados":
+// > sem resposta não há resultado. "Editar" fica sempre habilitado, porque é
+// > por ele que a super adm cria o questionário de quem ainda não tem (a spec
+// > e o Figma desabilitavam "Editar"). Confirmar na reunião.
 
 interface MenteesTableProps {
   mentees: Mentee[];
@@ -126,7 +129,6 @@ export function MenteesTable({
     return (
       <RowActionButton
         className="h-10 px-4 md:h-7 md:px-3"
-        disabled={!mentee.hasAnsweredCurrent}
         aria-label={t('mentees:actions.editFor', { name: mentee.name })}
         onClick={() => {
           onEditQuestionnaire(mentee);
@@ -168,12 +170,7 @@ export function MenteesTable({
     // O título ("Mentorandos") e o card são de quem usa o componente.
     <div className="flex flex-col gap-4">
       {mentees.length === 0 ? (
-        <p
-          role="status"
-          className="rounded-lg border border-border px-4 py-8 text-center text-sm text-muted-foreground"
-        >
-          {t('mentees:empty')}
-        </p>
+        <EmptyState>{t('mentees:empty')}</EmptyState>
       ) : (
         <>
           <TableToolbar
@@ -202,12 +199,7 @@ export function MenteesTable({
           />
 
           {visible.length === 0 ? (
-            <p
-              role="status"
-              className="rounded-lg border border-border px-4 py-8 text-center text-sm text-muted-foreground"
-            >
-              {t('mentees:noResults')}
-            </p>
+            <EmptyState>{t('mentees:noResults')}</EmptyState>
           ) : (
             <>
               {/* No desktop cheio (2xl) o painel do admin põe esta tabela ao lado

@@ -9,6 +9,7 @@ import {
   resetCompaniesMock,
 } from '@/features/organizations/organizationsApi';
 import organizationsReducer from '@/features/organizations/organizationsSlice';
+import { Toaster } from '@/components/ui/sonner';
 import { CompaniesSection } from './CompaniesSection';
 
 // Renderiza e espera a lista do mock chegar: a seção carrega pelo slice.
@@ -19,6 +20,7 @@ async function renderizar() {
   render(
     <Provider store={store}>
       <CompaniesSection />
+      <Toaster />
     </Provider>,
   );
   await screen.findByRole('table');
@@ -99,6 +101,30 @@ describe('CompaniesSection', () => {
         name: 'Ver Resultados',
       }),
     ).toBeEnabled();
+    expect(await screen.findByText('Empresa aprovada')).toBeInTheDocument();
+    expect(
+      screen.getByText('Acme Inc. já tem acesso à plataforma.'),
+    ).toBeInTheDocument();
+  });
+
+  it('avisa por toast quando a aprovação falha', async () => {
+    vi.spyOn(organizationsApi, 'approveCompany').mockRejectedValueOnce(
+      new Error('falhou'),
+    );
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Pendente: analisar o cadastro de Acme Inc.',
+      }),
+    );
+    await user.click(await screen.findByRole('button', { name: 'Aceitar' }));
+
+    expect(
+      await screen.findByText('Não foi possível aprovar a empresa'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Empresa aprovada')).toBeNull();
   });
 
   it('remove a empresa da lista quando a solicitação é rejeitada', async () => {
@@ -118,8 +144,19 @@ describe('CompaniesSection', () => {
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Rejeitar' }));
+    await user.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Rejeitar',
+      }),
+    );
 
-    expect(screen.queryByText('Acme Inc.')).not.toBeInTheDocument();
+    expect(await screen.findByText('Empresa rejeitada')).toBeInTheDocument();
+    expect(
+      screen.getByText('Acme Inc. não terá acesso à plataforma.'),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).queryByText('Acme Inc.'),
+    ).toBeNull();
     expect(
       within(screen.getByRole('table')).getByText('Tech Solutions'),
     ).toBeInTheDocument();
@@ -139,7 +176,13 @@ describe('CompaniesSection', () => {
     );
     await confirmarExclusao(user);
 
-    expect(screen.queryByText('Tech Solutions')).not.toBeInTheDocument();
+    expect(await screen.findByText('Empresa excluída')).toBeInTheDocument();
+    expect(
+      screen.getByText('Tech Solutions foi removida da plataforma.'),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole('table')).queryByText('Tech Solutions'),
+    ).toBeNull();
     expect(
       within(screen.getByRole('table')).getByText('Acme Inc.'),
     ).toBeInTheDocument();
