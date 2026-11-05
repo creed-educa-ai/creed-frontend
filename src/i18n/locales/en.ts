@@ -523,6 +523,7 @@ export const en: typeof ptBR = {
     erroAoCarregar: 'Could not load the dashboard.',
     Funcionario: 'Employee',
     Baixar: 'Download',
+    erroAoExportarPdf: 'Could not generate the dashboard PDF.',
     Periodo: 'Period',
     Setor: 'Department',
     // Texto do ícone de informação ao lado do título de cada card.

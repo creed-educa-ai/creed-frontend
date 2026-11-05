@@ -12,6 +12,8 @@ import { cardTitleClassName, sectionTitleClassName } from '@/lib/typography';
 interface ResultTextProps extends CreedSummary {
   // A recomendação é só da visão da empresa.
   empresa?: boolean;
+  collapsible?: boolean;
+  showPrismaSummaries?: boolean;
 }
 
 interface PrismaCardProps {
@@ -65,6 +67,8 @@ export function ResultText({
   destaque,
   oportunidade,
   empresa = false,
+  collapsible = true,
+  showPrismaSummaries = true,
 }: ResultTextProps) {
   const { t } = useTranslation(['resultado', 'dashboard']);
   const [isOpen, setIsOpen] = useState(true);
@@ -81,29 +85,33 @@ export function ResultText({
     <section className="w-full">
       {/* HEADER */}
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            setIsOpen((prev) => !prev);
-          }}
-          aria-expanded={isOpen}
-          aria-controls={conteudoId}
-          className="flex cursor-pointer items-center gap-2 text-heading"
-        >
-          <ChevronDown
-            size={20}
-            className={`transition-transform duration-200 ${
-              isOpen ? 'rotate-0' : '-rotate-90'
-            }`}
-          />
-          <h2 className={cn(sectionTitleClassName, 'text-inherit')}>
-            {t('resultado:creedAi')}
-          </h2>
-        </button>
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen((prev) => !prev);
+            }}
+            aria-expanded={isOpen}
+            aria-controls={conteudoId}
+            className="flex cursor-pointer items-center gap-2 text-heading"
+          >
+            <ChevronDown
+              size={20}
+              className={`transition-transform duration-200 ${
+                isOpen ? 'rotate-0' : '-rotate-90'
+              }`}
+            />
+            <h2 className={cn(sectionTitleClassName, 'text-inherit')}>
+              {t('resultado:creedAi')}
+            </h2>
+          </button>
+        ) : (
+          <h2 className={sectionTitleClassName}>{t('resultado:creedAi')}</h2>
+        )}
         <div className="h-px flex-1 bg-primary" aria-hidden="true" />
       </div>
 
-      {isOpen && (
+      {(!collapsible || isOpen) && (
         <div id={conteudoId} className="mt-6 flex flex-col gap-4">
           {/* Análise geral, grande; a recomendação ao lado, na empresa. */}
           <div
@@ -167,16 +175,18 @@ export function ResultText({
           </div>
 
           {/* Um card por prisma: cinco na linha no desktop. */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {PRISMAS.map((prisma) => (
-              <PrismaCard
-                key={prisma}
-                prisma={prisma}
-                texto={prismas[prisma]}
-                marca={marcaDe(prisma)}
-              />
-            ))}
-          </div>
+          {showPrismaSummaries && (
+            <div className="pdf-prisma-summaries grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {PRISMAS.map((prisma) => (
+                <PrismaCard
+                  key={prisma}
+                  prisma={prisma}
+                  texto={prismas[prisma]}
+                  marca={marcaDe(prisma)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </section>

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from '@/components/ui/sonner';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { PageHeader } from '@/components/layout/pageHeader';
 import { pageGutterClassName } from '@/lib/layout';
@@ -13,6 +14,8 @@ import { PeriodFilter } from './components/PeriodFilter';
 import { ResultText } from './components/ResultText';
 import { ErrorState } from '@/components/states/ErrorState';
 import { LoadingState } from '@/components/states/LoadingState';
+import { dashboardsApi, type UserDashboard } from './dashboardsApi';
+import { DashboardPdfReport } from './components/DashboardPdfReport';
 
 // Dashboard individual: o resultado de quem está logado.
 export function UserDashboardView() {
@@ -23,6 +26,34 @@ export function UserDashboardView() {
   );
   // Nulo até a pessoa escolher: vale o período atual que veio do back.
   const [period, setPeriod] = useState<string | null>(null);
+  const [pdfData, setPdfData] = useState<UserDashboard | null>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  const exportPdf = useCallback(async () => {
+    if (!data || exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      const latestPeriod = data.periods[0];
+      const report = await dashboardsApi.getUserDashboard({
+        period: latestPeriod,
+      });
+      setPdfData(report);
+    } catch {
+      setExportingPdf(false);
+      toast.error(t('dashboard:erroAoExportarPdf'));
+    }
+  }, [data, exportingPdf, t]);
+
+  const finishPdfExport = useCallback(() => {
+    setPdfData(null);
+    setExportingPdf(false);
+  }, []);
+
+  const failPdfExport = useCallback(() => {
+    setPdfData(null);
+    setExportingPdf(false);
+    toast.error(t('dashboard:erroAoExportarPdf'));
+  }, [t]);
 
   // Cada troca de período pede ao back o resultado daquele período.
   useEffect(() => {
@@ -30,7 +61,7 @@ export function UserDashboardView() {
   }, [dispatch, period]);
 
   return (
-    <div className="flex min-h-svh flex-col overflow-hidden bg-background">
+    <div className="dashboard-view flex min-h-svh flex-col overflow-hidden bg-background">
       <PageHeader
         eyebrow={data?.organization_name ?? ''}
         title={t('dashboard:titulo')}
@@ -56,6 +87,10 @@ export function UserDashboardView() {
         {data && (
           <>
             <DashboardToolbar
+              onExportPdf={() => {
+                void exportPdf();
+              }}
+              exportingPdf={exportingPdf}
               filters={
                 <PeriodFilter
                   periods={data.periods}
@@ -81,6 +116,14 @@ export function UserDashboardView() {
           </>
         )}
       </main>
+      {pdfData && (
+        <DashboardPdfReport
+          kind="user"
+          data={pdfData}
+          onAfterPrint={finishPdfExport}
+          onPrintError={failPdfExport}
+        />
+      )}
     </div>
   );
 }

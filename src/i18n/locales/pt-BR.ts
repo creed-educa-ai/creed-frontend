@@ -532,6 +532,7 @@ export const ptBR = {
     erroAoCarregar: 'Não foi possível carregar o dashboard.',
     Funcionario: 'Funcionário',
     Baixar: 'Baixar',
+    erroAoExportarPdf: 'Não foi possível gerar o PDF do dashboard.',
     Periodo: 'Período',
     Setor: 'Setor',
     // Texto do ícone de informação ao lado do título de cada card.
