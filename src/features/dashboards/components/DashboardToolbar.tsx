@@ -1,7 +1,10 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+// MockData é só para desenvolvimento e teste local, não deve ser usado em produção.
+import { getData } from './MockData';
+import * as XLSX from 'xlsx';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +21,15 @@ interface DashboardToolbarProps {
 // então ficam acima de tudo o que eles mudam, e não no header.
 export function DashboardToolbar({ filters }: DashboardToolbarProps) {
   const { t } = useTranslation(['dashboard']);
+
+  //O MockData é só para desenvolvimento e teste local, não deve ser usado em produção.
+  const [data] = useState(getData());
+  const handleOnExport = () => {
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Dashboard');
+    XLSX.writeFile(workbook, 'dashboard.csv');
+  };
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -38,8 +50,7 @@ export function DashboardToolbar({ filters }: DashboardToolbarProps) {
           >
             PDF
           </DropdownMenuItem>
-          {/* TODO: IMPLEMENTAR LOGICA DE DOWNLOAD DE CSV */}
-          <DropdownMenuItem>CSV</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleOnExport}>CSV</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
