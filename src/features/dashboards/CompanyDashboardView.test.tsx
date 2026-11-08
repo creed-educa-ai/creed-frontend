@@ -554,8 +554,30 @@ describe('CompanyDashboardView', () => {
       ),
     ).toHaveClass('pdf-company-summary-grid');
     expect(
-      container.querySelector('.dashboard-pdf-report .pdf-dashboard-metrics'),
-    ).toHaveClass('pdf-dashboard-metrics');
+      container.querySelectorAll(
+        '.dashboard-pdf-report .pdf-company-summary-grid > article',
+      ),
+    ).toHaveLength(4);
+    expect(
+      container.querySelectorAll(
+        '.dashboard-pdf-report .pdf-dashboard-metrics > *',
+      ),
+    ).toHaveLength(3);
+    expect(
+      container.querySelectorAll(
+        '.dashboard-pdf-report .pdf-dashboard-supporting > *',
+      ),
+    ).toHaveLength(2);
+    const creedSummary = container.querySelector(
+      '.dashboard-pdf-report .dashboard-pdf-summary',
+    );
+    expect(creedSummary).toHaveTextContent(
+      'Análise de a equipe no período 2026/1.',
+    );
+    expect(creedSummary).toHaveTextContent('Recomendação para a equipe.');
+    expect(
+      creedSummary?.querySelectorAll('.pdf-prisma-summaries article'),
+    ).toHaveLength(5);
   });
 
   it('should preserve the selected department in the latest PDF export', async () => {

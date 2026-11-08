@@ -567,11 +567,25 @@
   }
 
   .dashboard-pdf-report .pdf-dashboard-supporting {
-    grid-template-columns: 2fr 3fr !important;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) !important;
+  }
+
+  .dashboard-pdf-report .pdf-dashboard-supporting > * {
+    min-width: 0;
+  }
+
+  .dashboard-pdf-report .pdf-dashboard-supporting table {
+    width: 100%;
+    min-width: 0;
   }
 
   .dashboard-pdf-summary {
-    break-inside: avoid;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .dashboard-pdf-summary > section {
+    break-inside: avoid-page;
     page-break-inside: avoid;
   }
 
