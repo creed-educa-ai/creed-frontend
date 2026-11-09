@@ -328,34 +328,35 @@
 }
 
 @media print {
-  @page {
+  @page dashboard-pdf {
     size: A4 landscape;
     margin: 8mm;
   }
 
-  html,
-  body,
-  #root {
+  body:has(.dashboard-pdf-report),
+  body:has(.dashboard-pdf-report) #root {
     width: 100%;
     min-height: 0;
     overflow: visible !important;
     background: white !important;
   }
 
-  body > *:not(#root),
-  #root > *:not(.dashboard-view),
-  .dashboard-view > *:not(.dashboard-pdf-report) {
+  body:has(.dashboard-pdf-report) > *:not(#root),
+  body:has(.dashboard-pdf-report) #root > *:not(.dashboard-view),
+  body:has(.dashboard-pdf-report)
+    .dashboard-view
+    > *:not(.dashboard-pdf-report) {
     display: none !important;
   }
 
-  .dashboard-view {
+  body:has(.dashboard-pdf-report) .dashboard-view {
     display: block !important;
     position: static !important;
     min-height: 0 !important;
     overflow: visible !important;
   }
 
-  body * {
+  body:has(.dashboard-pdf-report) * {
     visibility: hidden !important;
   }
 
@@ -365,6 +366,7 @@
   }
 
   .dashboard-pdf-report {
+    page: dashboard-pdf;
     position: absolute;
     inset: 0;
     display: block !important;
@@ -602,11 +604,11 @@
     min-width: 0;
   }
 
-  table {
+  .dashboard-pdf-report table {
     font-size: 10pt;
   }
 
-  tr {
+  .dashboard-pdf-report tr {
     break-inside: avoid;
   }
 
