@@ -45,7 +45,6 @@ export const router = createBrowserRouter([
     // guarda que mostra o termo no primeiro acesso.
     children: [
       { path: '/dashboard', element: <UserDashboardView /> },
-      { path: '/dashboard/company', element: <CompanyDashboardView /> },
       { path: '/control-panel', element: <CompanyControlPanelView /> },
       { path: '/control-panel/admin', element: <AdminControlPanelView /> },
       { path: '/demographics/step-1', element: <DemographicsStep1Route /> },
@@ -63,6 +62,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  { path: '/dashboard/company', element: <CompanyDashboardView /> },
   { path: '/about', element: <AboutView /> },
   { path: '/sign-up', element: <SignUpView /> },
   { path: '/awaiting-confirmation', element: <AwaitingConfirmationView /> },
