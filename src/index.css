@@ -356,19 +356,14 @@
     overflow: visible !important;
   }
 
-  body:has(.dashboard-pdf-report) * {
-    visibility: hidden !important;
-  }
-
-  .dashboard-pdf-report,
-  .dashboard-pdf-report * {
+  body:has(.dashboard-pdf-report) .dashboard-pdf-report,
+  body:has(.dashboard-pdf-report) .dashboard-pdf-report * {
     visibility: visible !important;
   }
 
   .dashboard-pdf-report {
     page: dashboard-pdf;
-    position: absolute;
-    inset: 0;
+    position: static;
     display: block !important;
     width: 100%;
     color: #28252c;
