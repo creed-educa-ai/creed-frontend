@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from '@/components/ui/sonner';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { PageHeader } from '@/components/layout/pageHeader';
 import { pageGutterClassName } from '@/lib/layout';
@@ -19,6 +20,8 @@ import { ResultText } from './components/ResultText';
 import { SummaryCards } from './components/SummaryCards';
 import { ErrorState } from '@/components/states/ErrorState';
 import { LoadingState } from '@/components/states/LoadingState';
+import { dashboardsApi, type CompanyDashboard } from './dashboardsApi';
+import { DashboardPdfReport } from './components/DashboardPdfReport';
 
 // Dashboard da organização: resultado agregado, com recorte por setor ou membro.
 export function CompanyDashboardView() {
@@ -31,6 +34,35 @@ export function CompanyDashboardView() {
   // resolve. O recorte começa na organização inteira.
   const [period, setPeriod] = useState<string | null>(null);
   const [view, setView] = useState<DashboardView>({});
+  const [pdfData, setPdfData] = useState<CompanyDashboard | null>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  const exportPdf = useCallback(async () => {
+    if (!data || exportingPdf) return;
+    setExportingPdf(true);
+    try {
+      const latestPeriod = data.periods[0];
+      const report = await dashboardsApi.getCompanyDashboard({
+        period: latestPeriod,
+        ...view,
+      });
+      setPdfData(report);
+    } catch {
+      setExportingPdf(false);
+      toast.error(t('dashboard:erroAoExportarPdf'));
+    }
+  }, [data, exportingPdf, t, view]);
+
+  const finishPdfExport = useCallback(() => {
+    setPdfData(null);
+    setExportingPdf(false);
+  }, []);
+
+  const failPdfExport = useCallback(() => {
+    setPdfData(null);
+    setExportingPdf(false);
+    toast.error(t('dashboard:erroAoExportarPdf'));
+  }, [t]);
 
   // Cada troca de filtro pede ao back o recorte novo.
   useEffect(() => {
@@ -55,7 +87,7 @@ export function CompanyDashboardView() {
   };
 
   return (
-    <div className="flex min-h-svh flex-col overflow-hidden bg-background">
+    <div className="dashboard-view flex min-h-svh flex-col overflow-hidden bg-background">
       <PageHeader
         eyebrow={data?.organization_name ?? ''}
         title={t('dashboard:titulo')}
@@ -81,6 +113,10 @@ export function CompanyDashboardView() {
         {data && (
           <>
             <DashboardToolbar
+              onExportPdf={() => {
+                void exportPdf();
+              }}
+              exportingPdf={exportingPdf}
               filters={
                 <>
                   <PeriodFilter
@@ -131,6 +167,14 @@ export function CompanyDashboardView() {
           </>
         )}
       </main>
+      {pdfData && (
+        <DashboardPdfReport
+          kind="company"
+          data={pdfData}
+          onAfterPrint={finishPdfExport}
+          onPrintError={failPdfExport}
+        />
+      )}
     </div>
   );
 }

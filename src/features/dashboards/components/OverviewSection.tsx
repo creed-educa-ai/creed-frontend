@@ -33,6 +33,7 @@ interface OverviewSectionProps {
   alignment?: TeamAlignment | null | undefined;
   // Também só da empresa; não depende do recorte, só do período.
   departmentMatrix?: DepartmentRow[] | undefined;
+  pdfLayout?: boolean;
 }
 
 export function OverviewSection({
@@ -45,6 +46,7 @@ export function OverviewSection({
   comparisons,
   alignment,
   departmentMatrix,
+  pdfLayout = false,
 }: OverviewSectionProps) {
   const { t } = useTranslation([
     'resultado',
@@ -101,62 +103,70 @@ export function OverviewSection({
   return (
     <CollapsibleSection
       title={t('resultado:metricas')}
+      collapsible={!pdfLayout}
       action={
-        <div
-          role="group"
-          aria-label={t('dashboardPrisma:compararCom')}
-          className="flex flex-wrap items-center gap-2"
-        >
-          {/* No celular: o rótulo numa linha e os dois botões dividindo a de
-              baixo. De sm para cima, os três na linha do título. */}
-          <span
-            className="basis-full text-sm text-muted-foreground sm:basis-auto"
-            aria-hidden="true"
+        !pdfLayout && (
+          <div
+            role="group"
+            aria-label={t('dashboardPrisma:compararCom')}
+            className="flex flex-wrap items-center gap-2"
           >
-            {t('dashboardPrisma:compararCom')}
-          </span>
-          <ComparisonFilter
-            placeholder={t('dashboard:Periodo')}
-            options={comparisonOptions.periods.map((option) => ({
-              id: option,
-              label: option,
-              // Sem setor, o período exibido seria o recorte contra ele mesmo.
-              disabled: option === period && comparedScope === null,
-            }))}
-            value={shownComparedPeriod}
-            onChange={setComparedPeriod}
-            onClear={clear}
-            className="min-w-0 flex-1 sm:flex-none"
-          />
-          {comparisonOptions.departments.length > 0 && (
+            {/* No celular: o rótulo numa linha e os dois botões dividindo a de
+              baixo. De sm para cima, os três na linha do título. */}
+            <span
+              className="basis-full text-sm text-muted-foreground sm:basis-auto"
+              aria-hidden="true"
+            >
+              {t('dashboardPrisma:compararCom')}
+            </span>
             <ComparisonFilter
-              placeholder={t('dashboard:Setor')}
-              // A empresa toda primeiro: compara o recorte com a média de
-              // todos, ou tira o setor da comparação sem limpar o período.
-              options={[
-                {
-                  id: 'organization' as const,
-                  label: scopeName('organization'),
-                },
-                ...comparisonOptions.departments.map((department) => ({
-                  id: department,
-                  label: departmentName(department),
-                  icon: <DepartmentDot department={department} />,
-                })),
-              ]}
-              value={comparedScope}
-              onChange={setComparedScope}
+              placeholder={t('dashboard:Periodo')}
+              options={comparisonOptions.periods.map((option) => ({
+                id: option,
+                label: option,
+                // Sem setor, o período exibido seria o recorte contra ele mesmo.
+                disabled: option === period && comparedScope === null,
+              }))}
+              value={shownComparedPeriod}
+              onChange={setComparedPeriod}
               onClear={clear}
               className="min-w-0 flex-1 sm:flex-none"
             />
-          )}
-        </div>
+            {comparisonOptions.departments.length > 0 && (
+              <ComparisonFilter
+                placeholder={t('dashboard:Setor')}
+                // A empresa toda primeiro: compara o recorte com a média de
+                // todos, ou tira o setor da comparação sem limpar o período.
+                options={[
+                  {
+                    id: 'organization' as const,
+                    label: scopeName('organization'),
+                  },
+                  ...comparisonOptions.departments.map((department) => ({
+                    id: department,
+                    label: departmentName(department),
+                    icon: <DepartmentDot department={department} />,
+                  })),
+                ]}
+                value={comparedScope}
+                onChange={setComparedScope}
+                onClear={clear}
+                className="min-w-0 flex-1 sm:flex-none"
+              />
+            )}
+          </div>
+        )
       }
     >
       {/* Variação | Prisma | Dimensões. No desktop os três dividem a linha;
           no tablet as dimensões descem e ocupam a linha toda; no celular,
           um embaixo do outro. */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(16rem,1fr)_2fr] xl:grid-cols-[minmax(16rem,1fr)_1.4fr_1.4fr]">
+      <div
+        className={cn(
+          'grid grid-cols-1 gap-4 md:grid-cols-[minmax(16rem,1fr)_2fr] xl:grid-cols-[minmax(16rem,1fr)_1.4fr_1.4fr]',
+          pdfLayout && 'pdf-dashboard-metrics',
+        )}
+      >
         <VariationCard
           scores={scores}
           shownLabel={shownLabel}
@@ -166,6 +176,7 @@ export function OverviewSection({
           current={{ label: shownLabel, scores }}
           comparison={compared}
           compact
+          pdfLayout={pdfLayout}
         />
         <div className="md:col-span-2 xl:col-span-1">
           <DimensionsCard
@@ -185,6 +196,10 @@ export function OverviewSection({
           className={cn(
             'mt-4 grid grid-cols-1 gap-4',
             alignment && departmentMatrix && 'xl:grid-cols-[2fr_3fr]',
+            pdfLayout &&
+              alignment &&
+              departmentMatrix &&
+              'pdf-dashboard-supporting',
           )}
         >
           {alignment && (

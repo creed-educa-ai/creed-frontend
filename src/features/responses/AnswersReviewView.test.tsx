@@ -255,6 +255,11 @@ describe('AnswersReviewView', () => {
     await user.click(screen.getByRole('button', { name: 'Gerar PDF' }));
 
     expect(print).toHaveBeenCalledOnce();
+    expect(screen.getByRole('table')).toHaveTextContent(
+      'Mock: avalie a colaboração',
+    );
+    expect(screen.getByRole('table')).toHaveTextContent('3 (em escala 1 a 5)');
+    expect(document.querySelector('.dashboard-pdf-report')).toBeNull();
     print.mockRestore();
   });
 });

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import dashboardsReducer from '@/features/dashboards/dashboardsSlice';
+import { dashboardsApi } from '@/features/dashboards/dashboardsApi';
 import { CompanyDashboardView } from './CompanyDashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
@@ -57,6 +58,10 @@ function secao(nome: string) {
 }
 
 describe('CompanyDashboardView', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   beforeEach(async () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
@@ -528,6 +533,84 @@ describe('CompanyDashboardView', () => {
 
     expect(screen.getByRole('menuitem', { name: 'PDF' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'CSV' })).toBeInTheDocument();
+  });
+
+  it('should export the latest organization-wide dashboard as a PDF', async () => {
+    const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
+    const getDashboard = vi.spyOn(dashboardsApi, 'getCompanyDashboard');
+    const user = userEvent.setup();
+    const { container } = await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Baixar' }));
+    await user.click(screen.getByRole('menuitem', { name: 'PDF' }));
+
+    await waitFor(() => {
+      expect(print).toHaveBeenCalledTimes(1);
+    });
+    expect(getDashboard).toHaveBeenLastCalledWith({ period: '2026/1' });
+    expect(
+      container.querySelector(
+        '.dashboard-pdf-report .pdf-company-summary-grid',
+      ),
+    ).toHaveClass('pdf-company-summary-grid');
+    expect(
+      container.querySelectorAll(
+        '.dashboard-pdf-report .pdf-company-summary-grid > article',
+      ),
+    ).toHaveLength(4);
+    expect(
+      container.querySelectorAll(
+        '.dashboard-pdf-report .pdf-dashboard-metrics > *',
+      ),
+    ).toHaveLength(3);
+    expect(
+      container.querySelectorAll(
+        '.dashboard-pdf-report .pdf-dashboard-supporting > *',
+      ),
+    ).toHaveLength(2);
+    const creedSummary = container.querySelector(
+      '.dashboard-pdf-report .dashboard-pdf-summary',
+    );
+    expect(creedSummary).toHaveTextContent(
+      'Análise de a equipe no período 2026/1.',
+    );
+    expect(creedSummary).toHaveTextContent('Recomendação para a equipe.');
+    expect(
+      creedSummary?.querySelectorAll('.pdf-prisma-summaries article'),
+    ).toHaveLength(5);
+  });
+
+  it('should preserve the selected department in the latest PDF export', async () => {
+    const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
+    const getDashboard = vi.spyOn(dashboardsApi, 'getCompanyDashboard');
+    const user = userEvent.setup();
+    const { container } = await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
+    const departmentMenu = await screen.findByRole('menuitem', {
+      name: 'Setor',
+    });
+    departmentMenu.focus();
+    await user.keyboard('{Enter}');
+    const marketing = await screen.findByRole('menuitemradio', {
+      name: 'Marketing',
+    });
+    marketing.focus();
+    await user.keyboard('{Enter}');
+
+    await user.click(screen.getByRole('button', { name: 'Baixar' }));
+    await user.click(screen.getByRole('menuitem', { name: 'PDF' }));
+
+    await waitFor(() => {
+      expect(print).toHaveBeenCalledTimes(1);
+    });
+    expect(getDashboard).toHaveBeenLastCalledWith({
+      period: '2026/1',
+      department: 'Marketing',
+    });
+    expect(container.querySelector('.dashboard-pdf-report')).toHaveTextContent(
+      'Resumo de Marketing',
+    );
   });
 
   it('should translate the summary and the company-only items to English', async () => {

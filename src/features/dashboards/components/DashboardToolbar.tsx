@@ -12,11 +12,17 @@ import {
 interface DashboardToolbarProps {
   // Filtros de cada tela; o botão de baixar é comum e fica à direita.
   filters: ReactNode;
+  onExportPdf: () => void;
+  exportingPdf: boolean;
 }
 
 // Barra entre o header e o conteúdo: os filtros valem para a página inteira,
 // então ficam acima de tudo o que eles mudam, e não no header.
-export function DashboardToolbar({ filters }: DashboardToolbarProps) {
+export function DashboardToolbar({
+  filters,
+  onExportPdf,
+  exportingPdf,
+}: DashboardToolbarProps) {
   const { t } = useTranslation(['dashboard']);
 
   return (
@@ -31,11 +37,7 @@ export function DashboardToolbar({ filters }: DashboardToolbarProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem
-            onSelect={() => {
-              window.print();
-            }}
-          >
+          <DropdownMenuItem disabled={exportingPdf} onSelect={onExportPdf}>
             PDF
           </DropdownMenuItem>
           {/* TODO: IMPLEMENTAR LOGICA DE DOWNLOAD DE CSV */}

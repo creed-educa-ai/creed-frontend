@@ -299,16 +299,48 @@ describe('UserDashboardView', () => {
     expect(screen.getByRole('menuitem', { name: 'CSV' })).toBeInTheDocument();
   });
 
-  it('should open the print dialog when choosing PDF', async () => {
+  it('should export the latest period using the dedicated PDF report', async () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
+    const getDashboard = vi.spyOn(dashboardsApi, 'getUserDashboard');
     const user = userEvent.setup();
-    await renderizar();
+    const { container } = await renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Baixar' }));
     await user.click(screen.getByRole('menuitem', { name: 'PDF' }));
 
-    expect(print).toHaveBeenCalledTimes(1);
-    print.mockRestore();
+    await waitFor(() => {
+      expect(print).toHaveBeenCalledTimes(1);
+    });
+    expect(getDashboard).toHaveBeenLastCalledWith({ period: '2026/1' });
+    expect(
+      container.querySelector('.dashboard-pdf-report'),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector('.dashboard-pdf-report nav'),
+    ).not.toBeInTheDocument();
+    expect(
+      container.querySelector(
+        '.dashboard-pdf-report .pdf-dashboard-metrics .pdf-prisma-radar',
+      ),
+    ).toHaveAttribute('viewBox', '0 0 260 250');
+    expect(
+      container.querySelectorAll(
+        '.dashboard-pdf-report .pdf-prisma-axis-label',
+      ),
+    ).toHaveLength(5);
+    expect(
+      container.querySelectorAll(
+        '.dashboard-pdf-report .pdf-prisma-axis-value',
+      ),
+    ).toHaveLength(5);
+    expect(
+      container.querySelectorAll(
+        '.dashboard-pdf-report .pdf-prisma-summaries article',
+      ),
+    ).toHaveLength(5);
+    expect(container.querySelector('.dashboard-pdf-report')).toHaveTextContent(
+      'Leitura breve de Segurança Psicológica para você.',
+    );
   });
 
   it('should translate the sections and the download button to English', async () => {

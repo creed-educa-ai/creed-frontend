@@ -19,6 +19,8 @@ interface SummaryCardsProps {
   destaque: Metrica;
   oportunidade: Metrica; // menor valor
   maisComum: Metrica;
+  pdfLayout?: boolean;
+  collapsible?: boolean;
 }
 
 interface CardMetricaProps {
@@ -70,6 +72,8 @@ export function SummaryCards({
   destaque,
   oportunidade,
   maisComum,
+  pdfLayout = false,
+  collapsible = true,
 }: SummaryCardsProps) {
   const { t } = useTranslation(['resultado', 'dashboard']);
   const [isOpen, setIsOpen] = useState(true);
@@ -81,32 +85,41 @@ export function SummaryCards({
     <section className="w-full">
       {/* HEADER */}
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            setIsOpen((prev) => !prev);
-          }}
-          aria-expanded={isOpen}
-          aria-controls={conteudoId}
-          className="flex cursor-pointer items-center gap-2 text-heading"
-        >
-          <ChevronDown
-            size={20}
-            className={`transition-transform duration-200 ${
-              isOpen ? 'rotate-0' : '-rotate-90'
-            }`}
-          />
-          <h2 className={cn(sectionTitleClassName, 'text-inherit')}>
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen((prev) => !prev);
+            }}
+            aria-expanded={isOpen}
+            aria-controls={conteudoId}
+            className="flex cursor-pointer items-center gap-2 text-heading"
+          >
+            <ChevronDown
+              size={20}
+              className={`transition-transform duration-200 ${
+                isOpen ? 'rotate-0' : '-rotate-90'
+              }`}
+            />
+            <h2 className={cn(sectionTitleClassName, 'text-inherit')}>
+              {t('resultado:resumoEmpresa', { empresa: nomeEmpresa })}
+            </h2>
+          </button>
+        ) : (
+          <h2 className={sectionTitleClassName}>
             {t('resultado:resumoEmpresa', { empresa: nomeEmpresa })}
           </h2>
-        </button>
+        )}
         <div className="h-px flex-1 bg-primary" aria-hidden="true" />
       </div>
 
-      {isOpen && (
+      {(!collapsible || isOpen) && (
         <div
           id={conteudoId}
-          className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
+          className={cn(
+            'mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4',
+            pdfLayout && 'pdf-company-summary-grid',
+          )}
         >
           {/* CARD 1: TAXA DE CONCLUSÃO */}
           <Card asChild>
