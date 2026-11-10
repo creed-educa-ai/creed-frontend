@@ -339,6 +339,15 @@ export const ptBR = {
     botaoAvancar: 'Avançar',
     textoLogin: 'Já tem uma conta?',
     linkLogin: 'Login',
+    erros: {
+      ate200Caracteres: 'Use no máximo 200 caracteres.',
+      ate30Caracteres: 'Use no máximo 30 caracteres.',
+      nomeCompletoInvalido: 'Digite um nome de 2 a 200 caracteres.',
+      documentoInvalido: 'Digite um CPF (11 dígitos) ou um CNPJ (14 dígitos).',
+      documentoJaCadastrado: 'Já existe um cadastro com este documento.',
+      envioIndisponivel:
+        'Não foi possível enviar o cadastro agora. Tente novamente.',
+    },
     painelDescricao:
       'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
   },
@@ -450,7 +459,7 @@ export const ptBR = {
   aguardeConfirmacao: {
     titulo: 'Aguarde confirmação',
     mensagem:
-      'Seus dados foram enviados e aguardam aprovação. Após a confirmação, tente realizar o login novamente.',
+      'Recebemos o cadastro da sua empresa. Quando ele for aprovado, você vai receber no e-mail informado um link para definir sua senha. Se o e-mail não chegar, use "Esqueci minha senha" na tela de login.',
     voltar: 'Voltar',
     ouSaibaMais: 'OU SAIBA MAIS',
     saibaMais: 'O que é o método CREED?',

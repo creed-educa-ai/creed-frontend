@@ -2,18 +2,22 @@
 // estão em português (app/domains/organizacoes/, `/organizacoes`); a feature
 // do front segue o inglês do ADR-0005 e a rota é transcrita como está.
 //
+// Dois prefixos para o mesmo domínio: `/organizacoes` (listar, ler, criar,
+// alterar) e `/organizations` (o cadastro público). Use o da rota, como está
+// no contrato.
+//
 // Duas partes:
 // - rotas que existem no back, transcritas do contrato;
-// - MOCK das empresas (cadastro público e aprovação pelo super adm), que o back
-//   ainda não tem (CREED-591/595). A tela usa `Company`, que tem campos que
-//   `OrganizationResponse` não tem: ver o tipo em types/api.ts.
+// - MOCK da tabela de empresas do super adm (listar, aprovar, rejeitar,
+//   excluir), até a integração da tabela. A tabela usa `Company`, que tem
+//   campos com outros nomes: ver o tipo em types/api.ts.
 import { apiClient } from '@/lib/apiClient';
 import type {
   Company,
-  CompanyRegistration,
   ListaPaginada,
   OrganizationCreate,
   OrganizationResponse,
+  OrganizationSignUp,
   OrganizationUpdate,
   PaginationParams,
 } from '@/types/api';
@@ -63,11 +67,6 @@ export function resetCompaniesMock() {
   companyRegistry = cloneAll(companySeed);
 }
 
-// PROVISÓRIO — espera simulada do cadastro, para a apresentação: sem ela o
-// envio é instantâneo e o símbolo do painel não chega a girar. Sai junto com o
-// mock: a própria requisição passa a ser a espera.
-const SIGN_UP_DELAY_MS = 1500;
-
 export const organizationsApi = {
   // --- rotas do back -------------------------------------------------------
 
@@ -100,19 +99,13 @@ export const organizationsApi = {
       changes,
     ),
 
-  // --- MOCK ----------------------------------------------------------------
+  // Cadastro público: rota sem token, com o prefixo em inglês
+  // (`/organizations`, não `/organizacoes`). A empresa nasce pendente, à
+  // espera da administradora. 409 é documento já cadastrado.
+  signUp: (body: OrganizationSignUp) =>
+    apiClient.post<OrganizationResponse>('/organizations/sign-up', body),
 
-  // Cadastro público de empresa: nasce pendente, à espera do super adm.
-  registerCompany: async (registration: CompanyRegistration) => {
-    await new Promise((resolve) => setTimeout(resolve, SIGN_UP_DELAY_MS));
-    const company: Company = {
-      ...registration,
-      id: String(Date.now()),
-      status: 'pendente',
-    };
-    companyRegistry = [...companyRegistry, company];
-    return { ...company };
-  },
+  // --- MOCK ----------------------------------------------------------------
 
   listCompanies: (): Promise<Company[]> =>
     Promise.resolve(cloneAll(companyRegistry)),

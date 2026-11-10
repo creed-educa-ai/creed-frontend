@@ -336,6 +336,16 @@ export const en: typeof ptBR = {
     botaoAvancar: 'Continue',
     textoLogin: 'Already have an account?',
     linkLogin: 'Login',
+    erros: {
+      ate200Caracteres: 'Use at most 200 characters.',
+      ate30Caracteres: 'Use at most 30 characters.',
+      nomeCompletoInvalido: 'Enter a name with 2 to 200 characters.',
+      documentoInvalido: 'Enter a CPF (11 digits) or a CNPJ (14 digits).',
+      documentoJaCadastrado:
+        'A registration with this document already exists.',
+      envioIndisponivel:
+        'Unable to send the registration right now. Please try again.',
+    },
     painelDescricao:
       'Competency assessment that shows your team clearly, without spreadsheets and without guesswork.',
   },
@@ -444,7 +454,7 @@ export const en: typeof ptBR = {
   aguardeConfirmacao: {
     titulo: 'Await confirmation',
     mensagem:
-      'Your data has been submitted and is awaiting approval. After confirmation, try logging in again.',
+      'We have received your company registration. Once it is approved, you will receive a link at the email address you provided to set your password. If the email does not arrive, use "Forgot my password" on the login screen.',
     voltar: 'Back',
     ouSaibaMais: 'OR LEARN MORE',
     saibaMais: 'What is the CREED method?',

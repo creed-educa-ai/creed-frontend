@@ -339,6 +339,15 @@ export const es: typeof ptBR = {
     botaoAvancar: 'Continuar',
     textoLogin: '¿Ya tienes una cuenta?',
     linkLogin: 'Iniciar sesión',
+    erros: {
+      ate200Caracteres: 'Usa como máximo 200 caracteres.',
+      ate30Caracteres: 'Usa como máximo 30 caracteres.',
+      nomeCompletoInvalido: 'Ingresa un nombre de 2 a 200 caracteres.',
+      documentoInvalido: 'Ingresa un CPF (11 dígitos) o un CNPJ (14 dígitos).',
+      documentoJaCadastrado: 'Ya existe un registro con este documento.',
+      envioIndisponivel:
+        'No fue posible enviar el registro ahora. Inténtalo de nuevo.',
+    },
     painelDescricao:
       'Evaluación de competencias que muestra a tu equipo con claridad, sin hojas de cálculo y sin conjeturas.',
   },
@@ -451,7 +460,7 @@ export const es: typeof ptBR = {
   aguardeConfirmacao: {
     titulo: 'Espera la confirmación',
     mensagem:
-      'Tus datos fueron enviados y están pendientes de aprobación. Después de la confirmación, intenta iniciar sesión de nuevo.',
+      'Recibimos el registro de tu empresa. Cuando sea aprobado, recibirás en el correo electrónico informado un enlace para definir tu contraseña. Si el correo no llega, usa "Olvidé mi contraseña" en la pantalla de inicio de sesión.',
     voltar: 'Volver',
     ouSaibaMais: 'O CONOCE MÁS',
     saibaMais: '¿Qué es el método CREED?',
