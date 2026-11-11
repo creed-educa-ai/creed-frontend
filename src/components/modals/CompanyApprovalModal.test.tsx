@@ -1,18 +1,22 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {
-  CompanyApprovalModal,
-  type PendingCompany,
-} from './CompanyApprovalModal';
+import { CompanyApprovalModal } from './CompanyApprovalModal';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+import type { OrganizationResponse } from '@/types/api';
 
-const EMPRESA: PendingCompany = {
-  nomeEmpresa: 'Acme Inc.',
-  documento: '12.345.678/0001-90',
+const EMPRESA: OrganizationResponse = {
+  id: '5a1e9c3b-2f7d-4b8a-9e6c-0d4f1b2a3c5e',
+  name: 'Acme Inc.',
+  address: '[A informar]',
+  document_id: '3b2f8c1a-6d4e-4f7a-9c5b-1e0d2a8f6b94',
+  status: 'pending',
   email: 'contato@acme.com',
-  nomeResponsavel: 'João Silva',
-  telefone: '+55 (51) 99999.0000',
+  contact_name: 'João Silva',
+  phone: '+55 (51) 99999.0000',
+  document: { type: 'cnpj', value: '12345678000190' },
+  created_at: '2026-11-10T12:00:00Z',
+  updated_at: null,
 };
 
 function renderizar(
@@ -44,11 +48,20 @@ describe('CompanyApprovalModal', () => {
   it('mostra os dados da empresa quando aberto', () => {
     renderizar();
 
-    expect(screen.getByText(EMPRESA.nomeEmpresa)).toBeInTheDocument();
-    expect(screen.getByText(EMPRESA.documento)).toBeInTheDocument();
-    expect(screen.getByText(EMPRESA.email)).toBeInTheDocument();
-    expect(screen.getByText(EMPRESA.nomeResponsavel)).toBeInTheDocument();
-    expect(screen.getByText(EMPRESA.telefone)).toBeInTheDocument();
+    expect(screen.getByText('Acme Inc.')).toBeInTheDocument();
+    // O número, não o id do documento.
+    expect(screen.getByText('12345678000190')).toBeInTheDocument();
+    expect(screen.getByText('contato@acme.com')).toBeInTheDocument();
+    expect(screen.getByText('João Silva')).toBeInTheDocument();
+    expect(screen.getByText('+55 (51) 99999.0000')).toBeInTheDocument();
+  });
+
+  it('mostra "—" nos dados de contato que vieram nulos', () => {
+    renderizar({
+      empresa: { ...EMPRESA, email: null, contact_name: null, phone: null },
+    });
+
+    expect(screen.getAllByText('—')).toHaveLength(3);
   });
 
   it('mostra o título e os rótulos de cada campo', () => {
@@ -73,7 +86,7 @@ describe('CompanyApprovalModal', () => {
   it('não renderiza quando fechado', () => {
     renderizar({ open: false });
 
-    expect(screen.queryByText(EMPRESA.nomeEmpresa)).not.toBeInTheDocument();
+    expect(screen.queryByText('Acme Inc.')).not.toBeInTheDocument();
   });
 
   it('não renderiza quando não há empresa selecionada', () => {

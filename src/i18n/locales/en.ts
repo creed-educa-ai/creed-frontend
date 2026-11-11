@@ -654,11 +654,15 @@ export const en: typeof ptBR = {
   empresas: {
     toasts: {
       aprovada: 'Company approved',
-      aprovadaDescricao: '{{nome}} now has access to the platform.',
+      aprovadaDescricao:
+        'The access invitation for {{nome}} was sent to the sign-up email.',
       rejeitada: 'Company rejected',
       rejeitadaDescricao: '{{nome}} will not have access to the platform.',
       erroAprovar: 'Could not approve the company',
+      naoAprovadaDescricao:
+        'It may have already been approved, or the email provided already has access to the platform. If it is the email, reject the sign-up.',
       erroRejeitar: 'Could not reject the company',
+      erroExcluir: 'Could not delete the company',
       excluida: 'Company deleted',
       excluidaDescricao: '{{nome}} was removed from the platform.',
     },
@@ -682,7 +686,7 @@ export const en: typeof ptBR = {
       excluir: 'Delete',
     },
     verResultados: 'View Results',
-    status: { ativo: 'Active', pendente: 'Pending' },
+    status: { ativo: 'Active', pendente: 'Pending', inativo: 'Inactive' },
     aprovar: 'Approve',
     anterior: 'Previous',
     proxima: 'Next',
@@ -692,7 +696,8 @@ export const en: typeof ptBR = {
     analisarCadastro: 'Pending: review the sign-up of {{nome}}',
     confirmarExclusao: {
       titulo: 'Delete company',
-      descricao: 'Are you sure you want to delete {{nome}}?',
+      descricao:
+        'Deleting {{nome}} removes the company, all of its members, the responses and the questionnaires. This cannot be undone.',
     },
     vazio: 'No companies found.',
   },

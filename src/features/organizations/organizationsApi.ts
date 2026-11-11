@@ -2,18 +2,14 @@
 // estão em português (app/domains/organizacoes/, `/organizacoes`); a feature
 // do front segue o inglês do ADR-0005 e a rota é transcrita como está.
 //
-// Dois prefixos para o mesmo domínio: `/organizacoes` (listar, ler, criar,
-// alterar) e `/organizations` (o cadastro público). Use o da rota, como está
-// no contrato.
-//
-// Duas partes:
-// - rotas que existem no back, transcritas do contrato;
-// - MOCK da tabela de empresas do super adm (listar, aprovar, rejeitar,
-//   excluir), até a integração da tabela. A tabela usa `Company`, que tem
-//   campos com outros nomes: ver o tipo em types/api.ts.
+// Dois prefixos para o mesmo domínio, e o mesmo recurso responde nos dois:
+// - `/organizacoes`: listar, ler, criar e alterar (`GET` e `PATCH` em
+//   `/organizacoes/{id}`);
+// - `/organizations`: o cadastro público, a aprovação e a exclusão (`DELETE`
+//   em `/organizations/{id}`).
+// Use o da rota, como está no contrato: o prefixo errado dá 404 ou 405.
 import { apiClient } from '@/lib/apiClient';
 import type {
-  Company,
   ListaPaginada,
   OrganizationCreate,
   OrganizationResponse,
@@ -22,55 +18,8 @@ import type {
   PaginationParams,
 } from '@/types/api';
 
-// ---------------------------------------------------------------------------
-// MOCK — empresas
-// ---------------------------------------------------------------------------
-
-const companySeed: Company[] = [
-  {
-    id: '1',
-    nomeEmpresa: 'Acme Inc.',
-    email: 'contato@acme.com',
-    status: 'pendente',
-    documento: '345645678',
-    nomeResponsavel: 'Ana Silva',
-    telefone: '11987654321',
-  },
-  {
-    id: '2',
-    nomeEmpresa: 'Tech Solutions',
-    email: 'contato@techsolutions.com',
-    status: 'ativo',
-    documento: '34567890',
-    nomeResponsavel: 'Carlos Oliveira',
-    telefone: '11987654321',
-  },
-  {
-    id: '3',
-    nomeEmpresa: 'Inova Tech',
-    email: 'contato@inovatech.com',
-    status: 'pendente',
-    documento: '34567891',
-    nomeResponsavel: 'Maria Santos',
-    telefone: '11987654321',
-  },
-];
-
-let companyRegistry: Company[] = cloneAll(companySeed);
-
-function cloneAll(companies: Company[]): Company[] {
-  return companies.map((company) => ({ ...company }));
-}
-
-// Os testes começam sempre da mesma lista.
-export function resetCompaniesMock() {
-  companyRegistry = cloneAll(companySeed);
-}
-
 export const organizationsApi = {
-  // --- rotas do back -------------------------------------------------------
-
-  // Só admin.
+  // Só admin. Traz as organizações em qualquer status, pendentes incluídas.
   listOrganizations: ({
     pagina = 1,
     tamanho_pagina = 50,
@@ -99,33 +48,25 @@ export const organizationsApi = {
       changes,
     ),
 
-  // Cadastro público: rota sem token, com o prefixo em inglês
-  // (`/organizations`, não `/organizacoes`). A empresa nasce pendente, à
-  // espera da administradora. 409 é documento já cadastrado.
+  // Cadastro público: rota sem token. A empresa nasce pendente, à espera da
+  // administradora. 409 é documento já cadastrado.
   signUp: (body: OrganizationSignUp) =>
     apiClient.post<OrganizationResponse>('/organizations/sign-up', body),
 
-  // --- MOCK ----------------------------------------------------------------
+  // Só admin. A rota não tem corpo, mas o `post` do apiClient pede o segundo
+  // argumento. Devolve a organização já ativa. 409: ela já não está pendente,
+  // ou o e-mail do cadastro já tem acesso. 503: nada mudou.
+  // 🟡 Premissa P-053 — aprovar convida quem cadastrou, no e-mail informado,
+  // como gestor.
+  approveOrganization: (organizationId: string) =>
+    apiClient.post<OrganizationResponse>(
+      `/organizations/${organizationId}/approval`,
+      undefined,
+    ),
 
-  listCompanies: (): Promise<Company[]> =>
-    Promise.resolve(cloneAll(companyRegistry)),
-
-  // 🟡 Premissa P-053 — no back, aprovar cria a organização e convida quem
-  // cadastrou como `gestor`.
-  approveCompany: (id: string): Promise<void> => {
-    companyRegistry = companyRegistry.map((company) =>
-      company.id === id ? { ...company, status: 'ativo' } : company,
-    );
-    return Promise.resolve();
-  },
-
-  rejectCompany: (id: string): Promise<void> => {
-    companyRegistry = companyRegistry.filter((company) => company.id !== id);
-    return Promise.resolve();
-  },
-
-  removeCompany: (id: string): Promise<void> => {
-    companyRegistry = companyRegistry.filter((company) => company.id !== id);
-    return Promise.resolve();
-  },
+  // Só admin. Apaga a empresa, os membros, as respostas e os questionários; é
+  // também a rejeição de uma pendente (P-078). 204 sem corpo. 409: a
+  // organização da própria sessão. 503: nada foi apagado.
+  deleteOrganization: (organizationId: string) =>
+    apiClient.delete(`/organizations/${organizationId}`),
 };

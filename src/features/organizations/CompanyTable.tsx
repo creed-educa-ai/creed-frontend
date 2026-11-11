@@ -26,16 +26,16 @@ import {
 import { useTablePage } from '@/hooks/useTablePage';
 import { useTableSort } from '@/hooks/useTableSort';
 import { cn, normalizeForSearch } from '@/lib/utils';
-import type { Company } from '@/types/api';
+import type { OrganizationResponse } from '@/types/api';
 import { EmptyState } from '@/components/states/EmptyState';
 
 interface CompanyTableProps {
-  empresas: Company[];
+  empresas: OrganizationResponse[];
   onVerResultados: (id: string) => void;
   // Pode devolver uma promessa: o diálogo de confirmação espera por ela.
   onExcluir: (id: string) => void | Promise<void>;
-  onAceitar: (empresa: Company) => void;
-  onRejeitar: (empresa: Company) => void;
+  onAceitar: (empresa: OrganizationResponse) => void;
+  onRejeitar: (empresa: OrganizationResponse) => void;
 }
 
 export function CompanyTable({
@@ -53,10 +53,10 @@ export function CompanyTable({
     toggle: alternarOrdem,
     directionOf,
   } = useTableSort<'nome' | 'status'>();
-  const [empresaEmAnalise, setEmpresaEmAnalise] = useState<Company | null>(
-    null,
-  );
-  const [empresaAExcluir, setEmpresaAExcluir] = useState<Company | null>(null);
+  const [empresaEmAnalise, setEmpresaEmAnalise] =
+    useState<OrganizationResponse | null>(null);
+  const [empresaAExcluir, setEmpresaAExcluir] =
+    useState<OrganizationResponse | null>(null);
 
   const filtradas = useMemo(() => {
     const termoNome = normalizeForSearch(pesquisaNome);
@@ -64,16 +64,18 @@ export function CompanyTable({
     // As duas buscas valem juntas: a empresa precisa bater com as duas.
     const lista = empresas.filter(
       (empresa) =>
-        normalizeForSearch(empresa.nomeEmpresa).includes(termoNome) &&
-        normalizeForSearch(empresa.email).includes(termoEmail),
+        normalizeForSearch(empresa.name).includes(termoNome) &&
+        normalizeForSearch(empresa.email ?? '').includes(termoEmail),
     );
 
     // Pendentes no topo: são as que pedem uma ação. Dentro de cada grupo vale
     // a ordem por nome, se ligada; senão, a ordem que veio. Ordenar por status
-    // é o que tira as pendentes do topo: no decrescente, as ativas vêm antes.
+    // é o que tira as pendentes do topo: no decrescente, as ativas e as
+    // inativas vêm antes.
     // > 🟡 Premissa — a ordem dos status é "Pendente" antes de "Ativo" (o que
     // > pede ação primeiro), não a alfabética do rótulo.
-    const grupo = (empresa: Company) => (empresa.status === 'pendente' ? 0 : 1);
+    const grupo = (empresa: OrganizationResponse) =>
+      empresa.status === 'pending' ? 0 : 1;
     return lista.sort((a, b) => {
       if (sorting?.column === 'status') {
         const cmp = grupo(a) - grupo(b);
@@ -81,11 +83,9 @@ export function CompanyTable({
       }
       if (grupo(a) !== grupo(b)) return grupo(a) - grupo(b);
       if (!sorting) return 0;
-      const cmp = a.nomeEmpresa.localeCompare(
-        b.nomeEmpresa,
-        i18n.resolvedLanguage,
-        { sensitivity: 'base' },
-      );
+      const cmp = a.name.localeCompare(b.name, i18n.resolvedLanguage, {
+        sensitivity: 'base',
+      });
       return sorting.direction === 'asc' ? cmp : -cmp;
     });
   }, [pesquisaNome, pesquisaEmail, empresas, sorting, i18n.resolvedLanguage]);
@@ -96,11 +96,11 @@ export function CompanyTable({
   // Os mesmos botões aparecem na tabela e nos cartões do celular. No celular
   // têm 40px de altura (alvo de toque); da tabela em diante (md), ficam
   // compactos, como no mockup.
-  function botaoResultados(empresa: Company) {
+  function botaoResultados(empresa: OrganizationResponse) {
     return (
       <RowActionButton
         className="h-10 px-4 md:h-7 md:px-3"
-        disabled={empresa.status === 'pendente'}
+        disabled={empresa.status === 'pending'}
         onClick={() => {
           onVerResultados(empresa.id);
         }}
@@ -112,15 +112,17 @@ export function CompanyTable({
 
   // Pendente é um botão, igual ao "Ver Resultados", que abre o aceite da
   // empresa. Depois de aceita, vira o selo "Ativo".
-  function status(empresa: Company) {
-    if (empresa.status === 'pendente') {
+  // 🟡 Premissa P-081 — a inativa aparece, com o selo "Inativo" em vermelho,
+  // como na tabela de mentorandos.
+  function status(empresa: OrganizationResponse) {
+    if (empresa.status === 'pending') {
       return (
         <RowActionButton
           className="h-10 px-4 md:h-7 md:px-3"
           aria-label={t('empresas:analisarCadastro', {
-            nome: empresa.nomeEmpresa,
+            nome: empresa.name,
           })}
-          title={t('empresas:analisarCadastro', { nome: empresa.nomeEmpresa })}
+          title={t('empresas:analisarCadastro', { nome: empresa.name })}
           onClick={() => {
             setEmpresaEmAnalise(empresa);
           }}
@@ -129,14 +131,21 @@ export function CompanyTable({
         </RowActionButton>
       );
     }
+    if (empresa.status === 'inactive') {
+      return (
+        <StatusPill tone="destructive">
+          {t('empresas:status.inativo')}
+        </StatusPill>
+      );
+    }
     return <StatusPill tone="success">{t('empresas:status.ativo')}</StatusPill>;
   }
 
-  function botaoExcluir(empresa: Company) {
+  function botaoExcluir(empresa: OrganizationResponse) {
     return (
       <DeleteRowButton
         className="size-10 md:size-8"
-        label={t('empresas:excluirEmpresa', { nome: empresa.nomeEmpresa })}
+        label={t('empresas:excluirEmpresa', { nome: empresa.name })}
         onClick={() => {
           setEmpresaAExcluir(empresa);
         }}
@@ -216,10 +225,10 @@ export function CompanyTable({
                 {empresasDaPagina.map((empresa) => (
                   <TableRow key={empresa.id}>
                     <TableCell className="font-medium">
-                      {empresa.nomeEmpresa}
+                      {empresa.name}
                     </TableCell>
                     <TableCell
-                      title={empresa.email}
+                      title={empresa.email ?? undefined}
                       className="max-w-[220px] truncate text-muted-foreground 2xl:max-w-[160px]"
                     >
                       {empresa.email}
@@ -242,7 +251,7 @@ export function CompanyTable({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="font-medium break-words text-foreground">
-                      {empresa.nomeEmpresa}
+                      {empresa.name}
                     </p>
                     <p className="text-sm break-all text-muted-foreground">
                       {empresa.email}
@@ -293,7 +302,7 @@ export function CompanyTable({
         open={empresaAExcluir !== null}
         title={t('empresas:confirmarExclusao.titulo')}
         description={t('empresas:confirmarExclusao.descricao', {
-          nome: empresaAExcluir?.nomeEmpresa ?? '',
+          nome: empresaAExcluir?.name ?? '',
         })}
         onConfirm={async () => {
           if (!empresaAExcluir) return;

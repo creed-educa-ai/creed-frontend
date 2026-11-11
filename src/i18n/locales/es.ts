@@ -661,11 +661,15 @@ export const es: typeof ptBR = {
   empresas: {
     toasts: {
       aprovada: 'Empresa aprobada',
-      aprovadaDescricao: '{{nome}} ya tiene acceso a la plataforma.',
+      aprovadaDescricao:
+        'La invitación de acceso de {{nome}} se envió al correo del registro.',
       rejeitada: 'Empresa rechazada',
       rejeitadaDescricao: '{{nome}} no tendrá acceso a la plataforma.',
       erroAprovar: 'No se pudo aprobar la empresa',
+      naoAprovadaDescricao:
+        'Puede que ya haya sido aprobada, o el correo informado ya tiene acceso a la plataforma. Si es el correo, rechaza el registro.',
       erroRejeitar: 'No se pudo rechazar la empresa',
+      erroExcluir: 'No se pudo eliminar la empresa',
       excluida: 'Empresa eliminada',
       excluidaDescricao: '{{nome}} fue eliminada de la plataforma.',
     },
@@ -689,7 +693,7 @@ export const es: typeof ptBR = {
       excluir: 'Eliminar',
     },
     verResultados: 'Ver Resultados',
-    status: { ativo: 'Activo', pendente: 'Pendiente' },
+    status: { ativo: 'Activo', pendente: 'Pendiente', inativo: 'Inactivo' },
     aprovar: 'Aprobar',
     anterior: 'Anterior',
     proxima: 'Siguiente',
@@ -699,7 +703,8 @@ export const es: typeof ptBR = {
     analisarCadastro: 'Pendiente: revisar el registro de {{nome}}',
     confirmarExclusao: {
       titulo: 'Eliminar empresa',
-      descricao: '¿Seguro que deseas eliminar {{nome}}?',
+      descricao:
+        'Eliminar {{nome}} borra la empresa, todos sus miembros, las respuestas y los cuestionarios. No se puede deshacer.',
     },
     vazio: 'No se encontraron empresas.',
   },

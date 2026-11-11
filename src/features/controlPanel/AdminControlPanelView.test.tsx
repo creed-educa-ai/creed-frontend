@@ -5,13 +5,28 @@ import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
-import { resetCompaniesMock } from '@/features/organizations/organizationsApi';
 import organizationsReducer from '@/features/organizations/organizationsSlice';
 import { resetMenteesMock } from '@/features/users/usersApi';
 import usersReducer from '@/features/users/usersSlice';
 import { Toaster } from '@/components/ui/sonner';
+import { stubFetch } from '@/test/stubFetch';
+import type { OrganizationResponse } from '@/types/api';
 import { AdminControlPanelView } from './AdminControlPanelView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+
+const TECH_SOLUTIONS: OrganizationResponse = {
+  id: 'org-tech',
+  name: 'Tech Solutions',
+  address: '[A informar]',
+  document_id: 'doc-tech',
+  status: 'active',
+  email: 'contato@techsolutions.com',
+  contact_name: 'Carlos Oliveira',
+  phone: '11987654321',
+  document: { type: 'cnpj', value: '12345678000190' },
+  created_at: '2026-11-10T12:00:00Z',
+  updated_at: null,
+};
 
 // O menu do topo lê o papel na sessão e marca o item da rota atual.
 function renderizar() {
@@ -50,13 +65,20 @@ function renderizar() {
 
 describe('AdminControlPanelView', () => {
   beforeEach(async () => {
-    resetCompaniesMock();
+    // A seção de empresas lê o back: uma organização basta para a lista.
+    stubFetch(200, {
+      itens: [TECH_SOLUTIONS],
+      total: 1,
+      pagina: 1,
+      tamanho_pagina: 200,
+    });
     resetMenteesMock();
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('should render the admin header, the section titles and the card titles', () => {

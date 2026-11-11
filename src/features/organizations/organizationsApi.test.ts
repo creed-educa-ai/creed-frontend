@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  organizationsApi,
-  resetCompaniesMock,
-} from '@/features/organizations/organizationsApi';
+import { organizationsApi } from '@/features/organizations/organizationsApi';
 import { lastCall, stubFetch } from '@/test/stubFetch';
 
 const ORGANIZATION_ID = '5a1e9c3b-2f7d-4b8a-9e6c-0d4f1b2a3c5e';
@@ -98,24 +95,28 @@ describe('organizationsApi — rotas do back', () => {
       body: cadastro,
     });
   });
-});
 
-describe('organizationsApi — mock das empresas', () => {
-  beforeEach(() => {
-    resetCompaniesMock();
+  it('approveOrganization chama a aprovação em inglês, sem corpo', async () => {
+    const fetchMock = stubFetch();
+
+    await organizationsApi.approveOrganization(ORGANIZATION_ID);
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: `/api/v1/organizations/${ORGANIZATION_ID}/approval`,
+      method: 'POST',
+      body: undefined,
+    });
   });
 
-  it('aprovar deixa a empresa ativa', async () => {
-    await organizationsApi.approveCompany('1');
+  it('deleteOrganization chama a exclusão em inglês, não em /organizacoes', async () => {
+    const fetchMock = stubFetch(204);
 
-    const companies = await organizationsApi.listCompanies();
-    expect(companies.find(({ id }) => id === '1')?.status).toBe('ativo');
-  });
+    await organizationsApi.deleteOrganization(ORGANIZATION_ID);
 
-  it('rejeitar tira a empresa da lista', async () => {
-    await organizationsApi.rejectCompany('1');
-
-    const companies = await organizationsApi.listCompanies();
-    expect(companies.map(({ id }) => id)).not.toContain('1');
+    expect(lastCall(fetchMock)).toEqual({
+      url: `/api/v1/organizations/${ORGANIZATION_ID}`,
+      method: 'DELETE',
+      body: undefined,
+    });
   });
 });

@@ -663,11 +663,17 @@ export const ptBR = {
   empresas: {
     toasts: {
       aprovada: 'Empresa aprovada',
-      aprovadaDescricao: '{{nome}} já tem acesso à plataforma.',
+      // 🟡 Premissa P-053 — aprovar manda o convite de gestor ao e-mail do
+      // cadastro: o acesso só existe depois que a pessoa define a senha.
+      aprovadaDescricao:
+        'O convite de acesso de {{nome}} foi enviado ao e-mail do cadastro.',
       rejeitada: 'Empresa rejeitada',
       rejeitadaDescricao: '{{nome}} não terá acesso à plataforma.',
       erroAprovar: 'Não foi possível aprovar a empresa',
+      naoAprovadaDescricao:
+        'Ela pode já ter sido aprovada, ou o e-mail informado já tem acesso à plataforma. Se for o e-mail, rejeite o cadastro.',
       erroRejeitar: 'Não foi possível rejeitar a empresa',
+      erroExcluir: 'Não foi possível excluir a empresa',
       excluida: 'Empresa excluída',
       excluidaDescricao: '{{nome}} foi removida da plataforma.',
     },
@@ -691,7 +697,7 @@ export const ptBR = {
       excluir: 'Excluir',
     },
     verResultados: 'Ver Resultados',
-    status: { ativo: 'Ativo', pendente: 'Pendente' },
+    status: { ativo: 'Ativo', pendente: 'Pendente', inativo: 'Inativo' },
     aprovar: 'Aprovar',
     anterior: 'Anterior',
     proxima: 'Próxima',
@@ -701,7 +707,8 @@ export const ptBR = {
     analisarCadastro: 'Pendente: analisar o cadastro de {{nome}}',
     confirmarExclusao: {
       titulo: 'Excluir empresa',
-      descricao: 'Tem certeza de que deseja excluir {{nome}}?',
+      descricao:
+        'Excluir {{nome}} apaga a empresa, todos os membros dela, as respostas e os questionários. Não dá para desfazer.',
     },
     vazio: 'Nenhuma empresa encontrada.',
   },

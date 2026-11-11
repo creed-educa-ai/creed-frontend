@@ -541,22 +541,3 @@ export interface Mentee {
   // desabilitado ("Editar" não: é por ele que se cria o questionário).
   hasAnsweredCurrent: boolean;
 }
-
-// Empresa na tabela do super adm, que ainda lê o mock do organizationsApi.
-// O cadastro público já usa `OrganizationSignUp`; a tabela e o modal passam a
-// ler `OrganizationResponse` (que já tem e-mail, responsável, telefone, o
-// número do documento e o status `pending`) na integração da tabela.
-export type CompanyStatus = 'ativo' | 'pendente';
-
-export interface CompanyRegistration {
-  nomeEmpresa: string;
-  email: string;
-  documento: string;
-  nomeResponsavel: string;
-  telefone: string;
-}
-
-export interface Company extends CompanyRegistration {
-  id: string;
-  status: CompanyStatus;
-}
