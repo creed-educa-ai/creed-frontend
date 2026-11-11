@@ -31,8 +31,9 @@ const initialState: UsersState = {
   mentees: { items: [], status: 'idle', error: null },
 };
 
-export const loadMembers = createAsyncThunk('users/loadMembers', async () =>
-  usersApi.listMembers(),
+export const loadMembers = createAsyncThunk(
+  'users/loadMembers',
+  async (organizationId: string) => usersApi.listMembers(organizationId),
 );
 
 export const deleteMember = createAsyncThunk(

@@ -173,14 +173,8 @@ export const usersApi = {
 
   // --- MOCK ----------------------------------------------------------------
 
-  listMembers: (): Promise<MemberList> =>
-    Promise.resolve({
-      itens: cloneAll(memberRegistry),
-      total: memberRegistry.length,
-      pagina: 1,
-      tamanho_pagina: memberRegistry.length,
-      organization: 'Acme Inc.',
-    }),
+  listMembers: (organizationId: string) =>
+    apiClient.get<MemberList>(`/organizations/${organizationId}/members`),
 
   removeMember: (id: string): Promise<void> => {
     memberRegistry = memberRegistry.filter((member) => member.id !== id);
