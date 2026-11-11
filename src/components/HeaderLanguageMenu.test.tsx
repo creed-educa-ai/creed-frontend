@@ -8,20 +8,28 @@ describe('HeaderLanguageMenu', () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
-  it('shows the current language and lets the user change it', async () => {
+  it('marks the current language and lets the user change it', async () => {
     const user = userEvent.setup();
     render(<HeaderLanguageMenu />);
 
-    expect(screen.getByRole('button', { name: 'Idioma' })).toHaveTextContent(
-      'Português',
-    );
-
     await user.click(screen.getByRole('button', { name: 'Idioma' }));
+    expect(
+      screen.getByRole('menuitemradio', { name: 'Português' }),
+    ).toBeChecked();
     await user.click(screen.getByRole('menuitemradio', { name: 'Inglês' }));
 
     expect(i18n.resolvedLanguage).toBe('en');
     expect(
       await screen.findByRole('button', { name: 'Language' }),
-    ).toHaveTextContent('English');
+    ).toBeInTheDocument();
+  });
+
+  it('shows what the icon does as a hint', async () => {
+    const user = userEvent.setup();
+    render(<HeaderLanguageMenu />);
+
+    await user.hover(screen.getByRole('button', { name: 'Idioma' }));
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent('Idioma');
   });
 });
