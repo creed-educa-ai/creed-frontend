@@ -1,4 +1,5 @@
 import { NavMenu } from '@/components/layout/navMenu';
+import { HeaderLanguageMenu } from '@/components/HeaderLanguageMenu';
 import { pageGutterClassName } from '@/lib/layout';
 import { pageTitleClassName } from '@/lib/typography';
 import { cn } from '@/lib/utils';
@@ -35,6 +36,11 @@ export function PageHeader({
         className,
       )}
     >
+      {showNavMenu && (
+        <div className="flex w-full justify-start lg:w-auto">
+          <HeaderLanguageMenu />
+        </div>
+      )}
       <div className="text-center lg:text-left">
         {/* min-h-5: sem eyebrow, a linha fica reservada e o título não sobe. */}
         <p
