@@ -29,7 +29,8 @@ export interface PaginationParams {
   tamanho_pagina?: number;
 }
 
-// Tipo `recordstatus` no banco: `user`, `participants` e `organizations`.
+// Tipo `recordstatus` no banco: `user` e `participants`. A organização tem o
+// próprio (`OrganizationStatus`, com `pending`).
 export type RecordStatus = 'active' | 'inactive';
 
 // As sete dimensões da Matriz CREED (`Dimension`).
@@ -76,7 +77,6 @@ export interface SessionResponse {
 }
 
 // `POST /authentication/password-reset` — 204 para qualquer e-mail.
-// Na branch `feat/86e35vhxm-reenvio-e-reset-de-senha` do back, ainda fora da dev.
 export interface PasswordResetRequest {
   email: string;
 }
@@ -279,8 +279,31 @@ export type DocType =
 
 // ---------------------------------------------------------------------------
 // organizations — no back a pasta é `organizacoes` e a rota é `/organizacoes`;
-// as rotas aninhadas (links, members) usam `/organizations/{id}/...`.
+// as rotas aninhadas (links, members) e o cadastro público usam
+// `/organizations/...`.
 // ---------------------------------------------------------------------------
+
+// Tipo `organization_status` no banco. `pending` é a empresa que se cadastrou
+// e espera a aprovação da administradora.
+export type OrganizationStatus = 'pending' | 'active' | 'inactive';
+
+// O documento da organização, já como o back guarda: só letras e números.
+export interface OrganizationDocument {
+  // `str` no back; os valores são os de `DocType`.
+  type: string;
+  value: string;
+}
+
+// `POST /organizations/sign-up` — rota pública, sem token. A organização nasce
+// pendente. O back tira os espaços das pontas e guarda do documento só letras
+// e números (P-076).
+export interface OrganizationSignUp {
+  name: string;
+  document: string;
+  email: string;
+  contact_name: string;
+  phone: string;
+}
 
 export interface OrganizationCreate {
   name: string;
@@ -289,7 +312,8 @@ export interface OrganizationCreate {
 }
 
 // Só os campos enviados mudam. Para manter um valor, omita o campo: `null`
-// é recusado com 422.
+// é recusado com 422. `status` é `RecordStatus`, não `OrganizationStatus`:
+// o PATCH não manda `pending`, e numa empresa pendente recusa o `status` (409).
 export interface OrganizationUpdate {
   name?: string;
   address?: string;
@@ -302,7 +326,13 @@ export interface OrganizationResponse {
   // Texto livre (P-021).
   address: string;
   document_id: string;
-  status: RecordStatus;
+  status: OrganizationStatus;
+  // Nulos nas organizações criadas pelo `POST /organizacoes`: só o cadastro
+  // público os preenche.
+  email: string | null;
+  contact_name: string | null;
+  phone: string | null;
+  document: OrganizationDocument;
   created_at: string;
   updated_at: string | null;
 }
@@ -510,24 +540,4 @@ export interface Mentee {
   // Já respondeu o questionário atual? Enquanto não, "Ver Resultados" fica
   // desabilitado ("Editar" não: é por ele que se cria o questionário).
   hasAnsweredCurrent: boolean;
-}
-
-// Empresa no cadastro público e na tabela do super adm. No back,
-// `OrganizationResponse` não tem e-mail, responsável nem telefone; o documento
-// é um `document_id`, não o número; e "pendente" (cadastro à espera de
-// aprovação, CREED-591/595) não existe — o status é `RecordStatus`.
-// Falta também a rota pública de cadastro.
-export type CompanyStatus = 'ativo' | 'pendente';
-
-export interface CompanyRegistration {
-  nomeEmpresa: string;
-  email: string;
-  documento: string;
-  nomeResponsavel: string;
-  telefone: string;
-}
-
-export interface Company extends CompanyRegistration {
-  id: string;
-  status: CompanyStatus;
 }

@@ -5,66 +5,93 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/sonner';
 import { CompanyTable } from '@/features/organizations/CompanyTable';
 import {
-  approveCompany,
-  deleteCompany,
-  loadCompanies,
-  rejectCompany,
+  approveOrganization,
+  deleteOrganization,
+  loadOrganizations,
+  NAO_APROVADA,
 } from '@/features/organizations/organizationsSlice';
-import type { Company } from '@/types/api';
+import type { OrganizationResponse } from '@/types/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { ErrorState } from '@/components/states/ErrorState';
 import { LoadingState } from '@/components/states/LoadingState';
 import { cardTitleClassName } from '@/lib/typography';
 
-// Seção "Empresas" do painel do super adm: lista as empresas e trata o aceite
-// das pendentes. Cobre os estados de carregando, erro e pronto.
+// Seção "Empresas" do painel da administradora: lista as organizações e trata
+// o aceite das pendentes e a exclusão. Cobre os estados de carregando, erro e
+// pronto.
 export function CompaniesSection() {
   const { t } = useTranslation(['comum', 'empresas']);
   const dispatch = useAppDispatch();
-  const { companies, status, error } = useAppSelector(
+  const { organizations, status, error } = useAppSelector(
     (state) => state.organizations,
+  );
+  const organizacaoDaSessao = useAppSelector(
+    (state) => state.authentication.user?.organization_id,
   );
 
   useEffect(() => {
-    void dispatch(loadCompanies());
+    void dispatch(loadOrganizations());
   }, [dispatch]);
+
+  // 🟡 Premissa P-081 — a tabela não mostra a organização da sessão (a da
+  // CREED). Sem `organization_id` na sessão, nada sai da lista, e o back
+  // continua recusando excluí-la (409).
+  const empresas = organizations.filter(
+    (organization) => organization.id !== organizacaoDaSessao,
+  );
 
   const handleVerResultados = (id: string) => {
     console.log('Ver resultados da empresa:', id);
   };
 
+  // A falha vira toast, e a promessa resolve mesmo assim: o diálogo de
+  // confirmação fecha, em vez de mostrar o erro dele junto com o toast. A linha
+  // continua na tabela, porque o slice só a tira no sucesso.
   async function handleExcluir(id: string) {
-    const nome =
-      companies.find((empresa) => empresa.id === id)?.nomeEmpresa ?? '';
-    await dispatch(deleteCompany(id)).unwrap();
-    toast.success(t('empresas:toasts.excluida'), {
-      description: t('empresas:toasts.excluidaDescricao', { nome }),
-    });
-  }
-
-  // Aceitar e rejeitar saem do modal de aceite, que já fechou: o toast é o
-  // único retorno da ação, no sucesso e na falha.
-  async function handleAceitar(empresa: Company) {
+    const nome = organizations.find((empresa) => empresa.id === id)?.name ?? '';
     try {
-      await dispatch(approveCompany(empresa.id)).unwrap();
-      toast.success(t('empresas:toasts.aprovada'), {
-        description: t('empresas:toasts.aprovadaDescricao', {
-          nome: empresa.nomeEmpresa,
-        }),
+      await dispatch(deleteOrganization(id)).unwrap();
+      toast.success(t('empresas:toasts.excluida'), {
+        description: t('empresas:toasts.excluidaDescricao', { nome }),
       });
     } catch {
-      toast.error(t('empresas:toasts.erroAprovar'), {
+      toast.error(t('empresas:toasts.erroExcluir'), {
         description: t('tenteNovamenteEmInstantes'),
       });
     }
   }
 
-  async function handleRejeitar(empresa: Company) {
+  // Aceitar e rejeitar saem do modal de aceite, que já fechou: o toast é o
+  // único retorno da ação, no sucesso e na falha.
+  async function handleAceitar(empresa: OrganizationResponse) {
     try {
-      await dispatch(rejectCompany(empresa.id)).unwrap();
+      await dispatch(approveOrganization(empresa.id)).unwrap();
+      // 🟡 Premissa P-053 — o convite de gestor vai ao e-mail do cadastro.
+      toast.success(t('empresas:toasts.aprovada'), {
+        description: t('empresas:toasts.aprovadaDescricao', {
+          nome: empresa.name,
+        }),
+      });
+    } catch (chave) {
+      const descricao =
+        typeof chave === 'string' ? chave : 'comum:tenteNovamenteEmInstantes';
+      toast.error(t('empresas:toasts.erroAprovar'), {
+        description: t(descricao as never),
+      });
+      // Outra pessoa pode ter aprovado antes: a lista da tela está velha.
+      if (chave === NAO_APROVADA) {
+        void dispatch(loadOrganizations());
+      }
+    }
+  }
+
+  // Rejeitar é excluir a pendente (P-078).
+  async function handleRejeitar(empresa: OrganizationResponse) {
+    try {
+      await dispatch(deleteOrganization(empresa.id)).unwrap();
       toast.success(t('empresas:toasts.rejeitada'), {
         description: t('empresas:toasts.rejeitadaDescricao', {
-          nome: empresa.nomeEmpresa,
+          nome: empresa.name,
         }),
       });
     } catch {
@@ -91,7 +118,7 @@ export function CompaniesSection() {
 
           {status === 'ready' && (
             <CompanyTable
-              empresas={companies}
+              empresas={empresas}
               onVerResultados={handleVerResultados}
               onExcluir={handleExcluir}
               onAceitar={(empresa) => {

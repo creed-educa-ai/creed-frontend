@@ -339,6 +339,15 @@ export const ptBR = {
     botaoAvancar: 'Avançar',
     textoLogin: 'Já tem uma conta?',
     linkLogin: 'Login',
+    erros: {
+      ate200Caracteres: 'Use no máximo 200 caracteres.',
+      ate30Caracteres: 'Use no máximo 30 caracteres.',
+      nomeCompletoInvalido: 'Digite um nome de 2 a 200 caracteres.',
+      documentoInvalido: 'Digite um CPF (11 dígitos) ou um CNPJ (14 dígitos).',
+      documentoJaCadastrado: 'Já existe um cadastro com este documento.',
+      envioIndisponivel:
+        'Não foi possível enviar o cadastro agora. Tente novamente.',
+    },
     painelDescricao:
       'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
   },
@@ -450,7 +459,7 @@ export const ptBR = {
   aguardeConfirmacao: {
     titulo: 'Aguarde confirmação',
     mensagem:
-      'Seus dados foram enviados e aguardam aprovação. Após a confirmação, tente realizar o login novamente.',
+      'Recebemos o cadastro da sua empresa. Quando ele for aprovado, você vai receber no e-mail informado um link para definir sua senha. Se o e-mail não chegar, use "Esqueci minha senha" na tela de login.',
     voltar: 'Voltar',
     ouSaibaMais: 'OU SAIBA MAIS',
     saibaMais: 'O que é o método CREED?',
@@ -654,11 +663,17 @@ export const ptBR = {
   empresas: {
     toasts: {
       aprovada: 'Empresa aprovada',
-      aprovadaDescricao: '{{nome}} já tem acesso à plataforma.',
+      // 🟡 Premissa P-053 — aprovar manda o convite de gestor ao e-mail do
+      // cadastro: o acesso só existe depois que a pessoa define a senha.
+      aprovadaDescricao:
+        'O convite de acesso de {{nome}} foi enviado ao e-mail do cadastro.',
       rejeitada: 'Empresa rejeitada',
       rejeitadaDescricao: '{{nome}} não terá acesso à plataforma.',
       erroAprovar: 'Não foi possível aprovar a empresa',
+      naoAprovadaDescricao:
+        'Ela pode já ter sido aprovada, ou o e-mail informado já tem acesso à plataforma. Se for o e-mail, rejeite o cadastro.',
       erroRejeitar: 'Não foi possível rejeitar a empresa',
+      erroExcluir: 'Não foi possível excluir a empresa',
       excluida: 'Empresa excluída',
       excluidaDescricao: '{{nome}} foi removida da plataforma.',
     },
@@ -682,7 +697,7 @@ export const ptBR = {
       excluir: 'Excluir',
     },
     verResultados: 'Ver Resultados',
-    status: { ativo: 'Ativo', pendente: 'Pendente' },
+    status: { ativo: 'Ativo', pendente: 'Pendente', inativo: 'Inativo' },
     aprovar: 'Aprovar',
     anterior: 'Anterior',
     proxima: 'Próxima',
@@ -692,7 +707,8 @@ export const ptBR = {
     analisarCadastro: 'Pendente: analisar o cadastro de {{nome}}',
     confirmarExclusao: {
       titulo: 'Excluir empresa',
-      descricao: 'Tem certeza de que deseja excluir {{nome}}?',
+      descricao:
+        'Excluir {{nome}} apaga a empresa, todos os membros dela, as respostas e os questionários. Não dá para desfazer.',
     },
     vazio: 'Nenhuma empresa encontrada.',
   },

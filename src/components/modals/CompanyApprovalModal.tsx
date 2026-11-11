@@ -9,29 +9,27 @@ import {
 } from '@/components/ui/dialog';
 import { ConfirmDeleteDialog } from '@/components/table/confirmDeleteDialog';
 import { Button } from '@/components/ui/button';
-import type { CompanyRegistration } from '@/types/api';
-
-// O que o modal mostra é o que a empresa informou no cadastro.
-export type PendingCompany = CompanyRegistration;
+import type { OrganizationResponse } from '@/types/api';
 
 interface CompanyApprovalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  empresa: PendingCompany | null;
+  empresa: OrganizationResponse | null;
   onAccept: () => void;
   onReject: () => void;
 }
 
 interface CampoProps {
   rotulo: string;
-  valor: string;
+  // Nulo nas organizações criadas sem o cadastro público.
+  valor: string | null;
 }
 
 function Campo({ rotulo, valor }: CampoProps) {
   return (
     <div>
       <p className="font-bold">{rotulo}</p>
-      <p className="break-words">{valor}</p>
+      <p className="break-words">{valor ?? '—'}</p>
     </div>
   );
 }
@@ -70,11 +68,11 @@ export function CompanyApprovalModal({
         <div className="space-y-4">
           <Campo
             rotulo={t('cadastro:campos.nomeEmpresa.rotulo')}
-            valor={empresa.nomeEmpresa}
+            valor={empresa.name}
           />
           <Campo
             rotulo={t('cadastro:campos.documento.rotulo')}
-            valor={empresa.documento}
+            valor={empresa.document.value}
           />
           <Campo
             rotulo={t('cadastro:campos.email.rotulo')}
@@ -82,11 +80,11 @@ export function CompanyApprovalModal({
           />
           <Campo
             rotulo={t('aceite:responsavel')}
-            valor={empresa.nomeResponsavel}
+            valor={empresa.contact_name}
           />
           <Campo
             rotulo={t('cadastro:campos.telefone.rotulo')}
-            valor={empresa.telefone}
+            valor={empresa.phone}
           />
         </div>
 
@@ -107,7 +105,7 @@ export function CompanyApprovalModal({
         open={confirmandoRejeicao}
         title={t('aceite:rejeitarConfirmacao.titulo')}
         description={t('aceite:rejeitarConfirmacao.descricao', {
-          nome: empresa.nomeEmpresa,
+          nome: empresa.name,
         })}
         confirmLabel={t('aceite:rejeitar')}
         pendingLabel={t('aceite:rejeitarConfirmacao.rejeitando')}
