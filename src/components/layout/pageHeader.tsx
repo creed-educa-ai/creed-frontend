@@ -1,4 +1,5 @@
 import { NavMenu } from '@/components/layout/navMenu';
+import { HeaderLanguageMenu } from '@/components/HeaderLanguageMenu';
 import { pageGutterClassName } from '@/lib/layout';
 import { pageTitleClassName } from '@/lib/typography';
 import { cn } from '@/lib/utils';
@@ -58,10 +59,16 @@ export function PageHeader({
       {/* Até lg o menu vem antes do título (order-first): lado a lado, título
           e menu não cabem no tablet. No celular ocupa a largura toda; no
           tablet tem o próprio tamanho, centralizado. No desktop, volta à
-          direita, na mesma linha. */}
+          direita, na mesma linha.
+          O idioma fica à esquerda do menu, fora dele: abre uma lista, e os
+          itens do menu levam a outra tela. No celular, o menu ocupa o resto
+          da linha. */}
       {showNavMenu && (
-        <div className="order-first w-full sm:w-auto lg:order-none">
-          <NavMenu />
+        <div className="order-first flex w-full items-center gap-2 sm:w-auto lg:order-none">
+          <HeaderLanguageMenu tone={tone} />
+          <div className="min-w-0 flex-1 sm:flex-none">
+            <NavMenu />
+          </div>
         </div>
       )}
     </header>
