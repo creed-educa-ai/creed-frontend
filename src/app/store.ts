@@ -4,6 +4,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import dashboardsReducer from '@/features/dashboards/dashboardsSlice';
 import demographicsReducer from '@/features/demographics/demographicsSlice';
+import formsReducer from '@/features/forms/formsSlice';
 import organizationsReducer from '@/features/organizations/organizationsSlice';
 import responsesReducer from '@/features/responses/responsesSlice';
 import usersReducer from '@/features/users/usersSlice';
@@ -13,6 +14,7 @@ export const store = configureStore({
     authentication: authenticationReducer,
     dashboards: dashboardsReducer,
     demographics: demographicsReducer,
+    forms: formsReducer,
     organizations: organizationsReducer,
     responses: responsesReducer,
     users: usersReducer,

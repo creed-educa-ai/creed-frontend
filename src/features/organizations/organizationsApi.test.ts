@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  organizationsApi,
-  resetCompaniesMock,
-} from '@/features/organizations/organizationsApi';
+import { organizationsApi } from '@/features/organizations/organizationsApi';
 import { lastCall, stubFetch } from '@/test/stubFetch';
 
 const ORGANIZATION_ID = '5a1e9c3b-2f7d-4b8a-9e6c-0d4f1b2a3c5e';
@@ -79,24 +76,47 @@ describe('organizationsApi — rotas do back', () => {
       body: { status: 'inactive' },
     });
   });
-});
 
-describe('organizationsApi — mock das empresas', () => {
-  beforeEach(() => {
-    resetCompaniesMock();
+  it('signUp manda o cadastro para a rota pública em inglês', async () => {
+    const fetchMock = stubFetch(201);
+    const cadastro = {
+      name: 'Empresa Teste',
+      document: '12.345.678/0001-90',
+      email: 'gestora@empresa.com.br',
+      contact_name: 'Gestora Teste',
+      phone: '51 99999-0000',
+    };
+
+    await organizationsApi.signUp(cadastro);
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: '/api/v1/organizations/sign-up',
+      method: 'POST',
+      body: cadastro,
+    });
   });
 
-  it('aprovar deixa a empresa ativa', async () => {
-    await organizationsApi.approveCompany('1');
+  it('approveOrganization chama a aprovação em inglês, sem corpo', async () => {
+    const fetchMock = stubFetch();
 
-    const companies = await organizationsApi.listCompanies();
-    expect(companies.find(({ id }) => id === '1')?.status).toBe('ativo');
+    await organizationsApi.approveOrganization(ORGANIZATION_ID);
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: `/api/v1/organizations/${ORGANIZATION_ID}/approval`,
+      method: 'POST',
+      body: undefined,
+    });
   });
 
-  it('rejeitar tira a empresa da lista', async () => {
-    await organizationsApi.rejectCompany('1');
+  it('deleteOrganization chama a exclusão em inglês, não em /organizacoes', async () => {
+    const fetchMock = stubFetch(204);
 
-    const companies = await organizationsApi.listCompanies();
-    expect(companies.map(({ id }) => id)).not.toContain('1');
+    await organizationsApi.deleteOrganization(ORGANIZATION_ID);
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: `/api/v1/organizations/${ORGANIZATION_ID}`,
+      method: 'DELETE',
+      body: undefined,
+    });
   });
 });

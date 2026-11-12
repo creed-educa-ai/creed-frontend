@@ -336,6 +336,16 @@ export const en: typeof ptBR = {
     botaoAvancar: 'Continue',
     textoLogin: 'Already have an account?',
     linkLogin: 'Login',
+    erros: {
+      ate200Caracteres: 'Use at most 200 characters.',
+      ate30Caracteres: 'Use at most 30 characters.',
+      nomeCompletoInvalido: 'Enter a name with 2 to 200 characters.',
+      documentoInvalido: 'Enter a CPF (11 digits) or a CNPJ (14 digits).',
+      documentoJaCadastrado:
+        'A registration with this document already exists.',
+      envioIndisponivel:
+        'Unable to send the registration right now. Please try again.',
+    },
     painelDescricao:
       'Competency assessment that shows your team clearly, without spreadsheets and without guesswork.',
   },
@@ -408,7 +418,6 @@ export const en: typeof ptBR = {
       email: 'Email',
       questionnaire: 'Questionnaire',
       results: 'Results',
-      status: 'Status',
       delete: 'Delete',
     },
     actions: {
@@ -419,13 +428,16 @@ export const en: typeof ptBR = {
       viewResultsFor: 'View results for {{name}}',
       deleteFor: 'Delete {{name}}',
     },
-    status: { active: 'Active', inactive: 'Inactive' },
     empty: 'No mentees registered yet.',
     noResults: 'No mentees match your search.',
     confirmDelete: {
       title: 'Delete mentee?',
-      description: 'Are you sure you want to delete {{name}}?',
+      description:
+        '{{name}} and all of their results will be deleted forever. This cannot be undone.',
       confirm: 'Delete',
+    },
+    errors: {
+      deleteUnavailable: "Couldn't delete right now. Please try again.",
     },
   },
   termo: {
@@ -444,7 +456,7 @@ export const en: typeof ptBR = {
   aguardeConfirmacao: {
     titulo: 'Await confirmation',
     mensagem:
-      'Your data has been submitted and is awaiting approval. After confirmation, try logging in again.',
+      'We have received your company registration. Once it is approved, you will receive a link at the email address you provided to set your password. If the email does not arrive, use "Forgot my password" on the login screen.',
     voltar: 'Back',
     ouSaibaMais: 'OR LEARN MORE',
     saibaMais: 'What is the CREED method?',
@@ -627,6 +639,8 @@ export const en: typeof ptBR = {
     errors: {
       invalidName: 'Enter a name between 2 and 200 characters.',
       invalidEmail: 'Enter a valid email.',
+      emailTaken: 'This email already has access to the platform.',
+      inviteFailed: "Couldn't send the invitation. Please try again.",
     },
   },
   aceite: {
@@ -644,11 +658,15 @@ export const en: typeof ptBR = {
   empresas: {
     toasts: {
       aprovada: 'Company approved',
-      aprovadaDescricao: '{{nome}} now has access to the platform.',
+      aprovadaDescricao:
+        'The access invitation for {{nome}} was sent to the sign-up email.',
       rejeitada: 'Company rejected',
       rejeitadaDescricao: '{{nome}} will not have access to the platform.',
       erroAprovar: 'Could not approve the company',
+      naoAprovadaDescricao:
+        'It may have already been approved, or the email provided already has access to the platform. If it is the email, reject the sign-up.',
       erroRejeitar: 'Could not reject the company',
+      erroExcluir: 'Could not delete the company',
       excluida: 'Company deleted',
       excluidaDescricao: '{{nome}} was removed from the platform.',
     },
@@ -672,7 +690,7 @@ export const en: typeof ptBR = {
       excluir: 'Delete',
     },
     verResultados: 'View Results',
-    status: { ativo: 'Active', pendente: 'Pending' },
+    status: { ativo: 'Active', pendente: 'Pending', inativo: 'Inactive' },
     aprovar: 'Approve',
     anterior: 'Previous',
     proxima: 'Next',
@@ -682,7 +700,8 @@ export const en: typeof ptBR = {
     analisarCadastro: 'Pending: review the sign-up of {{nome}}',
     confirmarExclusao: {
       titulo: 'Delete company',
-      descricao: 'Are you sure you want to delete {{nome}}?',
+      descricao:
+        'Deleting {{nome}} removes the company, all of its members, the responses and the questionnaires. This cannot be undone.',
     },
     vazio: 'No companies found.',
   },
@@ -721,6 +740,15 @@ export const en: typeof ptBR = {
       horaInicioNoPassado: 'The start time cannot be earlier than now.',
       terminoAntesInicio: 'The end date cannot be before the start date.',
       horaTerminoAntesInicio: 'The end time must be after the start time.',
+      periodoConflito:
+        'There is already a period on these dates. Choose dates that do not overlap it.',
+      periodoFalhou: 'The period could not be opened. Please try again.',
+      carregarPeriodo: 'The current period could not be loaded.',
+    },
+    periodo: {
+      aberto: 'Open period',
+      agendado: 'Scheduled period',
+      somenteLeitura: 'A new period can only be set after this one ends.',
     },
   },
   adicionarMentorando: {

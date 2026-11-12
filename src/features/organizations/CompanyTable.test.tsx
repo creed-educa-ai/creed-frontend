@@ -2,37 +2,34 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
-import type { Company } from '@/types/api';
+import type { OrganizationResponse } from '@/types/api';
 import { CompanyTable } from './CompanyTable';
 
-const empresasTeste: Company[] = [
-  {
-    id: '1',
-    nomeEmpresa: 'Acme Inc.',
-    email: 'contato@acme.com',
-    status: 'pendente',
-    documento: '345645678',
-    nomeResponsavel: 'Ana Silva',
-    telefone: '11987654321',
-  },
-  {
-    id: '2',
-    nomeEmpresa: 'Tech Solutions',
-    email: 'contato@techsolutions.com',
-    status: 'ativo',
-    documento: '34567890',
-    nomeResponsavel: 'Carlos Oliveira',
-    telefone: '11987654321',
-  },
-  {
-    id: '3',
-    nomeEmpresa: 'Inova Tech',
-    email: 'contato@inovatech.com',
-    status: 'pendente',
-    documento: '34567891',
-    nomeResponsavel: 'Maria Santos',
-    telefone: '11987654321',
-  },
+function organizacao(
+  id: string,
+  name: string,
+  status: OrganizationResponse['status'],
+  email: string | null,
+): OrganizationResponse {
+  return {
+    id,
+    name,
+    address: '[A informar]',
+    document_id: `doc-${id}`,
+    status,
+    email,
+    contact_name: 'Ana Silva',
+    phone: '11987654321',
+    document: { type: 'cnpj', value: '12345678000190' },
+    created_at: '2026-11-10T12:00:00Z',
+    updated_at: null,
+  };
+}
+
+const empresasTeste: OrganizationResponse[] = [
+  organizacao('1', 'Acme Inc.', 'pending', 'contato@acme.com'),
+  organizacao('2', 'Tech Solutions', 'active', 'contato@techsolutions.com'),
+  organizacao('3', 'Inova Tech', 'pending', 'contato@inovatech.com'),
 ];
 
 function renderTabela(empresas = empresasTeste) {
@@ -82,6 +79,49 @@ describe('CompanyTable', () => {
 
     // A aprovação é pelo botão "Pendente": a tabela não tem caixas de seleção.
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+  });
+
+  it('mostra a inativa com o selo "Inativo", e a sem e-mail sem quebrar', async () => {
+    const user = userEvent.setup();
+    renderTabela([
+      ...empresasTeste,
+      organizacao('4', 'Antiga Ltda.', 'inactive', null),
+    ]);
+
+    const linha = screen.getByRole('row', { name: /Antiga Ltda\./ });
+    const selo = within(linha).getByText('Inativo');
+    expect(selo.tagName).toBe('SPAN');
+    // Sem tom, o selo fica com texto claro sem fundo: invisível no tema claro.
+    expect(selo).toHaveClass('bg-destructive');
+    expect(
+      within(linha).queryByRole('button', { name: /Pendente/ }),
+    ).not.toBeInTheDocument();
+
+    // A busca por e-mail não quebra na organização sem e-mail.
+    await user.type(
+      screen.getByRole('searchbox', { name: 'Pesquisar empresas por email' }),
+      'acme',
+    );
+    expect(
+      within(screen.getByRole('table')).queryByText('Antiga Ltda.'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('a confirmação de exclusão diz que não dá para desfazer', async () => {
+    const user = userEvent.setup();
+    renderTabela();
+
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Excluir Tech Solutions',
+      }),
+    );
+
+    expect(
+      within(screen.getByRole('alertdialog')).getByText(
+        'Excluir Tech Solutions apaga a empresa, todos os membros dela, as respostas e os questionários. Não dá para desfazer.',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('filtra as empresas pelo campo de pesquisa', async () => {
@@ -173,6 +213,7 @@ describe('CompanyTable', () => {
     expect(conteudoModal.getByText('Acme Inc.')).toBeInTheDocument();
     expect(conteudoModal.getByText('Ana Silva')).toBeInTheDocument();
     expect(conteudoModal.getByText('contato@acme.com')).toBeInTheDocument();
+    expect(conteudoModal.getByText('12345678000190')).toBeInTheDocument();
 
     expect(
       conteudoModal.getByRole('button', { name: 'Aceitar' }),

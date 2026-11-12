@@ -3,16 +3,17 @@
 //
 // Duas partes:
 // - rotas que existem no back, transcritas do contrato;
-// - MOCK das listas de membros e de mentorandos, que o back ainda não tem.
-//   Ficam aqui, e não na tela, para que integrar seja trocar o corpo da função
-//   por um `apiClient.get` — a tela e o slice não mudam.
+// - MOCK da lista de membros do painel da empresa, até a tela ser ligada às
+//   rotas de membros do domínio links (C-2). Fica aqui, e não na tela, para
+//   que integrar seja trocar o corpo da função — a tela e o slice não mudam.
+//
+// Os mentorandos já vêm do back, pelo `linksApi.listMembers` (M-4).
 import { apiClient } from '@/lib/apiClient';
 import type {
   DepartmentType,
   Member,
   MemberInvite,
   MemberList,
-  Mentee,
   UserCreate,
   UserResponse,
 } from '@/types/api';
@@ -90,51 +91,7 @@ const memberSeed: Member[] = [
   },
 ];
 
-// ---------------------------------------------------------------------------
-// MOCK — mentorandos (painel do super adm)
-// No back seria participante com vínculo `mentoria`; falta a rota que liste.
-// ---------------------------------------------------------------------------
-
-const menteeSeed: Mentee[] = [
-  {
-    id: '1',
-    name: 'Enner Valência',
-    email: 'enner.valencia@example.com',
-    status: 'active',
-    hasAnsweredCurrent: true,
-  },
-  {
-    id: '2',
-    name: 'Wilson Mathias',
-    email: 'wilson.mathias@example.com',
-    status: 'active',
-    hasAnsweredCurrent: true,
-  },
-  {
-    id: '3',
-    name: 'Volante Ronaldo',
-    email: 'volante.ronaldo@example.com',
-    status: 'active',
-    hasAnsweredCurrent: false,
-  },
-  {
-    id: '4',
-    name: 'Maurides Cambalhota',
-    email: 'maurides.cambalhota@example.com',
-    status: 'active',
-    hasAnsweredCurrent: true,
-  },
-  {
-    id: '5',
-    name: 'Clayton Sampaio',
-    email: 'clayton.sampaio@example.com',
-    status: 'inactive',
-    hasAnsweredCurrent: false,
-  },
-];
-
 let memberRegistry: Member[] = cloneAll(memberSeed);
-let menteeRegistry: Mentee[] = cloneAll(menteeSeed);
 
 function cloneAll<T extends object>(items: T[]): T[] {
   return items.map((item) => ({ ...item }));
@@ -143,10 +100,6 @@ function cloneAll<T extends object>(items: T[]): T[] {
 // Os testes começam sempre da mesma lista.
 export function resetMembersMock() {
   memberRegistry = cloneAll(memberSeed);
-}
-
-export function resetMenteesMock() {
-  menteeRegistry = cloneAll(menteeSeed);
 }
 
 export const usersApi = {
@@ -191,14 +144,6 @@ export const usersApi = {
     memberRegistry = memberRegistry.map((member) =>
       member.id === id ? { ...member, tag } : member,
     );
-    return Promise.resolve();
-  },
-
-  listMentees: (): Promise<Mentee[]> =>
-    Promise.resolve(cloneAll(menteeRegistry)),
-
-  removeMentee: (id: string): Promise<void> => {
-    menteeRegistry = menteeRegistry.filter((mentee) => mentee.id !== id);
     return Promise.resolve();
   },
 };

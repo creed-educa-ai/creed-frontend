@@ -339,6 +339,15 @@ export const ptBR = {
     botaoAvancar: 'Avançar',
     textoLogin: 'Já tem uma conta?',
     linkLogin: 'Login',
+    erros: {
+      ate200Caracteres: 'Use no máximo 200 caracteres.',
+      ate30Caracteres: 'Use no máximo 30 caracteres.',
+      nomeCompletoInvalido: 'Digite um nome de 2 a 200 caracteres.',
+      documentoInvalido: 'Digite um CPF (11 dígitos) ou um CNPJ (14 dígitos).',
+      documentoJaCadastrado: 'Já existe um cadastro com este documento.',
+      envioIndisponivel:
+        'Não foi possível enviar o cadastro agora. Tente novamente.',
+    },
     painelDescricao:
       'Avaliação de competências que mostra o seu time com clareza, sem planilha e sem achismo.',
   },
@@ -414,7 +423,6 @@ export const ptBR = {
       email: 'Email',
       questionnaire: 'Questionário',
       results: 'Resultados',
-      status: 'Status',
       delete: 'Excluir',
     },
     actions: {
@@ -425,13 +433,16 @@ export const ptBR = {
       viewResultsFor: 'Ver resultados de {{name}}',
       deleteFor: 'Excluir {{name}}',
     },
-    status: { active: 'Ativo', inactive: 'Inativo' },
     empty: 'Nenhum mentorando cadastrado ainda.',
     noResults: 'Nenhum mentorando encontrado para essa pesquisa.',
     confirmDelete: {
       title: 'Excluir mentorando?',
-      description: 'Tem certeza de que deseja excluir {{name}}?',
+      description:
+        '{{name}} e todos os seus resultados serão apagados para sempre. Esta ação não pode ser desfeita.',
       confirm: 'Excluir',
+    },
+    errors: {
+      deleteUnavailable: 'Não foi possível excluir agora. Tente de novo.',
     },
   },
   termo: {
@@ -450,7 +461,7 @@ export const ptBR = {
   aguardeConfirmacao: {
     titulo: 'Aguarde confirmação',
     mensagem:
-      'Seus dados foram enviados e aguardam aprovação. Após a confirmação, tente realizar o login novamente.',
+      'Recebemos o cadastro da sua empresa. Quando ele for aprovado, você vai receber no e-mail informado um link para definir sua senha. Se o e-mail não chegar, use "Esqueci minha senha" na tela de login.',
     voltar: 'Voltar',
     ouSaibaMais: 'OU SAIBA MAIS',
     saibaMais: 'O que é o método CREED?',
@@ -637,6 +648,8 @@ export const ptBR = {
     errors: {
       invalidName: 'Digite um nome de 2 a 200 caracteres.',
       invalidEmail: 'Digite um e-mail válido.',
+      emailTaken: 'Este e-mail já tem acesso à plataforma.',
+      inviteFailed: 'Não foi possível enviar o convite. Tente de novo.',
     },
   },
   aceite: {
@@ -654,11 +667,17 @@ export const ptBR = {
   empresas: {
     toasts: {
       aprovada: 'Empresa aprovada',
-      aprovadaDescricao: '{{nome}} já tem acesso à plataforma.',
+      // 🟡 Premissa P-053 — aprovar manda o convite de gestor ao e-mail do
+      // cadastro: o acesso só existe depois que a pessoa define a senha.
+      aprovadaDescricao:
+        'O convite de acesso de {{nome}} foi enviado ao e-mail do cadastro.',
       rejeitada: 'Empresa rejeitada',
       rejeitadaDescricao: '{{nome}} não terá acesso à plataforma.',
       erroAprovar: 'Não foi possível aprovar a empresa',
+      naoAprovadaDescricao:
+        'Ela pode já ter sido aprovada, ou o e-mail informado já tem acesso à plataforma. Se for o e-mail, rejeite o cadastro.',
       erroRejeitar: 'Não foi possível rejeitar a empresa',
+      erroExcluir: 'Não foi possível excluir a empresa',
       excluida: 'Empresa excluída',
       excluidaDescricao: '{{nome}} foi removida da plataforma.',
     },
@@ -682,7 +701,7 @@ export const ptBR = {
       excluir: 'Excluir',
     },
     verResultados: 'Ver Resultados',
-    status: { ativo: 'Ativo', pendente: 'Pendente' },
+    status: { ativo: 'Ativo', pendente: 'Pendente', inativo: 'Inativo' },
     aprovar: 'Aprovar',
     anterior: 'Anterior',
     proxima: 'Próxima',
@@ -692,7 +711,8 @@ export const ptBR = {
     analisarCadastro: 'Pendente: analisar o cadastro de {{nome}}',
     confirmarExclusao: {
       titulo: 'Excluir empresa',
-      descricao: 'Tem certeza de que deseja excluir {{nome}}?',
+      descricao:
+        'Excluir {{nome}} apaga a empresa, todos os membros dela, as respostas e os questionários. Não dá para desfazer.',
     },
     vazio: 'Nenhuma empresa encontrada.',
   },
@@ -733,6 +753,16 @@ export const ptBR = {
         'A data de término não pode ser anterior à data de início.',
       horaTerminoAntesInicio:
         'O horário de término deve ser posterior ao horário de início.',
+      periodoConflito:
+        'Já existe um período nessas datas. Escolha datas que não cruzem com ele.',
+      periodoFalhou: 'Não foi possível abrir o período. Tente de novo.',
+      carregarPeriodo: 'Não foi possível carregar o período atual.',
+    },
+    periodo: {
+      aberto: 'Período aberto',
+      agendado: 'Período agendado',
+      somenteLeitura:
+        'Um período novo só pode ser marcado depois que este terminar.',
     },
   },
   adicionarMentorando: {

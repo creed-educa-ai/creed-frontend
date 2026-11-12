@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -6,8 +7,12 @@ import { AuthLayout } from '@/components/layout/authLayout';
 import { Field, FieldLabel, FieldError } from '@/components/ui/field';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAppDispatch } from '@/app/hooks';
-import { registerCompany } from '@/features/organizations/organizationsSlice';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import {
+  DOCUMENTO_JA_CADASTRADO,
+  clearSignUp,
+  signUpOrganization,
+} from '@/features/organizations/organizationsSlice';
 import { signUpSchema, type SignUpForm } from '@/lib/validators';
 import { pageTitleClassName } from '@/lib/typography';
 
@@ -15,10 +20,14 @@ export function SignUpView() {
   const { t } = useTranslation(['comum', 'cadastro']);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { status, error } = useAppSelector(
+    (state) => state.organizations.signUp,
+  );
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<SignUpForm>({
     resolver: zodResolver(signUpSchema),
@@ -31,25 +40,52 @@ export function SignUpView() {
     },
   });
 
+  // O store é um só para o app: limpar ao entrar e ao sair evita que o erro
+  // de um envio antigo apareça numa visita nova (como no PasswordResetView).
+  useEffect(() => {
+    dispatch(clearSignUp());
+    return () => {
+      dispatch(clearSignUp());
+    };
+  }, [dispatch]);
+
+  // Envio barrado pelo zod: a mensagem do envio anterior não vale mais.
+  function aoRecusarFormulario() {
+    dispatch(clearSignUp());
+  }
+
   async function aoEnviar(dados: SignUpForm) {
-    await dispatch(
-      registerCompany({
-        nomeEmpresa: dados.nomeEmpresa,
-        documento: dados.documento,
-        email: dados.email,
-        nomeResponsavel: dados.nomeCompleto,
-        telefone: dados.telefone,
-      }),
-    ).unwrap();
-    // viewTransition: o painel roxo cresce até virar a tela de aguarde, que
-    // tem o mesmo fundo (ver `transicao-painel-marca` em index.css).
-    navigate('/awaiting-confirmation', { viewTransition: true });
+    try {
+      // Os nomes da tela viram os do contrato do back.
+      await dispatch(
+        signUpOrganization({
+          name: dados.nomeEmpresa,
+          document: dados.documento,
+          email: dados.email,
+          contact_name: dados.nomeCompleto,
+          phone: dados.telefone,
+        }),
+      ).unwrap();
+      // viewTransition: o painel roxo cresce até virar a tela de aguarde, que
+      // tem o mesmo fundo (ver `transicao-painel-marca` em index.css).
+      navigate('/awaiting-confirmation', { viewTransition: true });
+    } catch (chave) {
+      // O 409 é erro do campo documento. Os outros ficam no aviso abaixo do
+      // botão, que lê o erro do slice, e o formulário continua preenchido.
+      if (chave === DOCUMENTO_JA_CADASTRADO) {
+        setError('documento', { message: DOCUMENTO_JA_CADASTRADO });
+      }
+    }
   }
 
   function erroDoCampo(chave?: string) {
     if (!chave) return undefined;
     return { message: t(chave as never) };
   }
+
+  // O 409 já aparece no campo: não se repete no aviso.
+  const erroDoEnvio =
+    status === 'error' && error !== DOCUMENTO_JA_CADASTRADO ? error : null;
 
   const nomeEmpresaInvalido = Boolean(errors.nomeEmpresa);
   const documentoInvalido = Boolean(errors.documento);
@@ -69,9 +105,14 @@ export function SignUpView() {
         {t('cadastro:subtitulo')}
       </p>
 
+      {/* noValidate: sem ele, o navegador barra o e-mail inválido com a
+          mensagem dele, no idioma dele, antes do zod. */}
       <form
+        noValidate
         className="mt-8 space-y-4"
-        onSubmit={(evento) => void handleSubmit(aoEnviar)(evento)}
+        onSubmit={(evento) =>
+          void handleSubmit(aoEnviar, aoRecusarFormulario)(evento)
+        }
       >
         <Field data-invalid={nomeEmpresaInvalido}>
           <FieldLabel htmlFor="nomeEmpresa">
@@ -170,6 +211,11 @@ export function SignUpView() {
         <Button type="submit" className="mt-8 w-full" disabled={isSubmitting}>
           {t('cadastro:botaoAvancar')}
         </Button>
+        {erroDoEnvio && (
+          <p role="alert" className="text-center text-sm text-destructive">
+            {t(erroDoEnvio as never)}
+          </p>
+        )}
         <p className="text-center text-sm text-muted-foreground">
           {t('cadastro:textoLogin')}{' '}
           <Link

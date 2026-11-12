@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -11,11 +12,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { LoadingState } from '@/components/states/LoadingState';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { CreatePeriodError } from '@/features/forms/formsSlice';
 import { ManageQuestionnaire } from '@/features/forms/ManageQuestionnaire';
 import {
   manageQuestionnaireSchema,
   type ManageQuestionnaireFormValues,
 } from '@/features/forms/manageQuestionnaireSchema';
+import type { PeriodRead } from '@/types/api';
 
 const EMPTY_PERIOD: ManageQuestionnaireFormValues = {
   dataInicio: '',
@@ -30,7 +35,20 @@ interface ManageQuestionnaireDialogProps {
   // Para quem é o questionário: o mentorando, que não está numa empresa e
   // por isso não tem o próprio painel de controle.
   personName: string;
-  onSave: (values: ManageQuestionnaireFormValues) => void;
+  // Abre o período no back. Devolve o erro (chave de i18n), que aparece no
+  // formulário com o modal aberto, ou `null` se deu certo: aí fechar é de
+  // quem usa.
+  onSave: (
+    values: ManageQuestionnaireFormValues,
+  ) => Promise<CreatePeriodError | null>;
+  // O período aberto ou agendado da pessoa: com ele, o modal só mostra as
+  // datas, sem Confirmar (P-085).
+  activePeriod?: Pick<
+    PeriodRead,
+    'opens_at' | 'closes_at' | 'period_status'
+  > | null;
+  // Enquanto o período da pessoa carrega, o modal não sabe se pode abrir um.
+  loading?: boolean;
 }
 
 // O "Gerenciar questionário" do painel da empresa, num modal comum: mesmos
@@ -40,17 +58,26 @@ export function ManageQuestionnaireDialog({
   onClose,
   personName,
   onSave,
+  activePeriod = null,
+  loading = false,
 }: ManageQuestionnaireDialogProps) {
   const { t } = useTranslation(['mentees', 'painelControle', 'comum']);
   const {
     control,
     handleSubmit,
     reset,
-    formState: { errors },
+    setError,
+    formState: { errors, isSubmitting },
   } = useForm<ManageQuestionnaireFormValues>({
     resolver: zodResolver(manageQuestionnaireSchema),
     defaultValues: EMPTY_PERIOD,
   });
+
+  // Cada abertura começa com os campos vazios: o período que a pessoa já
+  // tem aparece só para leitura, e um novo começa do zero.
+  useEffect(() => {
+    if (open) reset(EMPTY_PERIOD);
+  }, [open, reset]);
 
   // O formulário vive enquanto o modal fecha e abre: limpa ao fechar, para
   // o próximo mentorando não herdar o período do anterior.
@@ -59,10 +86,16 @@ export function ManageQuestionnaireDialog({
     onClose();
   }
 
-  function save(values: ManageQuestionnaireFormValues) {
-    onSave(values);
+  async function save(values: ManageQuestionnaireFormValues) {
+    const erro = await onSave(values);
+    if (erro) {
+      setError('root', { message: erro });
+      return;
+    }
     reset(EMPTY_PERIOD);
   }
+
+  const readOnly = !loading && activePeriod !== null;
 
   return (
     <Dialog
@@ -82,20 +115,34 @@ export function ManageQuestionnaireDialog({
             })}
           </DialogDescription>
         </DialogHeader>
-        <ManageQuestionnaire control={control} errors={errors} />
+        {loading ? (
+          <LoadingState>
+            <Skeleton className="h-24 w-full" />
+          </LoadingState>
+        ) : (
+          <ManageQuestionnaire
+            control={control}
+            errors={errors}
+            periodoAtivo={activePeriod}
+          />
+        )}
         <DialogFooter>
+          {/* Só para leitura, não há o que cancelar: o botão só fecha. */}
           <Button type="button" variant="outline" onClick={close}>
-            {t('comum:acoes.cancelar')}
+            {readOnly ? t('comum:acoes.fechar') : t('comum:acoes.cancelar')}
           </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              void handleSubmit(save)();
-            }}
-          >
-            <Check aria-hidden="true" />
-            {t('painelControle:confirmar')}
-          </Button>
+          {!readOnly && (
+            <Button
+              type="button"
+              disabled={loading || isSubmitting}
+              onClick={() => {
+                void handleSubmit(save)();
+              }}
+            >
+              <Check aria-hidden="true" />
+              {t('painelControle:confirmar')}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

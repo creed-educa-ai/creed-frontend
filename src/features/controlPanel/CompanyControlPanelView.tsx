@@ -17,7 +17,10 @@ import {
   type ManageQuestionnaireFormValues,
 } from '@/features/forms/manageQuestionnaireSchema';
 import { ManageQuestionnaire } from '@/features/forms/ManageQuestionnaire';
+import { usePeriod } from '@/features/forms/usePeriod';
 import { Card, CardContent } from '@/components/ui/card';
+import { LoadingState } from '@/components/states/LoadingState';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Painel de controle da empresa: convidar membros, abrir o período do
 // questionário e acompanhar os membros.
@@ -25,11 +28,18 @@ export function CompanyControlPanelView() {
   const { t } = useTranslation(['painelControle', 'organizations']);
   // O nome chega junto com a lista de membros, que o MembersSection carrega.
   const organization = useAppSelector((state) => state.users.organization);
+  // O período é da organização do vínculo de quem está logado (o gestor).
+  const organizationId = useAppSelector(
+    (state) => state.authentication.user?.organization_id ?? null,
+  );
+  const period = usePeriod({ organizationId });
 
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
   } = useForm<ManageQuestionnaireFormValues>({
     resolver: zodResolver(manageQuestionnaireSchema),
     defaultValues: {
@@ -40,11 +50,15 @@ export function CompanyControlPanelView() {
     },
   });
 
-  const onSubmit = (data: ManageQuestionnaireFormValues) => {
-    console.log('Dados salvos:', data);
-    // TODO: integração — o back não tem onde guardar o período: `FormRead`
-    // não tem início nem término, só `status` (draft/published/closed).
-    // Integrado, o toast vem depois do `await` do salvamento.
+  // O toast só depois da resposta do back. Se falhar, a mensagem fica no
+  // formulário, com os campos como estavam.
+  const onSubmit = async (data: ManageQuestionnaireFormValues) => {
+    const erro = await period.create(data);
+    if (erro) {
+      setError('root', { message: erro });
+      return;
+    }
+    reset();
     toast.success(t('painelControle:toasts.questionarioNoAr'), {
       description: t('painelControle:toasts.questionarioNoArDescricao'),
     });
@@ -101,13 +115,21 @@ export function CompanyControlPanelView() {
                     {t('painelControle:gerenciar')}
                   </h3>
                   <div className="flex-1">
-                    <ManageQuestionnaire
-                      control={control}
-                      errors={errors}
-                      onConfirmar={() => {
-                        void handleSubmit(onSubmit)();
-                      }}
-                    />
+                    {period.loading ? (
+                      <LoadingState>
+                        <Skeleton className="h-24 w-full" />
+                      </LoadingState>
+                    ) : (
+                      <ManageQuestionnaire
+                        control={control}
+                        errors={errors}
+                        enviando={isSubmitting}
+                        periodoAtivo={period.activePeriod}
+                        onConfirmar={() => {
+                          void handleSubmit(onSubmit)();
+                        }}
+                      />
+                    )}
                   </div>
                 </CardContent>
               </section>

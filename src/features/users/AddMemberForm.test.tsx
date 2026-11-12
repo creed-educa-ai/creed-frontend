@@ -3,6 +3,10 @@ import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { vi } from 'vitest';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { AddMemberForm } from '@/features/users/AddMemberForm';
+import {
+  INVITE_EMAIL_TAKEN,
+  INVITE_FAILED,
+} from '@/features/users/addMemberSchema';
 
 function renderForm(onSubmit = vi.fn(), withRole = true) {
   render(<AddMemberForm onSubmit={onSubmit} withRole={withRole} />);
@@ -134,6 +138,44 @@ describe('AddMemberForm', () => {
     });
     expect(screen.getByLabelText('Nome')).toHaveValue('Ana Souza');
     expect(screen.getByLabelText('E-mail')).toHaveValue('ana@empresa.com.br');
+    // Erro que não é do convite não mostra mensagem: é de quem chamou.
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('e-mail que já tem acesso: o erro vai para o campo e-mail', async () => {
+    const user = userEvent.setup();
+    renderForm(vi.fn().mockRejectedValue(INVITE_EMAIL_TAKEN), false);
+
+    await preencher(user, 'Nome', 'Ana Souza');
+    await preencher(user, 'E-mail', 'ana@empresa.com.br');
+    await user.click(screen.getByRole('button', { name: 'Adicionar' }));
+
+    expect(
+      await screen.findByText('Este e-mail já tem acesso à plataforma.'),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('E-mail')).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    );
+    expect(screen.getByLabelText('E-mail')).toHaveValue('ana@empresa.com.br');
+  });
+
+  it('convite que não saiu: a mensagem fica embaixo do formulário', async () => {
+    const user = userEvent.setup();
+    renderForm(vi.fn().mockRejectedValue(INVITE_FAILED), false);
+
+    await preencher(user, 'Nome', 'Ana Souza');
+    await preencher(user, 'E-mail', 'ana@empresa.com.br');
+    await user.click(screen.getByRole('button', { name: 'Adicionar' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível enviar o convite. Tente de novo.',
+    );
+    expect(screen.getByLabelText('E-mail')).not.toHaveAttribute(
+      'aria-invalid',
+      'true',
+    );
+    expect(screen.getByLabelText('Nome')).toHaveValue('Ana Souza');
   });
 
   it('troca os textos quando o idioma muda', async () => {

@@ -22,3 +22,11 @@ export const addMemberSchema = z.object({
 });
 
 export type AddMemberValues = z.infer<typeof addMemberSchema>;
+
+// Erros do back no convite, que o slice já traduziu em chave de i18n. O 409
+// (e-mail que já tem acesso) vai para o campo e-mail; o resto, para o
+// formulário (formularios.md, regra 7).
+// > 🟡 Premissa P-084 — mensagens próprias, nos três idiomas.
+export const INVITE_EMAIL_TAKEN = 'organizations:errors.emailTaken';
+export const INVITE_FAILED = 'organizations:errors.inviteFailed';
+export type InviteError = typeof INVITE_EMAIL_TAKEN | typeof INVITE_FAILED;

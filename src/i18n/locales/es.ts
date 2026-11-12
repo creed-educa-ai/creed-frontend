@@ -339,6 +339,15 @@ export const es: typeof ptBR = {
     botaoAvancar: 'Continuar',
     textoLogin: '¿Ya tienes una cuenta?',
     linkLogin: 'Iniciar sesión',
+    erros: {
+      ate200Caracteres: 'Usa como máximo 200 caracteres.',
+      ate30Caracteres: 'Usa como máximo 30 caracteres.',
+      nomeCompletoInvalido: 'Ingresa un nombre de 2 a 200 caracteres.',
+      documentoInvalido: 'Ingresa un CPF (11 dígitos) o un CNPJ (14 dígitos).',
+      documentoJaCadastrado: 'Ya existe un registro con este documento.',
+      envioIndisponivel:
+        'No fue posible enviar el registro ahora. Inténtalo de nuevo.',
+    },
     painelDescricao:
       'Evaluación de competencias que muestra a tu equipo con claridad, sin hojas de cálculo y sin conjeturas.',
   },
@@ -415,7 +424,6 @@ export const es: typeof ptBR = {
       email: 'Correo',
       questionnaire: 'Cuestionario',
       results: 'Resultados',
-      status: 'Estado',
       delete: 'Eliminar',
     },
     actions: {
@@ -426,13 +434,16 @@ export const es: typeof ptBR = {
       viewResultsFor: 'Ver resultados de {{name}}',
       deleteFor: 'Eliminar a {{name}}',
     },
-    status: { active: 'Activo', inactive: 'Inactivo' },
     empty: 'Aún no hay mentorados registrados.',
     noResults: 'Ningún mentorado coincide con la búsqueda.',
     confirmDelete: {
       title: '¿Eliminar mentorado?',
-      description: '¿Seguro que quieres eliminar a {{name}}?',
+      description:
+        '{{name}} y todos sus resultados se eliminarán para siempre. Esta acción no se puede deshacer.',
       confirm: 'Eliminar',
+    },
+    errors: {
+      deleteUnavailable: 'No se pudo eliminar ahora. Inténtalo de nuevo.',
     },
   },
   termo: {
@@ -451,7 +462,7 @@ export const es: typeof ptBR = {
   aguardeConfirmacao: {
     titulo: 'Espera la confirmación',
     mensagem:
-      'Tus datos fueron enviados y están pendientes de aprobación. Después de la confirmación, intenta iniciar sesión de nuevo.',
+      'Recibimos el registro de tu empresa. Cuando sea aprobado, recibirás en el correo electrónico informado un enlace para definir tu contraseña. Si el correo no llega, usa "Olvidé mi contraseña" en la pantalla de inicio de sesión.',
     voltar: 'Volver',
     ouSaibaMais: 'O CONOCE MÁS',
     saibaMais: '¿Qué es el método CREED?',
@@ -635,6 +646,8 @@ export const es: typeof ptBR = {
     errors: {
       invalidName: 'Ingresa un nombre de 2 a 200 caracteres.',
       invalidEmail: 'Ingresa un correo válido.',
+      emailTaken: 'Este correo ya tiene acceso a la plataforma.',
+      inviteFailed: 'No se pudo enviar la invitación. Inténtalo de nuevo.',
     },
   },
   aceite: {
@@ -652,11 +665,15 @@ export const es: typeof ptBR = {
   empresas: {
     toasts: {
       aprovada: 'Empresa aprobada',
-      aprovadaDescricao: '{{nome}} ya tiene acceso a la plataforma.',
+      aprovadaDescricao:
+        'La invitación de acceso de {{nome}} se envió al correo del registro.',
       rejeitada: 'Empresa rechazada',
       rejeitadaDescricao: '{{nome}} no tendrá acceso a la plataforma.',
       erroAprovar: 'No se pudo aprobar la empresa',
+      naoAprovadaDescricao:
+        'Puede que ya haya sido aprobada, o el correo informado ya tiene acceso a la plataforma. Si es el correo, rechaza el registro.',
       erroRejeitar: 'No se pudo rechazar la empresa',
+      erroExcluir: 'No se pudo eliminar la empresa',
       excluida: 'Empresa eliminada',
       excluidaDescricao: '{{nome}} fue eliminada de la plataforma.',
     },
@@ -680,7 +697,7 @@ export const es: typeof ptBR = {
       excluir: 'Eliminar',
     },
     verResultados: 'Ver Resultados',
-    status: { ativo: 'Activo', pendente: 'Pendiente' },
+    status: { ativo: 'Activo', pendente: 'Pendiente', inativo: 'Inactivo' },
     aprovar: 'Aprobar',
     anterior: 'Anterior',
     proxima: 'Siguiente',
@@ -690,7 +707,8 @@ export const es: typeof ptBR = {
     analisarCadastro: 'Pendiente: revisar el registro de {{nome}}',
     confirmarExclusao: {
       titulo: 'Eliminar empresa',
-      descricao: '¿Seguro que deseas eliminar {{nome}}?',
+      descricao:
+        'Eliminar {{nome}} borra la empresa, todos sus miembros, las respuestas y los cuestionarios. No se puede deshacer.',
     },
     vazio: 'No se encontraron empresas.',
   },
@@ -731,6 +749,16 @@ export const es: typeof ptBR = {
         'La fecha de finalización no puede ser anterior a la fecha de inicio.',
       horaTerminoAntesInicio:
         'La hora de finalización debe ser posterior a la hora de inicio.',
+      periodoConflito:
+        'Ya existe un período en esas fechas. Elige fechas que no se crucen con él.',
+      periodoFalhou: 'No se pudo abrir el período. Inténtalo de nuevo.',
+      carregarPeriodo: 'No se pudo cargar el período actual.',
+    },
+    periodo: {
+      aberto: 'Período abierto',
+      agendado: 'Período programado',
+      somenteLeitura:
+        'Solo se puede programar un período nuevo cuando este termine.',
     },
   },
   adicionarMentorando: {
