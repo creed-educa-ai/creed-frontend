@@ -418,7 +418,6 @@ export const en: typeof ptBR = {
       email: 'Email',
       questionnaire: 'Questionnaire',
       results: 'Results',
-      status: 'Status',
       delete: 'Delete',
     },
     actions: {
@@ -429,13 +428,16 @@ export const en: typeof ptBR = {
       viewResultsFor: 'View results for {{name}}',
       deleteFor: 'Delete {{name}}',
     },
-    status: { active: 'Active', inactive: 'Inactive' },
     empty: 'No mentees registered yet.',
     noResults: 'No mentees match your search.',
     confirmDelete: {
       title: 'Delete mentee?',
-      description: 'Are you sure you want to delete {{name}}?',
+      description:
+        '{{name}} and all of their results will be deleted forever. This cannot be undone.',
       confirm: 'Delete',
+    },
+    errors: {
+      deleteUnavailable: "Couldn't delete right now. Please try again.",
     },
   },
   termo: {
@@ -637,6 +639,8 @@ export const en: typeof ptBR = {
     errors: {
       invalidName: 'Enter a name between 2 and 200 characters.',
       invalidEmail: 'Enter a valid email.',
+      emailTaken: 'This email already has access to the platform.',
+      inviteFailed: "Couldn't send the invitation. Please try again.",
     },
   },
   aceite: {

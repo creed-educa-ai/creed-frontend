@@ -10,30 +10,41 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { MenteesTable } from '@/features/users/MenteesTable';
-import type { Mentee } from '@/types/api';
+import type { MemberListItem, MemberPeriod } from '@/types/api';
 
-const mentees: Mentee[] = [
-  {
-    id: '1',
-    name: 'Enner Valência',
-    email: 'enner@example.com',
-    status: 'active',
-    hasAnsweredCurrent: true,
-  },
-  {
-    id: '2',
-    name: 'Volante Ronaldo',
-    email: 'volante@example.com',
-    status: 'inactive',
-    hasAnsweredCurrent: false,
-  },
-  {
-    id: '3',
-    name: 'José Maurides',
-    email: 'jose@example.com',
-    status: 'active',
-    hasAnsweredCurrent: true,
-  },
+// Dado sintético, no formato do `GET /organizations/{id}/members` (M-2).
+function period(hasAnswered: boolean): MemberPeriod {
+  return {
+    form_id: '5b1f0a7e-4c2d-4f7a-9d3e-2a6b8c0d1e2f',
+    opens_at: '2026-11-01T12:00:00Z',
+    closes_at: '2026-11-30T12:00:00Z',
+    period_status: 'open',
+    has_answered: hasAnswered,
+  };
+}
+
+function mentee(
+  linkId: string,
+  name: string,
+  email: string | null,
+  menteePeriod: MemberPeriod | null,
+): MemberListItem {
+  return {
+    link_id: linkId,
+    name,
+    email,
+    role: 'respondente',
+    type: 'mentoria',
+    department: null,
+    updated_at: null,
+    period: menteePeriod,
+  };
+}
+
+const mentees: MemberListItem[] = [
+  mentee('1', 'Enner Valência', 'enner@example.com', period(true)),
+  mentee('2', 'Volante Ronaldo', 'volante@example.com', period(false)),
+  mentee('3', 'José Maurides', 'jose@example.com', period(true)),
 ];
 
 function renderTable(
@@ -75,18 +86,20 @@ describe('MenteesTable', () => {
       'Email',
       'Questionário',
       'Resultados',
-      'Status',
       'Excluir',
     ]) {
       expect(
         within(table).getByRole('columnheader', { name: coluna }),
       ).toBeInTheDocument();
     }
+    // Sem coluna de status (CREED-69): a pessoa estar na tabela já basta.
+    expect(
+      within(table).queryByRole('columnheader', { name: 'Status' }),
+    ).not.toBeInTheDocument();
+    expect(within(table).getAllByRole('columnheader')).toHaveLength(5);
     for (const { name } of mentees) {
       expect(within(table).getByText(name)).toBeInTheDocument();
     }
-    expect(within(table).getAllByText('Ativo')).toHaveLength(2);
-    expect(within(table).getByText('Inativo')).toBeInTheDocument();
     expect(
       within(screen.getByRole('list')).getAllByRole('listitem'),
     ).toHaveLength(3);
@@ -117,6 +130,46 @@ describe('MenteesTable', () => {
         name: 'Ver resultados de Enner Valência',
       }),
     ).toBeEnabled();
+  });
+
+  it('desabilita Ver Resultados de quem ainda não tem período', () => {
+    renderTable({
+      mentees: [mentee('9', 'Ana Souza', 'ana@example.com', null)],
+    });
+    const table = screen.getByRole('table');
+
+    expect(
+      within(table).getByRole('button', {
+        name: 'Ver resultados de Ana Souza',
+      }),
+    ).toBeDisabled();
+    expect(
+      within(table).getByRole('button', {
+        name: 'Editar questionário de Ana Souza',
+      }),
+    ).toBeEnabled();
+  });
+
+  it('mostra quem não tem e-mail, e a busca por e-mail não quebra', async () => {
+    const user = userEvent.setup();
+    renderTable({
+      mentees: [
+        mentee('9', 'Ana Souza', null, null),
+        mentee('1', 'Enner Valência', 'enner@example.com', period(true)),
+      ],
+    });
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('Ana Souza')).toBeInTheDocument();
+
+    await user.type(
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar mentorandos por email',
+      }),
+      'enner',
+    );
+
+    expect(within(table).getByText('Enner Valência')).toBeInTheDocument();
+    expect(within(table).queryByText('Ana Souza')).not.toBeInTheDocument();
   });
 
   it('chama onEditQuestionnaire e onViewResults com o mentorando da linha', async () => {
@@ -220,15 +273,18 @@ describe('MenteesTable', () => {
     ).toBeInTheDocument();
   });
 
-  it('ordena pelo status: ativos antes no crescente, inativos no decrescente', async () => {
+  it('ordena pelo nome, e não por status', async () => {
     const user = userEvent.setup();
     renderTable();
     const primeiraLinha = () =>
       within(screen.getByRole('table')).getAllByRole('row')[1];
 
-    const ordenar = screen.getByRole('button', { name: 'Ordenar por status' });
+    expect(
+      screen.queryByRole('button', { name: 'Ordenar por status' }),
+    ).not.toBeInTheDocument();
+    const ordenar = screen.getByRole('button', { name: 'Ordenar por nome' });
     await user.click(ordenar);
-    expect(primeiraLinha()).toHaveTextContent('Ativo');
+    expect(primeiraLinha()).toHaveTextContent('Enner Valência');
     await user.click(ordenar);
     expect(primeiraLinha()).toHaveTextContent('Volante Ronaldo');
   });
@@ -244,9 +300,10 @@ describe('MenteesTable', () => {
     );
     const dialogo = screen.getByRole('alertdialog');
 
+    // Deixa claro que a exclusão leva os resultados e é para sempre.
     expect(
       within(dialogo).getByText(
-        'Tem certeza de que deseja excluir Enner Valência?',
+        'Enner Valência e todos os seus resultados serão apagados para sempre. Esta ação não pode ser desfeita.',
       ),
     ).toBeInTheDocument();
     expect(props.onDelete).not.toHaveBeenCalled();
@@ -303,6 +360,33 @@ describe('MenteesTable', () => {
         within(dialogo).getByRole('button', { name: 'Excluir' }),
       ).toBeEnabled();
     });
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+  });
+
+  it('mostra dentro do diálogo a mensagem de erro que recebeu', async () => {
+    const user = userEvent.setup();
+    const onDelete = vi.fn().mockRejectedValue(new Error('falhou'));
+    renderTable({
+      onDelete,
+      deleteErrorMessage: 'Não foi possível excluir agora. Tente de novo.',
+    });
+
+    await user.click(
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Excluir Enner Valência',
+      }),
+    );
+    const dialogo = screen.getByRole('alertdialog');
+    expect(
+      within(dialogo).getByText(
+        'Enner Valência e todos os seus resultados serão apagados para sempre. Esta ação não pode ser desfeita.',
+      ),
+    ).toBeInTheDocument();
+    await user.click(within(dialogo).getByRole('button', { name: 'Excluir' }));
+
+    expect(await within(dialogo).findByRole('alert')).toHaveTextContent(
+      'Não foi possível excluir agora. Tente de novo.',
+    );
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
 
@@ -373,7 +457,9 @@ describe('MenteesTable', () => {
         name: 'Edit questionnaire for Enner Valência',
       }),
     ).toBeInTheDocument();
-    expect(within(table).getByText('Inactive')).toBeInTheDocument();
+    expect(
+      within(table).getByRole('columnheader', { name: 'Results' }),
+    ).toBeInTheDocument();
   });
 
   it('Esc e clique fora não fecham o diálogo: destacam o Cancelar', async () => {

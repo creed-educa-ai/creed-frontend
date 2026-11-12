@@ -424,7 +424,6 @@ export const es: typeof ptBR = {
       email: 'Correo',
       questionnaire: 'Cuestionario',
       results: 'Resultados',
-      status: 'Estado',
       delete: 'Eliminar',
     },
     actions: {
@@ -435,13 +434,16 @@ export const es: typeof ptBR = {
       viewResultsFor: 'Ver resultados de {{name}}',
       deleteFor: 'Eliminar a {{name}}',
     },
-    status: { active: 'Activo', inactive: 'Inactivo' },
     empty: 'Aún no hay mentorados registrados.',
     noResults: 'Ningún mentorado coincide con la búsqueda.',
     confirmDelete: {
       title: '¿Eliminar mentorado?',
-      description: '¿Seguro que quieres eliminar a {{name}}?',
+      description:
+        '{{name}} y todos sus resultados se eliminarán para siempre. Esta acción no se puede deshacer.',
       confirm: 'Eliminar',
+    },
+    errors: {
+      deleteUnavailable: 'No se pudo eliminar ahora. Inténtalo de nuevo.',
     },
   },
   termo: {
@@ -644,6 +646,8 @@ export const es: typeof ptBR = {
     errors: {
       invalidName: 'Ingresa un nombre de 2 a 200 caracteres.',
       invalidEmail: 'Ingresa un correo válido.',
+      emailTaken: 'Este correo ya tiene acceso a la plataforma.',
+      inviteFailed: 'No se pudo enviar la invitación. Inténtalo de nuevo.',
     },
   },
   aceite: {

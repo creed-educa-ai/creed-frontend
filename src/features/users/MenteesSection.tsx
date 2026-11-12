@@ -6,34 +6,46 @@ import { toast } from '@/components/ui/sonner';
 import { ManageQuestionnaireDialog } from '@/features/forms/ManageQuestionnaireDialog';
 import type { ManageQuestionnaireFormValues } from '@/features/forms/manageQuestionnaireSchema';
 import { MenteesTable } from '@/features/users/MenteesTable';
-import type { Mentee } from '@/types/api';
-import { deleteMentee, loadMentees } from '@/features/users/usersSlice';
+import type { MemberListItem } from '@/types/api';
+import {
+  deleteMentee,
+  loadMentees,
+  type DeleteMenteeError,
+} from '@/features/users/usersSlice';
 import { Card, CardContent } from '@/components/ui/card';
 import { ErrorState } from '@/components/states/ErrorState';
 import { LoadingState } from '@/components/states/LoadingState';
 import { cardTitleClassName } from '@/lib/typography';
 
 // Seção "Mentorandos" do painel do super adm. Cobre os estados de carregando,
-// erro e pronto.
+// erro e pronto. Os mentorandos são os da organização da sessão, que para a
+// administradora é a da CREED (P-048).
 export function MenteesSection() {
   const { t } = useTranslation(['comum', 'mentees', 'painelControle']);
   const dispatch = useAppDispatch();
+  const organizationId = useAppSelector(
+    (state) => state.authentication.user?.organization_id ?? null,
+  );
   const { items, status, error } = useAppSelector(
     (state) => state.users.mentees,
   );
 
   // Mentorando cujo questionário está aberto no modal.
-  const [editing, setEditing] = useState<Mentee | null>(null);
+  const [editing, setEditing] = useState<MemberListItem | null>(null);
+  // Por que a última exclusão falhou: aparece dentro do modal de confirmação.
+  const [deleteError, setDeleteError] = useState<DeleteMenteeError | null>(
+    null,
+  );
 
   useEffect(() => {
-    void dispatch(loadMentees());
-  }, [dispatch]);
+    if (organizationId) void dispatch(loadMentees(organizationId));
+  }, [dispatch, organizationId]);
 
   function handleSaveQuestionnaire(
-    mentee: Mentee,
+    mentee: MemberListItem,
     values: ManageQuestionnaireFormValues,
   ) {
-    console.log('Questionário do mentorando:', mentee.id, values);
+    console.log('Questionário do mentorando:', mentee.link_id, values);
     // TODO: integração — como no painel da empresa, o back não tem onde
     // guardar o período (`FormRead` só tem `status`). Integrado, o toast vem
     // depois do `await` do salvamento.
@@ -58,18 +70,32 @@ export function MenteesSection() {
             </LoadingState>
           )}
 
-          {status === 'error' && <ErrorState message={error && t(error)} />}
+          {/* Sem organização na sessão não há o que pedir ao back: mesma
+              mensagem de quando a carga falha. */}
+          {(status === 'error' || !organizationId) && (
+            <ErrorState message={t(error ?? 'mentees:loadError')} />
+          )}
 
-          {status === 'ready' && (
+          {status === 'ready' && organizationId && (
             <MenteesTable
               mentees={items}
               onViewResults={(mentee) => {
-                console.log('Ver resultados do mentorando:', mentee.id);
+                console.log('Ver resultados do mentorando:', mentee.link_id);
                 // TODO: integração com o backend
               }}
               onEditQuestionnaire={setEditing}
+              deleteErrorMessage={deleteError && t(deleteError)}
               onDelete={async (mentee) => {
-                await dispatch(deleteMentee(mentee.id)).unwrap();
+                setDeleteError(null);
+                const result = await dispatch(
+                  deleteMentee({ organizationId, linkId: mentee.link_id }),
+                );
+                // A falha fica dentro do modal, sem toast
+                // (ui-e-responsividade.md): rejeitar mantém o modal aberto.
+                if (deleteMentee.rejected.match(result)) {
+                  setDeleteError(result.payload ?? 'comum:tabela.erroExcluir');
+                  throw new Error('Exclusão do mentorando recusada');
+                }
                 toast.success(t('mentees:toasts.deleted'), {
                   description: t('mentees:toasts.deletedDescription', {
                     nome: mentee.name,
@@ -85,6 +111,7 @@ export function MenteesSection() {
               setEditing(null);
             }}
             personName={editing?.name ?? ''}
+            initialPeriod={editing?.period ?? null}
             onSave={(values) => {
               if (editing) handleSaveQuestionnaire(editing, values);
             }}
