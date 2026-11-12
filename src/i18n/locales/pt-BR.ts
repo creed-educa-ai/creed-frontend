@@ -753,6 +753,16 @@ export const ptBR = {
         'A data de término não pode ser anterior à data de início.',
       horaTerminoAntesInicio:
         'O horário de término deve ser posterior ao horário de início.',
+      periodoConflito:
+        'Já existe um período nessas datas. Escolha datas que não cruzem com ele.',
+      periodoFalhou: 'Não foi possível abrir o período. Tente de novo.',
+      carregarPeriodo: 'Não foi possível carregar o período atual.',
+    },
+    periodo: {
+      aberto: 'Período aberto',
+      agendado: 'Período agendado',
+      somenteLeitura:
+        'Um período novo só pode ser marcado depois que este terminar.',
     },
   },
   adicionarMentorando: {

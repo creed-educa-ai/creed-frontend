@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import { linksApi } from '@/features/links/linksApi';
+import formsReducer from '@/features/forms/formsSlice';
 import organizationsReducer from '@/features/organizations/organizationsSlice';
 import { usersApi } from '@/features/users/usersApi';
 import usersReducer from '@/features/users/usersSlice';
@@ -66,6 +67,7 @@ function renderizar() {
   const store = configureStore({
     reducer: {
       authentication: authenticationReducer,
+      forms: formsReducer,
       organizations: organizationsReducer,
       users: usersReducer,
     },

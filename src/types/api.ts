@@ -407,7 +407,30 @@ export interface FormRead {
   name: string;
   organization_id: string;
   status: FormStatus;
+  // Nulos: formulário sem período definido.
+  opens_at: string | null;
+  closes_at: string | null;
+  // Vínculo da única pessoa que responde. Nulo: a organização inteira.
+  link_id: string | null;
   created_at: string;
+}
+
+// `POST /organizations/{organization_id}/periods`. As datas vão com o fuso
+// (`AwareDatetime` no back): sem ele, o back recusa com 422.
+export interface PeriodCreate {
+  opens_at: string;
+  closes_at: string;
+  // Só o admin manda, para o período de um mentorando. Sem ele, o período é
+  // da organização inteira (o do gestor).
+  link_id?: string;
+}
+
+// `GET /organizations/{organization_id}/periods`: o formulário com as datas
+// sempre preenchidas e a situação calculada pelo back na hora da consulta.
+export interface PeriodRead extends FormRead {
+  opens_at: string;
+  closes_at: string;
+  period_status: PeriodStatus;
 }
 
 // ---------------------------------------------------------------------------

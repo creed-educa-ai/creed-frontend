@@ -740,6 +740,15 @@ export const en: typeof ptBR = {
       horaInicioNoPassado: 'The start time cannot be earlier than now.',
       terminoAntesInicio: 'The end date cannot be before the start date.',
       horaTerminoAntesInicio: 'The end time must be after the start time.',
+      periodoConflito:
+        'There is already a period on these dates. Choose dates that do not overlap it.',
+      periodoFalhou: 'The period could not be opened. Please try again.',
+      carregarPeriodo: 'The current period could not be loaded.',
+    },
+    periodo: {
+      aberto: 'Open period',
+      agendado: 'Scheduled period',
+      somenteLeitura: 'A new period can only be set after this one ends.',
     },
   },
   adicionarMentorando: {

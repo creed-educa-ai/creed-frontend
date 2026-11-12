@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { format } from 'date-fns';
+import { format, formatISO, parse } from 'date-fns';
 
 export const ERROS = {
   inicioObrigatorio: 'painelControle:erros.inicioObrigatorio',
@@ -10,6 +10,9 @@ export const ERROS = {
   horaTerminoAntesInicio: 'painelControle:erros.horaTerminoAntesInicio',
   inicioNoPassado: 'painelControle:erros.inicioNoPassado',
   horaInicioNoPassado: 'painelControle:erros.horaInicioNoPassado',
+  // Do back, ao abrir o período: não são de um campo, aparecem no formulário.
+  periodoConflito: 'painelControle:erros.periodoConflito',
+  periodoFalhou: 'painelControle:erros.periodoFalhou',
 } as const;
 
 export type ChaveErro = (typeof ERROS)[keyof typeof ERROS];
@@ -67,3 +70,15 @@ export const manageQuestionnaireSchema = z
 export type ManageQuestionnaireFormValues = z.infer<
   typeof manageQuestionnaireSchema
 >;
+
+// O par data e hora dos campos, no fuso de quem marca, como o back pede:
+// ISO com o deslocamento ('2026-11-10T09:00:00-03:00'). Sem o fuso, um
+// período marcado para as 9h abriria em outro horário.
+export function toPeriodDates(values: ManageQuestionnaireFormValues) {
+  const local = (data: string, hora: string) =>
+    formatISO(parse(`${data} ${hora}`, 'yyyy-MM-dd HH:mm', new Date()));
+  return {
+    opens_at: local(values.dataInicio, values.horaInicio),
+    closes_at: local(values.dataLimite, values.horaLimite),
+  };
+}

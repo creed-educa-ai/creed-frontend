@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/popover';
 import { Controller, useWatch } from 'react-hook-form';
 import type { Control, FieldErrors } from 'react-hook-form';
+import type { PeriodRead } from '@/types/api';
 import type {
   ManageQuestionnaireFormValues,
   ChaveErro,
@@ -30,12 +31,24 @@ interface ManageQuestionnaireProps {
   // Sem `onConfirmar`, o botão de confirmar não aparece: num modal, quem
   // confirma é o rodapé do próprio modal (ManageQuestionnaireDialog).
   onConfirmar?: () => void;
+  // Trava o Confirmar enquanto o período vai para o back.
+  enviando?: boolean;
+  // O período aberto ou agendado do público. Com ele, a tela mostra as datas
+  // só para leitura, no lugar dos campos: não dá para alterar um período, e
+  // um novo só pode ser marcado depois que esse terminar.
+  // > 🟡 Premissa P-085 — confirmar na reunião.
+  periodoAtivo?: Pick<
+    PeriodRead,
+    'opens_at' | 'closes_at' | 'period_status'
+  > | null;
 }
 
 export function ManageQuestionnaire({
   control,
   errors,
   onConfirmar,
+  enviando = false,
+  periodoAtivo = null,
 }: ManageQuestionnaireProps) {
   const { t, i18n } = useTranslation(['painelControle']);
   const [openInicio, setOpenInicio] = useState(false);
@@ -49,7 +62,7 @@ export function ManageQuestionnaire({
   const idioma = i18n.language.split('-')[0] ?? 'pt';
   const currentLocale = localeMap[idioma] ?? ptBR;
   const conteudoId = useId();
-  const erroId = (campo: keyof ManageQuestionnaireFormValues) =>
+  const erroId = (campo: keyof ManageQuestionnaireFormValues | 'root') =>
     `${conteudoId}-${campo}-erro`;
   const ligacaoErro = (campo: keyof ManageQuestionnaireFormValues) => ({
     'aria-invalid': Boolean(errors[campo]),
@@ -60,6 +73,10 @@ export function ManageQuestionnaire({
   const minimoTermino = dataInicioValue
     ? max([hoje, parseISO(dataInicioValue)])
     : hoje;
+
+  if (periodoAtivo) {
+    return <PeriodoAtivo periodo={periodoAtivo} locale={currentLocale} />;
+  }
 
   return (
     // O card e o título ("Gerenciar Questionário") são de quem usa o
@@ -212,13 +229,96 @@ export function ManageQuestionnaire({
         </div>
       </div>
 
+      {/* Erro do back (período sobreposto, falha ao abrir): não é de um
+          campo, fica no formulário. */}
+      <MensagemErro id={erroId('root')} mensagem={errors.root?.message} />
+
       {onConfirmar && (
-        <Button type="button" onClick={onConfirmar} className="w-full">
+        <Button
+          type="button"
+          onClick={onConfirmar}
+          disabled={enviando}
+          className="w-full"
+        >
           <Check aria-hidden="true" />
           {t('painelControle:confirmar')}
         </Button>
       )}
     </div>
+  );
+}
+
+// O período aberto ou agendado, nas mesmas duas linhas dos campos (rótulo,
+// data, hora), mas sem nada para clicar: só para leitura.
+function PeriodoAtivo({
+  periodo,
+  locale,
+}: {
+  periodo: Pick<PeriodRead, 'opens_at' | 'closes_at' | 'period_status'>;
+  locale: Locale;
+}) {
+  const { t } = useTranslation(['painelControle']);
+  const linhas = [
+    { rotulo: t('painelControle:inicio'), quando: parseISO(periodo.opens_at) },
+    {
+      rotulo: t('painelControle:termino'),
+      quando: parseISO(periodo.closes_at),
+    },
+  ];
+
+  return (
+    <div className="flex w-full flex-col gap-3">
+      <p className="text-sm font-bold text-foreground">
+        {periodo.period_status === 'open'
+          ? t('painelControle:periodo.aberto')
+          : t('painelControle:periodo.agendado')}
+      </p>
+      <dl className="flex flex-col gap-3">
+        {linhas.map(({ rotulo, quando }) => (
+          <div key={rotulo} className="flex items-center gap-3">
+            <dt className="w-20 shrink-0 text-sm font-bold text-primary">
+              {rotulo}
+            </dt>
+            <dd className="flex min-w-0 flex-1 gap-3">
+              <ValorSomenteLeitura icon={<CalendarIcon />}>
+                {format(quando, 'P', { locale })}
+              </ValorSomenteLeitura>
+              <ValorSomenteLeitura icon={<Clock />}>
+                {t('painelControle:seletorHora.valor', {
+                  hora: format(quando, 'HH'),
+                  minuto: format(quando, 'mm'),
+                })}
+              </ValorSomenteLeitura>
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <p className="text-sm text-muted-foreground">
+        {t('painelControle:periodo.somenteLeitura')}
+      </p>
+    </div>
+  );
+}
+
+// Mesma altura, raio e ícone do `PickerTrigger`, com borda e fundo apagados:
+// lê como campo, mas não convida ao clique.
+function ValorSomenteLeitura({
+  icon,
+  children,
+}: {
+  icon: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <span className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-muted px-2.5 text-base text-foreground md:h-8 md:text-sm">
+      <span
+        aria-hidden="true"
+        className="flex shrink-0 text-muted-foreground [&>svg]:size-4"
+      >
+        {icon}
+      </span>
+      <span className="truncate">{children}</span>
+    </span>
   );
 }
 
