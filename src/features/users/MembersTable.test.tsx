@@ -2,9 +2,75 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MembersTable } from '@/features/users/MembersTable';
-import { usersApi, resetMembersMock } from '@/features/users/usersApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import type { Member } from '@/types/api';
+
+const membrosMock: Member[] = [
+  {
+    id: '1',
+    name: 'Enner Valência',
+    email: 'michael.mitc@example.com',
+    status: 'ativo',
+    tag: 'Marketing',
+    updated_at: '2026-10-18T14:12:00.000Z',
+  },
+  {
+    id: '2',
+    name: 'Wilson Mathias',
+    email: 'felicia.reid@example.com',
+    status: 'ativo',
+    tag: 'Financeiro',
+    updated_at: '2026-10-17T09:40:00.000Z',
+  },
+  {
+    id: '3',
+    name: 'Volante Ronaldo',
+    email: 'georgia.young@example.com',
+    status: 'pendente',
+    tag: 'RecursosHumanos',
+    updated_at: '2026-10-16T18:05:00.000Z',
+  },
+  {
+    id: '4',
+    name: 'Maurides Cambalhota',
+    email: 'alma.lawson@example.com',
+    status: 'ativo',
+    tag: 'TecnologiaInformacao',
+    updated_at: '2026-10-15T11:22:00.000Z',
+  },
+  {
+    id: '5',
+    name: 'Clayton Sampaio',
+    email: 'dolores.chambers@example.com',
+    status: 'pendente',
+    tag: 'Administrativo',
+    updated_at: '2026-10-14T08:01:00.000Z',
+  },
+  {
+    id: '6',
+    name: 'Ana Souza',
+    email: 'ana.souza@example.com',
+    status: 'ativo',
+    tag: 'Marketing',
+    updated_at: '2026-10-13T16:47:00.000Z',
+  },
+  {
+    id: '7',
+    name: 'Bruno Lima',
+    email: 'bruno.lima@example.com',
+    status: 'pendente',
+    tag: null,
+    updated_at: '2026-10-12T10:18:00.000Z',
+  },
+  {
+    id: '8',
+    name: 'Carla Dias',
+    email: 'carla.dias@example.com',
+    status: 'ativo',
+    tag: null,
+    updated_at: '2026-10-11T13:33:00.000Z',
+  },
+];
 
 let itens: Member[];
 
@@ -21,8 +87,7 @@ function linhas() {
 
 describe('MembersTable', () => {
   beforeEach(async () => {
-    resetMembersMock();
-    itens = (await usersApi.listMembers()).itens;
+    itens = membrosMock.map((membro) => ({ ...membro }));
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 

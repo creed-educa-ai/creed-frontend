@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Toaster } from '@/components/ui/sonner';
 import { MembersSection } from '@/features/users/MembersSection';
 import usersReducer from '@/features/users/usersSlice';
-import { usersApi, resetMembersMock } from '@/features/users/usersApi';
+import { usersApi } from '@/features/users/usersApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
 // Tabela e cartões do celular estão os dois no DOM (o jsdom não aplica o
@@ -35,7 +35,6 @@ describe('MembersSection', () => {
     vi.restoreAllMocks();
   });
   beforeEach(async () => {
-    resetMembersMock();
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 

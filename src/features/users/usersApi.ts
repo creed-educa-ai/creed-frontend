@@ -1,5 +1,11 @@
 // Chamadas ao backend para o domínio users (app/domains/users/router.py e,
 // fora da dev ainda, router_members.py).
+//
+// Duas partes:
+// - rotas que existem no back, transcritas do contrato;
+// - MOCK das listas de membros e de mentorandos, que o back ainda não tem.
+//   Ficam aqui, e não na tela, para que integrar seja trocar o corpo da função
+//   por um `apiClient.get` — a tela e o slice não mudam.
 import { apiClient } from '@/lib/apiClient';
 import type {
   DepartmentType,
@@ -59,7 +65,7 @@ function cloneAll<T extends object>(items: T[]): T[] {
   return items.map((item) => ({ ...item }));
 }
 
-// Os testes começam sempre da mesma lista de mentorandos.
+// Os testes começam sempre da mesma lista.
 export function resetMenteesMock() {
   menteeRegistry = cloneAll(menteeSeed);
 }
@@ -74,7 +80,8 @@ export const usersApi = {
   // Só admin. 204 sem corpo.
   deleteUser: (userId: string) => apiClient.delete(`/users/${userId}`),
 
-  // Uma chamada cria participante, vínculo e acesso, e manda o convite por e-mail.
+  // Uma chamada cria participante, vínculo e acesso, e manda o convite por
+  // e-mail. Quem liga esta função à tela é o painel da empresa (CREED-50).
   inviteMember: (organizationId: string, invite: MemberInvite) =>
     apiClient.post<UserResponse>(
       `/organizations/${organizationId}/members`,
@@ -84,8 +91,6 @@ export const usersApi = {
   // Reenvia o convite de quem ainda não definiu a senha. 204 sem corpo.
   resendInvitation: (userId: string) =>
     apiClient.post<undefined>(`/users/${userId}/invitation`, undefined),
-
-  // --- Rotas reais de membros ---
 
   listMembers: (organizationId: string) =>
     apiClient.get<MemberList>(`/organizations/${organizationId}/members`),
@@ -101,8 +106,7 @@ export const usersApi = {
     apiClient.patch(`/organizations/${organizationId}/members/${linkId}`, {
       department_id: departmentId,
     }),
-
-  // --- MOCK — Mentorandos (mantidos pois estão fora da task atual) ---
+  // --- MOCK / ROTAS REAIS --------------------------------------------------
 
   listMentees: (): Promise<Mentee[]> =>
     Promise.resolve(cloneAll(menteeRegistry)),

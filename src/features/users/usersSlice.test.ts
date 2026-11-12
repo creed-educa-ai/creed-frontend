@@ -21,7 +21,7 @@ const membro: Member = {
 
 describe('usersSlice', () => {
   it('marca carregando ao iniciar a busca', () => {
-    const estado = reducer(estadoInicial, loadMembers.pending(''));
+    const estado = reducer(estadoInicial, loadMembers.pending('', 'org-1'));
     expect(estado.status).toBe('loading');
   });
 
@@ -33,7 +33,10 @@ describe('usersSlice', () => {
       tamanho_pagina: 5,
       organization: 'Acme Inc.',
     };
-    const estado = reducer(estadoInicial, loadMembers.fulfilled(payload, ''));
+    const estado = reducer(
+      estadoInicial,
+      loadMembers.fulfilled(payload, '', 'org-1'),
+    );
     expect(estado.status).toBe('ready');
     expect(estado.total).toBe(1);
     expect(estado.organization).toBe('Acme Inc.');
@@ -47,7 +50,10 @@ describe('usersSlice', () => {
       total: 1,
       organization: 'Acme Inc.',
     };
-    const estado = reducer(cheio, deleteMember.fulfilled('1', '', '1'));
+    const estado = reducer(
+      cheio,
+      deleteMember.fulfilled('1', '', { organizationId: 'org-1', id: '1' }),
+    );
     expect(estado.members).toHaveLength(0);
     expect(estado.total).toBe(0);
   });
@@ -57,6 +63,7 @@ describe('usersSlice', () => {
     const comTi = reducer(
       cheio,
       updateMemberTag.fulfilled({ id: '1', tag: 'TecnologiaInformacao' }, '', {
+        organizationId: 'org-1',
         id: '1',
         tag: 'TecnologiaInformacao',
       }),
@@ -65,6 +72,7 @@ describe('usersSlice', () => {
     const semTag = reducer(
       comTi,
       updateMemberTag.fulfilled({ id: '1', tag: null }, '', {
+        organizationId: 'org-1',
         id: '1',
         tag: null,
       }),
@@ -75,7 +83,7 @@ describe('usersSlice', () => {
   it('registra uma chave traduzível em caso de falha de carregamento', () => {
     const estado = reducer(
       estadoInicial,
-      loadMembers.rejected(new Error('Falha técnica'), ''),
+      loadMembers.rejected(new Error('Falha técnica'), '', 'org-1'),
     );
     expect(estado.status).toBe('error');
     expect(estado.error).toBe('organizations:members.loadError');
@@ -91,7 +99,10 @@ describe('usersSlice', () => {
     };
     const estado = reducer(
       cheio,
-      deleteMember.rejected(new Error('Falha técnica'), '', '1'),
+      deleteMember.rejected(new Error('Falha técnica'), '', {
+        organizationId: 'org-1',
+        id: '1',
+      }),
     );
     expect(estado).toEqual(cheio);
   });

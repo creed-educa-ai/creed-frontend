@@ -8,7 +8,6 @@ import { Toaster } from '@/components/ui/sonner';
 import { CompanyControlPanelView } from './CompanyControlPanelView';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import usersReducer from '@/features/users/usersSlice';
-import { resetMembersMock } from '@/features/users/usersApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
 // A seção de membros lê e carrega a lista pelo slice de organizations; o menu
@@ -100,7 +99,6 @@ describe('CompanyControlPanelView', () => {
   beforeEach(async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2026, 0, 10, 10, 0));
-    resetMembersMock();
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 

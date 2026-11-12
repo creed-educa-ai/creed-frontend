@@ -133,4 +133,51 @@ describe('usersApi', () => {
     expect(url).toBe('/api/v1/users/usuario-1/invitation');
     expect(init.method).toBe('POST');
   });
+
+  it('listMembers busca os membros da organização na rota correta', async () => {
+    const fetchMock = stubFetch(200);
+
+    await usersApi.listMembers(ORGANIZATION_ID);
+
+    const call = lastCall(fetchMock);
+    expect(call.url).toBe(`/api/v1/organizations/${ORGANIZATION_ID}/members`);
+    expect(call.method).toBe('GET');
+  });
+
+  it('removeMember envia o delete para a rota correta com o linkId', async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(new Response(null, { status: 204 })),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const linkId = 'link-123';
+    await expect(
+      usersApi.removeMember(ORGANIZATION_ID, linkId),
+    ).resolves.toBeUndefined();
+
+    const [url, init] = fetchMock.mock.lastCall as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe(
+      `/api/v1/organizations/${ORGANIZATION_ID}/members/${linkId}`,
+    );
+    expect(init.method).toBe('DELETE');
+  });
+
+  it('setMemberTag envia o patch para atualizar a tag do membro', async () => {
+    const fetchMock = stubFetch(200);
+    const linkId = 'link-123';
+
+    await usersApi.setMemberTag(ORGANIZATION_ID, linkId, 'Marketing');
+
+    const call = lastCall(fetchMock);
+    expect(call.url).toBe(
+      `/api/v1/organizations/${ORGANIZATION_ID}/members/${linkId}`,
+    );
+    expect(call.method).toBe('PATCH');
+    expect(JSON.parse(call.body as string)).toEqual({
+      department_id: 'Marketing',
+    });
+  });
 });
