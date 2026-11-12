@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAppSelector } from '@/app/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { PageHeader } from '@/components/layout/pageHeader';
 import { pageGutterClassName } from '@/lib/layout';
 import { SectionHeader } from '@/components/layout/sectionHeader';
@@ -18,6 +18,8 @@ import {
 } from '@/features/forms/manageQuestionnaireSchema';
 import { ManageQuestionnaire } from '@/features/forms/ManageQuestionnaire';
 import { Card, CardContent } from '@/components/ui/card';
+import { useParams } from 'react-router-dom';
+import { inviteMember, loadMembers } from '@/features/users/usersSlice';
 
 // Painel de controle da empresa: convidar membros, abrir o período do
 // questionário e acompanhar os membros.
@@ -25,6 +27,9 @@ export function CompanyControlPanelView() {
   const { t } = useTranslation(['painelControle', 'organizations']);
   // O nome chega junto com a lista de membros, que o MembersSection carrega.
   const organization = useAppSelector((state) => state.users.organization);
+
+  const { organizationId } = useParams<{ organizationId: string }>();
+  const dispatch = useAppDispatch();
 
   const {
     control,
@@ -50,17 +55,27 @@ export function CompanyControlPanelView() {
     });
   };
 
-  function handleAddMember(values: AddMemberValues) {
-    console.log('Membro adicionado:', values);
-    // TODO: integração — `usersApi.inviteMember(organization_id da sessão,
-    // values)`, por um thunk no usersSlice. A rota está na branch
-    // feat/86e35vhxm-convite-de-membro do back, ainda fora da dev.
-    // Integrado, o toast vem depois do `await` do convite.
-    toast.success(t('painelControle:toasts.conviteEnviado'), {
-      description: t('painelControle:toasts.conviteEnviadoDescricao', {
-        email: values.email,
-      }),
-    });
+  async function handleAddMember(values: AddMemberValues) {
+    if (!organizationId) return;
+
+    try {
+      await dispatch(
+        inviteMember({
+          organizationId,
+          invite: { name: values.name, email: values.email, role: values.role },
+        }),
+      ).unwrap();
+
+      toast.success(t('painelControle:toasts.conviteEnviado'), {
+        description: t('painelControle:toasts.conviteEnviadoDescricao', {
+          email: values.email,
+        }),
+      });
+
+      await dispatch(loadMembers(organizationId));
+    } catch {
+      toast.error(t('painelControle:toasts.erroEnvio'));
+    }
   }
 
   return (

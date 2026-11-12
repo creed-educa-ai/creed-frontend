@@ -700,6 +700,7 @@ export const ptBR = {
     toasts: {
       conviteEnviado: 'Convite enviado',
       conviteEnviadoDescricao: '{{email}} vai receber o convite por e-mail.',
+      erroEnvio: 'Erro ao enviar convite',
       questionarioNoAr: 'O questionário está no ar',
       questionarioNoArDescricao:
         'As respostas ficam abertas no período definido.',

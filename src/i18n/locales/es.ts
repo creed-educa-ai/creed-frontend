@@ -697,10 +697,12 @@ export const es: typeof ptBR = {
   painelControle: {
     toasts: {
       conviteEnviado: 'Invitación enviada',
-      conviteEnviadoDescricao: '{{email}} recibirá la invitación por correo.',
-      questionarioNoAr: 'El cuestionario está en línea',
+      conviteEnviadoDescricao:
+        '{{email}} recibirá la invitación por correo electrónico.',
+      erroEnvio: 'Error al enviar la invitación',
+      questionarioNoAr: 'El cuestionario está activo',
       questionarioNoArDescricao:
-        'Las respuestas quedan abiertas en el período definido.',
+        'Las respuestas están abiertas durante el período definido.',
     },
     controles: 'Controles',
     administradora: 'Administradora',

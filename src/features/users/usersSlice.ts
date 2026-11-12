@@ -3,7 +3,7 @@
 // do usersApi até o back ter as rotas.
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { usersApi } from '@/features/users/usersApi';
-import type { DepartmentType, Member, Mentee } from '@/types/api';
+import type { DepartmentType, Member, MemberInvite, Mentee } from '@/types/api';
 
 type Status = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -31,6 +31,20 @@ const initialState: UsersState = {
   mentees: { items: [], status: 'idle', error: null },
 };
 
+export const inviteMember = createAsyncThunk(
+  'users/inviteMember',
+  async ({
+    organizationId,
+    invite,
+  }: {
+    organizationId: string;
+    invite: MemberInvite;
+  }) => {
+    const response = await usersApi.inviteMember(organizationId, invite);
+    return response;
+  },
+);
+
 export const loadMembers = createAsyncThunk(
   'users/loadMembers',
   async (organizationId: string) => usersApi.listMembers(organizationId),
@@ -38,16 +52,24 @@ export const loadMembers = createAsyncThunk(
 
 export const deleteMember = createAsyncThunk(
   'users/deleteMember',
-  async (id: string) => {
-    await usersApi.removeMember(id);
+  async ({ organizationId, id }: { organizationId: string; id: string }) => {
+    await usersApi.removeMember(organizationId, id);
     return id;
   },
 );
 
 export const updateMemberTag = createAsyncThunk(
   'users/updateMemberTag',
-  async ({ id, tag }: { id: string; tag: DepartmentType | null }) => {
-    await usersApi.setMemberTag(id, tag);
+  async ({
+    organizationId,
+    id,
+    tag,
+  }: {
+    organizationId: string;
+    id: string;
+    tag: DepartmentType | null;
+  }) => {
+    await usersApi.setMemberTag(organizationId, id, tag);
     return { id, tag };
   },
 );

@@ -691,9 +691,10 @@ export const en: typeof ptBR = {
       conviteEnviado: 'Invitation sent',
       conviteEnviadoDescricao:
         '{{email}} will receive the invitation by email.',
+      erroEnvio: 'Error sending invitation',
       questionarioNoAr: 'The questionnaire is live',
       questionarioNoArDescricao:
-        'Responses are open during the period you set.',
+        'Responses remain open during the defined period.',
     },
     controles: 'Controls',
     administradora: 'Administrator',
