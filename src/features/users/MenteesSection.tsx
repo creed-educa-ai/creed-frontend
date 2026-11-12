@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/sonner';
 import { ManageQuestionnaireDialog } from '@/features/forms/ManageQuestionnaireDialog';
 import type { ManageQuestionnaireFormValues } from '@/features/forms/manageQuestionnaireSchema';
+import { usePeriod } from '@/features/forms/usePeriod';
 import { MenteesTable } from '@/features/users/MenteesTable';
 import type { MemberListItem } from '@/types/api';
 import {
@@ -32,6 +33,13 @@ export function MenteesSection() {
 
   // Mentorando cujo questionário está aberto no modal.
   const [editing, setEditing] = useState<MemberListItem | null>(null);
+  // O período é da organização da sessão (a da CREED), só para o mentorando
+  // do modal: carrega a cada abertura.
+  const period = usePeriod({
+    organizationId,
+    linkId: editing?.link_id,
+    enabled: editing !== null,
+  });
   // Por que a última exclusão falhou: aparece dentro do modal de confirmação.
   const [deleteError, setDeleteError] = useState<DeleteMenteeError | null>(
     null,
@@ -41,20 +49,21 @@ export function MenteesSection() {
     if (organizationId) void dispatch(loadMentees(organizationId));
   }, [dispatch, organizationId]);
 
-  function handleSaveQuestionnaire(
+  // O toast só depois da resposta do back. Se falhar, o erro volta para o
+  // modal, que continua aberto.
+  async function handleSaveQuestionnaire(
     mentee: MemberListItem,
     values: ManageQuestionnaireFormValues,
   ) {
-    console.log('Questionário do mentorando:', mentee.link_id, values);
-    // TODO: integração — como no painel da empresa, o back não tem onde
-    // guardar o período (`FormRead` só tem `status`). Integrado, o toast vem
-    // depois do `await` do salvamento.
+    const erro = await period.create(values);
+    if (erro) return erro;
     setEditing(null);
     toast.success(t('painelControle:toasts.questionarioNoAr'), {
       description: t('mentees:toasts.questionnaireSaved', {
         name: mentee.name,
       }),
     });
+    return null;
   }
 
   return (
@@ -111,10 +120,13 @@ export function MenteesSection() {
               setEditing(null);
             }}
             personName={editing?.name ?? ''}
-            initialPeriod={editing?.period ?? null}
-            onSave={(values) => {
-              if (editing) handleSaveQuestionnaire(editing, values);
-            }}
+            activePeriod={period.activePeriod}
+            loading={period.loading}
+            onSave={(values) =>
+              editing
+                ? handleSaveQuestionnaire(editing, values)
+                : Promise.resolve(null)
+            }
           />
         </CardContent>
       </section>

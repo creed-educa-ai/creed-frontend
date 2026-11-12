@@ -20,6 +20,9 @@ const form: FormRead = {
   name: '[Demonstração] Formulário de teste',
   organization_id: '00000000-0000-0000-0000-000000000001',
   status: 'draft',
+  opens_at: null,
+  closes_at: null,
+  link_id: null,
   created_at: '2026-09-30T18:38:18Z',
 };
 

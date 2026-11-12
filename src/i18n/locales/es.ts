@@ -749,6 +749,16 @@ export const es: typeof ptBR = {
         'La fecha de finalización no puede ser anterior a la fecha de inicio.',
       horaTerminoAntesInicio:
         'La hora de finalización debe ser posterior a la hora de inicio.',
+      periodoConflito:
+        'Ya existe un período en esas fechas. Elige fechas que no se crucen con él.',
+      periodoFalhou: 'No se pudo abrir el período. Inténtalo de nuevo.',
+      carregarPeriodo: 'No se pudo cargar el período actual.',
+    },
+    periodo: {
+      aberto: 'Período abierto',
+      agendado: 'Período programado',
+      somenteLeitura:
+        'Solo se puede programar un período nuevo cuando este termine.',
     },
   },
   adicionarMentorando: {

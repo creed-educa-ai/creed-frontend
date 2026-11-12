@@ -4,12 +4,15 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
+import { formsApi } from '@/features/forms/formsApi';
+import formsReducer from '@/features/forms/formsSlice';
 import { linksApi } from '@/features/links/linksApi';
 import { MenteesSection } from '@/features/users/MenteesSection';
 import usersReducer from '@/features/users/usersSlice';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { ApiError } from '@/lib/apiClient';
-import type { MemberListItem } from '@/types/api';
+import { formatISO } from 'date-fns';
+import type { FormRead, MemberListItem, PeriodRead } from '@/types/api';
 
 const ORGANIZATION_ID = '8f14e45f-ceea-467e-adde-3f81905dbc1c';
 
@@ -34,7 +37,11 @@ const comPeriodo: MemberListItem = {
 
 function renderizar(organizationId: string | null = ORGANIZATION_ID) {
   const store = configureStore({
-    reducer: { authentication: authenticationReducer, users: usersReducer },
+    reducer: {
+      authentication: authenticationReducer,
+      forms: formsReducer,
+      users: usersReducer,
+    },
     preloadedState: {
       authentication: {
         user: {
@@ -99,40 +106,168 @@ describe('MenteesSection', () => {
     );
   });
 
-  it('Editar abre o questionário já com o período do mentorando', async () => {
-    vi.spyOn(linksApi, 'listMembers').mockResolvedValue([comPeriodo]);
-    const consoleSpy = vi
-      .spyOn(console, 'log')
-      .mockImplementation(() => undefined);
-    const user = userEvent.setup();
-    renderizar();
-    await screen.findByRole('table', { hidden: true });
+  // Dado sintético, no formato do `GET /organizations/{id}/periods?link_id=`.
+  const periodoAgendado: PeriodRead = {
+    id: '5b1f0a7e-4c2d-4f7a-9d3e-2a6b8c0d1e2f',
+    name: 'Questionário 2099-01-17 a 2099-01-20',
+    organization_id: ORGANIZATION_ID,
+    status: 'draft',
+    opens_at: new Date(2099, 0, 17, 15, 45).toISOString(),
+    closes_at: new Date(2099, 0, 20, 18, 30).toISOString(),
+    link_id: comPeriodo.link_id,
+    created_at: '2026-01-01T00:00:00Z',
+    period_status: 'scheduled',
+  };
 
+  async function abrirQuestionario(user: ReturnType<typeof userEvent.setup>) {
+    await screen.findByRole('table', { hidden: true });
     // Tabela e cartões do celular estão os dois no DOM: o primeiro basta.
     const [editar] = screen.getAllByRole('button', {
       name: 'Editar questionário de Enner Valência',
     });
     if (!editar) throw new Error('botão Editar não encontrado');
     await user.click(editar);
+  }
+
+  it('Editar abre o questionário com o período agendado do mentorando, só para leitura', async () => {
+    vi.spyOn(linksApi, 'listMembers').mockResolvedValue([comPeriodo]);
+    const listPeriods = vi
+      .spyOn(formsApi, 'listPeriods')
+      .mockResolvedValue([periodoAgendado]);
+    const user = userEvent.setup();
+    renderizar();
+
+    await abrirQuestionario(user);
 
     expect(
       screen.getByRole('heading', { name: 'Questionário de Enner Valência' }),
     ).toBeInTheDocument();
-
-    // Confirmar sem mexer em nada salva o período que veio na linha.
-    await user.click(
-      screen.getByRole('button', { name: i18n.t('painelControle:confirmar') }),
-    );
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Questionário do mentorando:',
+    expect(
+      await screen.findByText(i18n.t('painelControle:periodo.agendado')),
+    ).toBeInTheDocument();
+    expect(screen.getByText('17/01/2099')).toBeInTheDocument();
+    expect(screen.getByText('20/01/2099')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', {
+        name: i18n.t('painelControle:confirmar'),
+      }),
+    ).not.toBeInTheDocument();
+    // Na organização da sessão (a da CREED), só os períodos dele.
+    expect(listPeriods).toHaveBeenCalledWith(
+      ORGANIZATION_ID,
       comPeriodo.link_id,
-      {
-        dataInicio: '2099-01-17',
-        horaInicio: '15:45',
-        dataLimite: '2099-01-20',
-        horaLimite: '18:30',
-      },
     );
+  });
+
+  // Escolhe 17/01 às 15h45 a 20/01 às 18h30 do mês que o calendário abre.
+  async function preencherPeriodo(user: ReturnType<typeof userEvent.setup>) {
+    const coluna = (rotulo: string) => {
+      const elemento = screen.getByText(rotulo).parentElement;
+      if (!elemento) throw new Error(`Coluna "${rotulo}" não encontrada`);
+      return elemento;
+    };
+    const escolher = async (
+      rotulo: string,
+      dia: number,
+      h: string,
+      m: string,
+    ) => {
+      const col = coluna(rotulo);
+      await user.click(
+        within(col).getByRole('button', {
+          name: i18n.t('painelControle:selecionarData'),
+        }),
+      );
+      const botaoDia = screen.getByText(String(dia)).closest('button');
+      if (!botaoDia) throw new Error(`Dia ${String(dia)} não encontrado`);
+      await user.click(botaoDia);
+      await user.click(
+        within(coluna(rotulo)).getByRole('button', {
+          name: i18n.t('painelControle:selecionarHora'),
+        }),
+      );
+      await user.click(screen.getByRole('button', { name: `${h}h` }));
+      await user.click(screen.getByRole('button', { name: m }));
+    };
+    await escolher(i18n.t('painelControle:inicio'), 17, '15', '45');
+    await escolher(i18n.t('painelControle:termino'), 20, '18', '30');
+  }
+
+  describe('abrindo um período', () => {
+    // "Hoje" fixo: sábado, 10/01/2026. Só o Date é falso.
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date(2026, 0, 10, 10, 0));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('grava no back com o link_id do mentorando e fecha o modal', async () => {
+      vi.spyOn(linksApi, 'listMembers').mockResolvedValue([comPeriodo]);
+      vi.spyOn(formsApi, 'listPeriods').mockResolvedValue([]);
+      const createPeriod = vi
+        .spyOn(formsApi, 'createPeriod')
+        .mockResolvedValue({} as FormRead);
+      const user = userEvent.setup();
+      renderizar();
+
+      await abrirQuestionario(user);
+      await screen.findByRole('button', {
+        name: i18n.t('painelControle:confirmar'),
+      });
+      await preencherPeriodo(user);
+      await user.click(
+        screen.getByRole('button', {
+          name: i18n.t('painelControle:confirmar'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.queryByRole('heading', {
+            name: 'Questionário de Enner Valência',
+          }),
+        ).not.toBeInTheDocument();
+      });
+      expect(createPeriod).toHaveBeenCalledWith(ORGANIZATION_ID, {
+        opens_at: formatISO(new Date(2026, 0, 17, 15, 45)),
+        closes_at: formatISO(new Date(2026, 0, 20, 18, 30)),
+        link_id: comPeriodo.link_id,
+      });
+    });
+
+    it('período sobreposto mostra a mensagem de conflito, com o modal aberto', async () => {
+      vi.spyOn(linksApi, 'listMembers').mockResolvedValue([comPeriodo]);
+      vi.spyOn(formsApi, 'listPeriods').mockResolvedValue([]);
+      vi.spyOn(formsApi, 'createPeriod').mockRejectedValue(
+        new ApiError(
+          'Já existe período para este público nesse intervalo',
+          409,
+        ),
+      );
+      const user = userEvent.setup();
+      renderizar();
+
+      await abrirQuestionario(user);
+      await screen.findByRole('button', {
+        name: i18n.t('painelControle:confirmar'),
+      });
+      await preencherPeriodo(user);
+      await user.click(
+        screen.getByRole('button', {
+          name: i18n.t('painelControle:confirmar'),
+        }),
+      );
+
+      expect(
+        await screen.findByText(i18n.t('painelControle:erros.periodoConflito')),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Questionário de Enner Valência' }),
+      ).toBeInTheDocument();
+    });
   });
 
   async function pedirExclusao(user: ReturnType<typeof userEvent.setup>) {
