@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
+import { useAppDispatch } from '@/app/hooks';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/pageHeader';
+import { loadMyDemographics } from '@/features/demographics/demographicsSlice';
 import { InfoModal } from '@/features/responses/InfoModal';
 import { screenEnterClassName } from '@/lib/animations';
 import { cn } from '@/lib/utils';
@@ -12,6 +14,7 @@ export function QuestionnaireOnboardingView() {
   const { t } = useTranslation(['onboardQuestionario']);
   const [infoOpen, setInfoOpen] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   return (
     // isolate: a camada do fundo (-z-10) fica atrás do conteúdo, mas dentro
@@ -74,8 +77,12 @@ export function QuestionnaireOnboardingView() {
       <InfoModal
         open={infoOpen}
         onOpenChange={setInfoOpen}
+        // Revisar: busca no back o que está gravado e abre as telas de
+        // demográficos já preenchidas. `review` é o que diz ao fluxo para não
+        // pular as telas de quem já tem perfil; no fim, ele volta para cá.
         onReview={() => {
-          navigate('/demographics/step-1');
+          void dispatch(loadMyDemographics());
+          navigate('/demographics/step-2', { state: { review: true } });
         }}
         onStart={() => {
           navigate('/questionnaire/questions');

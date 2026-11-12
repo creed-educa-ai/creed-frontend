@@ -1,6 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
+import {
+  Link,
+  MemoryRouter,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
@@ -17,6 +23,19 @@ const usuario: UserSessionResponse = {
   organization_id: null,
   organization_name: null,
 };
+
+// Marcador da primeira etapa do onboarding. Mostra a origem que a guarda
+// manda no `state`: é com ela que o fluxo devolve à rota certa quem já tem
+// perfil no back.
+function PrimeiraEtapa() {
+  const { from } = useLocation().state as { from: string };
+  return (
+    <>
+      <Link to="/respondentes">primeira etapa</Link>
+      <p>veio de {from}</p>
+    </>
+  );
+}
 
 // Store isolada, já com o usuário logado — ver
 // creed-ai-context/conventions/camadas-do-front.md § "Testando View
@@ -40,10 +59,7 @@ function renderizarLogado() {
         <Routes>
           <Route path="/login" element={<p>tela de login</p>} />
           <Route element={<ProtectedRoute />}>
-            <Route
-              path="/demographics/step-1"
-              element={<Link to="/respondentes">etapa 1</Link>}
-            />
+            <Route path="/demographics/step-2" element={<PrimeiraEtapa />} />
             <Route path="/respondentes" element={<p>área logada</p>} />
           </Route>
         </Routes>
@@ -71,15 +87,25 @@ describe('ProtectedRoute — termo de consentimento', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
 
-    expect(await screen.findByText('etapa 1')).toBeInTheDocument();
+    expect(await screen.findByText('primeira etapa')).toBeInTheDocument();
     expect(screen.queryByRole('alertdialog')).toBeNull();
+  });
+
+  it('avisa ao onboarding de onde a pessoa veio', async () => {
+    renderizarLogado();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
+
+    expect(
+      await screen.findByText('veio de /respondentes'),
+    ).toBeInTheDocument();
   });
 
   it('não pergunta de novo ao navegar entre as telas logadas', async () => {
     renderizarLogado();
 
     await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
-    await userEvent.click(await screen.findByText('etapa 1'));
+    await userEvent.click(await screen.findByText('primeira etapa'));
 
     expect(await screen.findByText('área logada')).toBeInTheDocument();
     expect(screen.queryByRole('alertdialog')).toBeNull();
@@ -89,7 +115,7 @@ describe('ProtectedRoute — termo de consentimento', () => {
     const { unmount } = renderizarLogado();
 
     await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
-    expect(await screen.findByText('etapa 1')).toBeInTheDocument();
+    expect(await screen.findByText('primeira etapa')).toBeInTheDocument();
 
     // Próximo acesso do mesmo usuário: vai direto para a área logada, sem
     // termo e sem passar pelos demográficos de novo.
