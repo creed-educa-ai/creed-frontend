@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  INVITE_EMAIL_TAKEN,
+  INVITE_FAILED,
   MEMBER_ROLES,
   addMemberSchema,
   type AddMemberValues,
@@ -25,7 +27,8 @@ import {
 
 interface AddMemberFormProps {
   // Quem usa o componente decide o que fazer com os dados (chamar a API, por
-  // exemplo). O formulário só valida e entrega.
+  // exemplo). O formulário só valida e entrega. Se a promessa for rejeitada
+  // com um erro do convite (`InviteError`), ele aparece no lugar certo.
   onSubmit: (values: AddMemberValues) => void | Promise<void>;
   // Sem o seletor de função (painel do admin, para mentorandos): a função fica
   // `respondente`, o padrão, e os campos e o Adicionar ficam numa linha só.
@@ -42,6 +45,7 @@ export function AddMemberForm({
     handleSubmit,
     control,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<AddMemberValues>({
     resolver: zodResolver(addMemberSchema),
@@ -52,9 +56,15 @@ export function AddMemberForm({
     try {
       await onSubmit(values);
       reset();
-    } catch {
-      // O erro é de quem passou o `onSubmit`. Aqui só mantemos o que foi
-      // digitado para a pessoa tentar de novo.
+    } catch (erro) {
+      // O que foi digitado fica, para a pessoa tentar de novo. Erro do
+      // convite vai para o campo e-mail (409) ou para o formulário (o resto),
+      // e não vira toast (formularios.md, regra 7).
+      if (erro === INVITE_EMAIL_TAKEN) {
+        setError('email', { message: INVITE_EMAIL_TAKEN });
+      } else if (erro === INVITE_FAILED) {
+        setError('root', { message: INVITE_FAILED });
+      }
     }
   }
 
@@ -167,6 +177,13 @@ export function AddMemberForm({
           {t('organizations:addMember.submit')}
         </Button>
       </div>
+
+      {/* Erro que não é de um campo (o convite não saiu): abaixo de tudo, na
+          largura toda. */}
+      <FieldError
+        className={cn(!withRole && 'md:col-span-3')}
+        errors={[translateError(errors.root?.message)]}
+      />
     </form>
   );
 }

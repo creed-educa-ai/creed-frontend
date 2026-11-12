@@ -423,7 +423,6 @@ export const ptBR = {
       email: 'Email',
       questionnaire: 'Questionário',
       results: 'Resultados',
-      status: 'Status',
       delete: 'Excluir',
     },
     actions: {
@@ -434,13 +433,16 @@ export const ptBR = {
       viewResultsFor: 'Ver resultados de {{name}}',
       deleteFor: 'Excluir {{name}}',
     },
-    status: { active: 'Ativo', inactive: 'Inativo' },
     empty: 'Nenhum mentorando cadastrado ainda.',
     noResults: 'Nenhum mentorando encontrado para essa pesquisa.',
     confirmDelete: {
       title: 'Excluir mentorando?',
-      description: 'Tem certeza de que deseja excluir {{name}}?',
+      description:
+        '{{name}} e todos os seus resultados serão apagados para sempre. Esta ação não pode ser desfeita.',
       confirm: 'Excluir',
+    },
+    errors: {
+      deleteUnavailable: 'Não foi possível excluir agora. Tente de novo.',
     },
   },
   termo: {
@@ -646,6 +648,8 @@ export const ptBR = {
     errors: {
       invalidName: 'Digite um nome de 2 a 200 caracteres.',
       invalidEmail: 'Digite um e-mail válido.',
+      emailTaken: 'Este e-mail já tem acesso à plataforma.',
+      inviteFailed: 'Não foi possível enviar o convite. Tente de novo.',
     },
   },
   aceite: {

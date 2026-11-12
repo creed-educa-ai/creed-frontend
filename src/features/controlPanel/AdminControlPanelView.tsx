@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { PageHeader } from '@/components/layout/pageHeader';
 import { pageGutterClassName } from '@/lib/layout';
 import { screenEnterClassName } from '@/lib/animations';
@@ -9,6 +10,7 @@ import { MenteesSection } from '@/features/users/MenteesSection';
 import { CompaniesSection } from '@/features/organizations/CompaniesSection';
 import { AddMemberForm } from '@/features/users/AddMemberForm';
 import type { AddMemberValues } from '@/features/users/addMemberSchema';
+import { inviteMentee, loadMentees } from '@/features/users/usersSlice';
 import { Card, CardContent } from '@/components/ui/card';
 import { cardTitleClassName } from '@/lib/typography';
 
@@ -16,15 +18,21 @@ import { cardTitleClassName } from '@/lib/typography';
 // acompanhar empresas e mentorandos.
 export function AdminControlPanelView() {
   const { t } = useTranslation(['painelControle', 'adicionarMentorando']);
+  const dispatch = useAppDispatch();
+  // A organização da sessão é a da CREED (P-048): é nela que o mentorando
+  // entra, com vínculo `mentoria`.
+  const organizationId = useAppSelector(
+    (state) => state.authentication.user?.organization_id ?? null,
+  );
 
-  // Sem o seletor de função, `role` chega sempre `respondente`, o papel do
-  // mentorando no convite.
-  function handleAdicionar(values: AddMemberValues) {
-    console.log('Mentorando adicionado:', values);
-    // TODO: integração — `usersApi.inviteMember(<id da organização CREED>,
-    // { name, email, role: 'respondente', type: 'mentoria' })`. Falta à tela
-    // o id da organização CREED.
-    // Integrado, o toast vem depois do `await` do convite.
+  // Se o convite falhar, o `unwrap` rejeita com a chave do erro, e o
+  // formulário a mostra no campo ou embaixo dele. O toast e a recarga da
+  // tabela só vêm depois que o back respondeu 201.
+  async function handleAdicionar(values: AddMemberValues) {
+    await dispatch(
+      inviteMentee({ organizationId, name: values.name, email: values.email }),
+    ).unwrap();
+    if (organizationId) void dispatch(loadMentees(organizationId));
     toast.success(t('painelControle:toasts.conviteEnviado'), {
       description: t('painelControle:toasts.conviteEnviadoDescricao', {
         email: values.email,

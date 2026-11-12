@@ -145,6 +145,37 @@ export interface LinkResponse {
   updated_at: string | null;
 }
 
+// Situação do período em relação ao momento da consulta. O enum mora em
+// `app/domains/forms/schemas.py`; aqui fica junto do `MemberPeriod`, que é
+// quem o usa por enquanto.
+export type PeriodStatus = 'past' | 'open' | 'scheduled';
+
+// O período de um membro, escolhido pelo back (P-068): o aberto, senão o
+// próximo agendado, senão o último que passou.
+export interface MemberPeriod {
+  form_id: string;
+  opens_at: string;
+  closes_at: string;
+  period_status: PeriodStatus;
+  // Só resposta enviada conta (P-069).
+  has_answered: boolean;
+}
+
+// `GET /organizations/{organization_id}/members` — a lista inteira, sem
+// paginação, em ordem de nome (P-070). `?type=` filtra pelo tipo do vínculo.
+export interface MemberListItem {
+  link_id: string;
+  name: string;
+  // Nulo quando o vínculo foi criado sem convite (sem login).
+  email: string | null;
+  role: Role;
+  type: LinkType;
+  department: DepartmentType | null;
+  updated_at: string | null;
+  // Nulo quando a pessoa não tem nenhum período.
+  period: MemberPeriod | null;
+}
+
 // ---------------------------------------------------------------------------
 // participants
 // ---------------------------------------------------------------------------
@@ -527,17 +558,4 @@ export interface Member {
 
 export interface MemberList extends ListaPaginada<Member> {
   organization: string;
-}
-
-// Mentorando, na tabela do painel do super adm. No back seria um participante
-// com vínculo `mentoria`; falta a rota que liste, e `hasAnsweredCurrent` não
-// existe em lugar nenhum.
-export interface Mentee {
-  id: string;
-  name: string;
-  email: string;
-  status: RecordStatus;
-  // Já respondeu o questionário atual? Enquanto não, "Ver Resultados" fica
-  // desabilitado ("Editar" não: é por ele que se cria o questionário).
-  hasAnsweredCurrent: boolean;
 }

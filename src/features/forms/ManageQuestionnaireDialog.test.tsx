@@ -3,8 +3,11 @@ import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ManageQuestionnaireDialog } from '@/features/forms/ManageQuestionnaireDialog';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+import type { MemberPeriod } from '@/types/api';
 
-function renderizar() {
+function renderizar(
+  initialPeriod?: Pick<MemberPeriod, 'opens_at' | 'closes_at'> | null,
+) {
   const onClose = vi.fn();
   const onSave = vi.fn();
   render(
@@ -13,6 +16,7 @@ function renderizar() {
       onClose={onClose}
       personName="Ana Souza"
       onSave={onSave}
+      initialPeriod={initialPeriod ?? null}
     />,
   );
   return { onClose, onSave };
@@ -108,6 +112,25 @@ describe('ManageQuestionnaireDialog', () => {
       dataInicio: '2026-01-17',
       horaInicio: '15:45',
       dataLimite: '2026-01-17',
+      horaLimite: '18:30',
+    });
+  });
+
+  it('abre com o período que a pessoa já tem, em data e hora locais', async () => {
+    const user = userEvent.setup();
+    // Datas montadas no fuso local: o back manda ISO com fuso, e o diálogo
+    // mostra no fuso de quem está vendo.
+    const { onSave } = renderizar({
+      opens_at: new Date(2026, 0, 17, 15, 45).toISOString(),
+      closes_at: new Date(2026, 0, 20, 18, 30).toISOString(),
+    });
+
+    await user.click(botaoConfirmar());
+
+    expect(onSave).toHaveBeenCalledWith({
+      dataInicio: '2026-01-17',
+      horaInicio: '15:45',
+      dataLimite: '2026-01-20',
       horaLimite: '18:30',
     });
   });

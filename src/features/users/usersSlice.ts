@@ -1,9 +1,16 @@
 // Slice Redux da feature users (RTK): os membros da organização (painel da
-// empresa) e os mentorandos (painel do super adm). As duas listas vêm do mock
-// do usersApi até o back ter as rotas.
+// empresa) e os mentorandos (painel do super adm). Os membros ainda vêm do
+// mock do usersApi (C-2); os mentorandos já vêm do back, pelo linksApi (M-4).
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { linksApi } from '@/features/links/linksApi';
+import {
+  INVITE_EMAIL_TAKEN,
+  INVITE_FAILED,
+  type InviteError,
+} from '@/features/users/addMemberSchema';
 import { usersApi } from '@/features/users/usersApi';
-import type { DepartmentType, Member, Mentee } from '@/types/api';
+import { ApiError } from '@/lib/apiClient';
+import type { DepartmentType, Member, MemberListItem } from '@/types/api';
 
 type Status = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -16,7 +23,7 @@ interface UsersState {
   error: 'organizations:members.loadError' | null;
   // Lista à parte: outra tela, outro momento de carga.
   mentees: {
-    items: Mentee[];
+    items: MemberListItem[];
     status: Status;
     error: 'mentees:loadError' | null;
   };
@@ -51,15 +58,67 @@ export const updateMemberTag = createAsyncThunk(
   },
 );
 
-export const loadMentees = createAsyncThunk('users/loadMentees', async () =>
-  usersApi.listMentees(),
+// Mentorando é o vínculo `mentoria` na organização de quem pede (a da CREED,
+// para a administradora). A ordem por nome já vem do back (P-070).
+export const loadMentees = createAsyncThunk(
+  'users/loadMentees',
+  async (organizationId: string) =>
+    linksApi.listMembers(organizationId, 'mentoria'),
 );
 
-export const deleteMentee = createAsyncThunk(
+/** O que a tela mostra, dentro do modal, quando a exclusão falha. */
+export type DeleteMenteeError =
+  'mentees:errors.deleteUnavailable' | 'comum:tabela.erroExcluir';
+
+// > 🟡 Premissa P-083 — 404 é "já não existe": conta como excluído, e a linha
+// > sai. 503 é o Keycloak fora do ar, com nada apagado no back (P-073): "tente
+// > de novo". O resto (403, 409) é a mensagem genérica do modal.
+export const deleteMentee = createAsyncThunk<
+  string,
+  { organizationId: string; linkId: string },
+  { rejectValue: DeleteMenteeError }
+>(
   'users/deleteMentee',
-  async (id: string) => {
-    await usersApi.removeMentee(id);
-    return id;
+  async ({ organizationId, linkId }, { rejectWithValue }) => {
+    try {
+      await linksApi.deleteMember(organizationId, linkId);
+    } catch (erro) {
+      if (erro instanceof ApiError && erro.status === 404) return linkId;
+      if (erro instanceof ApiError && erro.status === 503) {
+        return rejectWithValue('mentees:errors.deleteUnavailable');
+      }
+      return rejectWithValue('comum:tabela.erroExcluir');
+    }
+    return linkId;
+  },
+);
+
+// Convida o mentorando: vínculo `mentoria`, papel `respondente`, na
+// organização de quem pede (a da CREED). Sem `type`, o back gravaria
+// `emprego` (P-047). Recarregar a tabela não é daqui: é da tela, depois do
+// convite (um thunk, uma responsabilidade).
+export const inviteMentee = createAsyncThunk<
+  undefined,
+  { organizationId: string | null; name: string; email: string },
+  { rejectValue: InviteError }
+>(
+  'users/inviteMentee',
+  async ({ organizationId, name, email }, { rejectWithValue }) => {
+    // Sem organização na sessão não há onde convidar.
+    if (!organizationId) return rejectWithValue(INVITE_FAILED);
+    try {
+      await usersApi.inviteMember(organizationId, {
+        name,
+        email,
+        role: 'respondente',
+        type: 'mentoria',
+      });
+    } catch (erro) {
+      if (erro instanceof ApiError && erro.status === 409) {
+        return rejectWithValue(INVITE_EMAIL_TAKEN);
+      }
+      return rejectWithValue(INVITE_FAILED);
+    }
   },
 );
 
@@ -110,7 +169,7 @@ const usersSlice = createSlice({
       })
       .addCase(deleteMentee.fulfilled, (state, action) => {
         state.mentees.items = state.mentees.items.filter(
-          (mentee) => mentee.id !== action.payload,
+          (mentee) => mentee.link_id !== action.payload,
         );
       });
   },

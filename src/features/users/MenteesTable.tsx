@@ -7,7 +7,6 @@ import { TableFooter } from '@/components/table/tableFooter';
 import {
   RowActionButton,
   DeleteRowButton,
-  StatusPill,
 } from '@/components/table/tablePills';
 import {
   tableHeadClass,
@@ -27,23 +26,26 @@ import { useRowSelection } from '@/hooks/useRowSelection';
 import { useTablePage } from '@/hooks/useTablePage';
 import { useTableSort } from '@/hooks/useTableSort';
 import { cn, normalizeForSearch } from '@/lib/utils';
-import type { Mentee } from '@/types/api';
+import type { MemberListItem } from '@/types/api';
 import { EmptyState } from '@/components/states/EmptyState';
 
-// > 🟡 Premissa — o Figma da tabela de mentorandos só mostra "Ativo".
-// > "Inativo" segue o `RecordStatus` do backend (`active` e `inactive`).
-// > 🟡 Premissa P-064 — `hasAnsweredCurrent` desabilita só "Ver Resultados":
-// > sem resposta não há resultado. "Editar" fica sempre habilitado, porque é
-// > por ele que a super adm cria o questionário de quem ainda não tem (a spec
-// > e o Figma desabilitavam "Editar"). Confirmar na reunião.
+// Cada linha é um vínculo `mentoria` (`MemberListItem`, da M-2). Sem coluna
+// de status: o que importa é a pessoa estar cadastrada na CREED (CREED-69).
+// > 🟡 Premissa P-064 — só "Ver Resultados" depende de a pessoa já ter
+// > respondido (`period.has_answered`): sem resposta não há resultado.
+// > "Editar" fica sempre habilitado, porque é por ele que a super adm cria o
+// > questionário de quem ainda não tem. Confirmar na reunião.
 
 interface MenteesTableProps {
-  mentees: Mentee[];
-  onViewResults: (mentee: Mentee) => void;
-  onEditQuestionnaire: (mentee: Mentee) => void;
+  mentees: MemberListItem[];
+  onViewResults: (mentee: MemberListItem) => void;
+  onEditQuestionnaire: (mentee: MemberListItem) => void;
   // Pode devolver uma promessa: o diálogo espera por ela para fechar. Se for
   // rejeitada, o diálogo continua aberto para tentar de novo.
-  onDelete: (mentee: Mentee) => void | Promise<void>;
+  onDelete: (mentee: MemberListItem) => void | Promise<void>;
+  // O que o modal mostra quando `onDelete` é rejeitado. Sem ela, a mensagem
+  // genérica de exclusão.
+  deleteErrorMessage?: string | null;
   // Caixas de seleção na primeira coluna. Desligadas por padrão: nenhuma ação
   // usa a seleção ainda.
   // > 🟡 Premissa — o Figma tem as caixas (exportar resultados no futuro), mas
@@ -51,39 +53,20 @@ interface MenteesTableProps {
   selectable?: boolean;
 }
 
-// Cor cheia e texto branco nos dois status, como no mockup. Contraste abaixo do
-// mínimo AA (4,5:1): ~3:1 no verde e ~4,2:1 no vermelho. Desvio a validar
-// com o supervisor.
-// > 🟡 Premissa — "Inativo" não aparece no mockup; assumimos vermelho cheio com
-// > texto branco.
-function StatusBadge({ status }: { status: Mentee['status'] }) {
-  const { t } = useTranslation(['mentees']);
-  return (
-    <StatusPill tone={status === 'active' ? 'success' : 'destructive'}>
-      {t(`mentees:status.${status}`)}
-    </StatusPill>
-  );
-}
-
-// Ordem do status no crescente.
-// > 🟡 Premissa — "Ativo" antes de "Inativo", não a ordem alfabética do
-// > rótulo, que muda com o idioma.
-const STATUS_ORDER: Record<Mentee['status'], number> = {
-  active: 0,
-  inactive: 1,
-};
-
 export function MenteesTable({
   mentees,
   onViewResults,
   onEditQuestionnaire,
   onDelete,
+  deleteErrorMessage = null,
   selectable = false,
 }: MenteesTableProps) {
   const { t, i18n } = useTranslation(['mentees', 'comum']);
   const [nameQuery, setNameQuery] = useState('');
   const [emailQuery, setEmailQuery] = useState('');
-  const [menteeToDelete, setMenteeToDelete] = useState<Mentee | null>(null);
+  const [menteeToDelete, setMenteeToDelete] = useState<MemberListItem | null>(
+    null,
+  );
   // Linhas marcadas na tabela. Por ora só marca e desmarca: nada sai do
   // componente e nenhuma ação usa a seleção.
   // > 🟡 Premissa — o mockup tem caixas de seleção para exportar resultados no
@@ -91,33 +74,29 @@ export function MenteesTable({
   // > sem prop de saída, e os cartões (celular) não têm caixa.
   const selection = useRowSelection();
 
-  const {
-    sorting,
-    toggle: toggleSort,
-    directionOf,
-  } = useTableSort<'name' | 'status'>();
+  const { sorting, toggle: toggleSort, directionOf } = useTableSort<'name'>();
 
-  // As duas buscas valem juntas: a linha precisa bater com as duas.
+  // As duas buscas valem juntas: a linha precisa bater com as duas. Vínculo
+  // sem login não tem e-mail: conta como texto vazio.
   const visible = mentees.filter(
     (mentee) =>
       normalizeForSearch(mentee.name).includes(normalizeForSearch(nameQuery)) &&
-      normalizeForSearch(mentee.email).includes(normalizeForSearch(emailQuery)),
+      normalizeForSearch(mentee.email ?? '').includes(
+        normalizeForSearch(emailQuery),
+      ),
   );
   if (sorting) {
     visible.sort((a, b) => {
-      const cmp =
-        sorting.column === 'status'
-          ? STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
-          : a.name.localeCompare(b.name, i18n.resolvedLanguage, {
-              sensitivity: 'base',
-            });
+      const cmp = a.name.localeCompare(b.name, i18n.resolvedLanguage, {
+        sensitivity: 'base',
+      });
       return sorting.direction === 'asc' ? cmp : -cmp;
     });
   }
   const pagination = useTablePage(visible);
   const pageMentees = pagination.pageItems;
 
-  const pageIds = pageMentees.map((mentee) => mentee.id);
+  const pageIds = pageMentees.map((mentee) => mentee.link_id);
   const selectedOnPage = pageIds.filter((id) => selection.isSelected(id));
   const allPageSelected =
     pageIds.length > 0 && selectedOnPage.length === pageIds.length;
@@ -125,7 +104,7 @@ export function MenteesTable({
   // Os mesmos três botões aparecem na tabela e nos cartões do celular. No
   // celular têm 40px de altura (alvo de toque); da tabela em diante (md),
   // ficam compactos, como no mockup.
-  function editButton(mentee: Mentee) {
+  function editButton(mentee: MemberListItem) {
     return (
       <RowActionButton
         className="h-10 px-4 md:h-7 md:px-3"
@@ -139,11 +118,11 @@ export function MenteesTable({
     );
   }
 
-  function resultsButton(mentee: Mentee) {
+  function resultsButton(mentee: MemberListItem) {
     return (
       <RowActionButton
         className="h-10 px-4 md:h-7 md:px-3"
-        disabled={!mentee.hasAnsweredCurrent}
+        disabled={mentee.period?.has_answered !== true}
         aria-label={t('mentees:actions.viewResultsFor', { name: mentee.name })}
         onClick={() => {
           onViewResults(mentee);
@@ -154,7 +133,7 @@ export function MenteesTable({
     );
   }
 
-  function deleteButton(mentee: Mentee) {
+  function deleteButton(mentee: MemberListItem) {
     return (
       <DeleteRowButton
         className="size-10 md:size-8"
@@ -237,16 +216,6 @@ export function MenteesTable({
                       <TableHead className={cn(tableHeadClass, 'text-center')}>
                         {t('mentees:columns.results')}
                       </TableHead>
-                      <SortableHead
-                        className="text-center"
-                        label={t('mentees:columns.status')}
-                        ariaLabel={t('comum:tabela.ordenarPorStatus')}
-                        direction={directionOf('status')}
-                        onToggle={() => {
-                          pagination.reset();
-                          toggleSort('status');
-                        }}
-                      />
                       <TableHead className={tableHeadDangerClass}>
                         {t('mentees:columns.delete')}
                       </TableHead>
@@ -254,16 +223,19 @@ export function MenteesTable({
                   </TableHeader>
                   <TableBody>
                     {pageMentees.map((mentee) => (
-                      <TableRow key={mentee.id}>
+                      <TableRow key={mentee.link_id}>
                         {selectable && (
                           <TableCell>
                             <Checkbox
                               aria-label={t('mentees:select.row', {
                                 name: mentee.name,
                               })}
-                              checked={selection.isSelected(mentee.id)}
+                              checked={selection.isSelected(mentee.link_id)}
                               onCheckedChange={(checked) => {
-                                selection.toggle([mentee.id], checked === true);
+                                selection.toggle(
+                                  [mentee.link_id],
+                                  checked === true,
+                                );
                               }}
                             />
                           </TableCell>
@@ -272,16 +244,13 @@ export function MenteesTable({
                           {mentee.name}
                         </TableCell>
                         <TableCell
-                          title={mentee.email}
+                          title={mentee.email ?? undefined}
                           className="max-w-[220px] truncate text-muted-foreground 2xl:max-w-[160px]"
                         >
                           {mentee.email}
                         </TableCell>
                         <CenterCell>{editButton(mentee)}</CenterCell>
                         <CenterCell>{resultsButton(mentee)}</CenterCell>
-                        <CenterCell>
-                          <StatusBadge status={mentee.status} />
-                        </CenterCell>
                         <CenterCell>{deleteButton(mentee)}</CenterCell>
                       </TableRow>
                     ))}
@@ -292,19 +261,16 @@ export function MenteesTable({
               <ul className="grid gap-3 md:hidden">
                 {pageMentees.map((mentee) => (
                   <li
-                    key={mentee.id}
+                    key={mentee.link_id}
                     className="min-w-0 rounded-lg border border-border bg-card p-4"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium break-words text-foreground">
-                          {mentee.name}
-                        </p>
-                        <p className="text-sm break-all text-muted-foreground">
-                          {mentee.email}
-                        </p>
-                      </div>
-                      <StatusBadge status={mentee.status} />
+                    <div className="min-w-0">
+                      <p className="font-medium break-words text-foreground">
+                        {mentee.name}
+                      </p>
+                      <p className="text-sm break-all text-muted-foreground">
+                        {mentee.email}
+                      </p>
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {editButton(mentee)}
@@ -334,10 +300,11 @@ export function MenteesTable({
         description={t('mentees:confirmDelete.description', {
           name: menteeToDelete?.name ?? '',
         })}
+        errorMessage={deleteErrorMessage}
         onConfirm={async () => {
           if (!menteeToDelete) return;
           await onDelete(menteeToDelete);
-          selection.remove(menteeToDelete.id);
+          selection.remove(menteeToDelete.link_id);
         }}
         onClose={() => {
           setMenteeToDelete(null);

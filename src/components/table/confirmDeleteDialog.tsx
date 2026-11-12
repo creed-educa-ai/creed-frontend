@@ -16,8 +16,8 @@ interface ConfirmDeleteDialogProps {
   open: boolean;
   title: string;
   description: string;
-  // Mensagem se a exclusão falhar; o padrão é genérico.
-  errorMessage?: string;
+  // Mensagem se a exclusão falhar; sem ela (ou nula), a genérica.
+  errorMessage?: string | null;
   // Pode devolver uma promessa: o diálogo espera por ela para fechar. Se for
   // rejeitada, mostra o erro e continua aberto para tentar de novo.
   onConfirm: () => void | Promise<void>;
