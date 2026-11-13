@@ -284,6 +284,7 @@ export interface DemographicCreate {
   brazil_state?: BrazilState | null;
   portugal_region?: PortugalRegion | null;
   other_nationality?: string | null;
+  perspective?: string | null;
 }
 
 export interface DemographicResponse {
@@ -297,6 +298,7 @@ export interface DemographicResponse {
   brazil_state: BrazilState | null;
   portugal_region: PortugalRegion | null;
   other_nationality: string | null;
+  perspective: string | null;
   created_at: string;
   updated_at: string | null;
 }

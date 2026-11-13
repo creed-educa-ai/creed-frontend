@@ -1,16 +1,23 @@
-import { describe, expect, it, beforeEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
+import { demographicsApi } from '@/features/demographics/demographicsApi';
+import demographicsReducer from '@/features/demographics/demographicsSlice';
+import { ApiError } from '@/lib/apiClient';
 import { QuestionnaireOnboardingView } from './QuestionnaireOnboardingView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
 describe('QuestionnaireOnboardingView', () => {
   beforeEach(async () => {
     await i18n.changeLanguage(IDIOMA_PADRAO);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   // O menu do topo lê o papel na sessão; vazia, ele mostra o de respondente.
@@ -106,6 +113,45 @@ describe('QuestionnaireOnboardingView', () => {
     );
 
     expect(await screen.findByText('questionário')).toBeInTheDocument();
+  });
+
+  // Marcador da etapa de perfil: mostra se chegou em modo de revisão.
+  function EtapaDePerfil() {
+    const state = useLocation().state as { review?: boolean } | null;
+    return <p>{state?.review ? 'perfil em revisão' : 'perfil'}</p>;
+  }
+
+  it('should load the saved profile and open it for review when "Revisar dados" is clicked', async () => {
+    const buscar = vi
+      .spyOn(demographicsApi, 'getMyDemographics')
+      .mockRejectedValue(new ApiError('Perfil não encontrado', 404));
+    const store = configureStore({
+      reducer: {
+        authentication: authenticationReducer,
+        demographics: demographicsReducer,
+      },
+    });
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/questionnaire']}>
+          <Routes>
+            <Route
+              path="/questionnaire"
+              element={<QuestionnaireOnboardingView />}
+            />
+            <Route path="/demographics/step-2" element={<EtapaDePerfil />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Iniciar' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Revisar dados' }),
+    );
+
+    expect(await screen.findByText('perfil em revisão')).toBeInTheDocument();
+    expect(buscar).toHaveBeenCalledTimes(1);
   });
 
   it('should translate all texts when changing language', async () => {

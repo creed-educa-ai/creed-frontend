@@ -110,4 +110,39 @@ describe('DemographicsStep3View', () => {
 
     expect(store.getState().demographics.perspective).toBe('Texto com espaços');
   });
+
+  // É a última etapa: quem salva no back é o fluxo, e a tela só mostra o que
+  // ele informa pelas props.
+  it('trava os dois botões enquanto o fluxo salva', () => {
+    render(
+      <MemoryRouter>
+        <Provider store={criarStore()}>
+          <DemographicsStep3View saving />
+        </Provider>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('button', { name: 'Avançar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Pular' })).toBeDisabled();
+  });
+
+  it('mostra a mensagem de erro que o fluxo informa', () => {
+    render(
+      <MemoryRouter>
+        <Provider store={criarStore()}>
+          <DemographicsStep3View errorMessage="Não foi possível salvar." />
+        </Provider>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Não foi possível salvar.',
+    );
+  });
+
+  it('não mostra alerta quando não há erro', () => {
+    renderizar();
+
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
 });

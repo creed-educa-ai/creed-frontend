@@ -1,65 +1,66 @@
-# Dados demográficos — CREED-20.4, 20.5 e 20.6
+# Dados demográficos (onboarding)
 
-A feature espelha o domínio `demographics` do backend
-(`app/domains/demographics/`). Lá já existem a tabela e os schemas
-(`DemographicCreate`, `DemographicResponse`), mas **não há rota** — por isso
-esta feature ainda não tem `demographicsApi.ts`, e nada é enviado.
+Onboarding que vem depois do aceite do termo e antes do questionário. São duas
+etapas, as duas opcionais:
 
-As três telas do onboarding estão encadeadas por `demographicsFlow.tsx`
-(etapa 1 → etapa 2 → etapa 3 → `/questionnaire`). A tela 1 coleta o nome
-obrigatório, a tela 2 coleta respostas demográficas opcionais e a tela 3 recebe
-uma resposta aberta opcional.
+| Rota | Tela | O que pede |
+|---|---|---|
+| `/demographics/step-2` | `DemographicsStep2View` | perfil: gênero, faixa etária, origem étnica, religião e nacionalidade |
+| `/demographics/step-3` | `DemographicsStep3View` | perspectiva: uma pergunta aberta |
 
-## Nomes dos campos = nomes do back
+Os nomes `step-2` e `step-3` vêm de quando existia uma etapa 1, que pedia o
+nome. Ela saiu na CREED-68: o nome já vem do cadastro.
 
-Os campos da tela 2 têm o nome e os valores do `DemographicCreate`:
-`gender`, `age_range`, `ethnicities`, `religions`, `nationality`,
-`brazil_state`, `portugal_region`, `other_nationality`. As listas de opções
-(`demographicsOptions.ts`) são checadas contra os tipos de `src/types/api.ts`
-com `satisfies`: valor que o back não aceita não compila.
+## Fluxo
 
-`name` (tela 1) e `perspective` (tela 3) não são do `DemographicCreate`. O nome é
-do `Participant` (`ParticipantCreate.name`); a perspectiva ainda não tem lugar no
-back.
+```
+termo aceito → perfil → perspectiva → PUT /demographics/me → /questionnaire
+```
 
-## Estado entre etapas
+Quem liga as telas às rotas e ao back é o `demographicsFlow.tsx`. As telas não
+navegam nem chamam a API: recebem `onContinue` e `onSkip` por prop.
 
-Durante a edição, todos os campos pertencem ao React Hook Form. `Avançar` valida
-com Zod e confirma no slice somente os campos da etapa atual. Nas telas 2 e 3,
-`Pular` limpa apenas a respectiva etapa, inclusive seu snapshot anterior. Trocar
-a nacionalidade limpa os detalhes da escolha anterior. Login e logout descartam
-todo o rascunho; nenhum dado demográfico é salvo em localStorage.
+Três regras, todas no `demographicsFlow.tsx`:
 
-O snapshot no Redux (`demographicsSlice.ts`) é uma adaptação temporária à
-convenção de formulários: não é resposta do servidor. Ele mantém um ponto de
-compartilhamento entre as três etapas sem despachar a cada tecla. A tela 2 usa
-somente `saveDemographicsStep`, que atualiza só os campos da etapa 2 e não
-sobrescreve `name` nem `perspective`.
+1. **Quem já tem perfil não passa pelo onboarding de novo.** Ao abrir o perfil,
+   o fluxo chama `GET /demographics/me`. Com 200, a pessoa volta para onde
+   estava (ou vai para o questionário). Com 404, vê o onboarding.
+2. **O perfil é salvo no fim da perspectiva**, com `PUT /demographics/me`.
+   **Pular também salva**: os campos vão vazios, e é assim que o back registra
+   que a pessoa pulou. Se o `PUT` falhar, a pessoa fica na tela, com a mensagem
+   de erro e o que preencheu.
+3. **Revisão.** O modal da entrada do questionário
+   (`QuestionnaireOnboardingView`) busca o perfil e abre as telas com
+   `state: { review: true }`. Nesse modo elas aparecem já preenchidas, mesmo
+   para quem tem perfil, e ao salvar a pessoa volta para o questionário.
 
-`onContinue(data)` e `onSkip()` são os pontos de conexão: as telas não navegam
-sozinhas. Quem os preenche é `demographicsFlow.tsx`. As três rotas ficam atrás
-do `ProtectedRoute` (ver `src/app/routes.tsx`).
+## Onde mora cada coisa
 
-## O que falta para integrar
+| Arquivo | Responsabilidade |
+|---|---|
+| `demographicsApi.ts` | as duas chamadas ao back |
+| `demographicsSlice.ts` | o rascunho das duas etapas, o que se sabe do perfil no back (`profile`) e o estado do envio (`saving`) |
+| `demographicsFlow.tsx` | as rotas: busca, redirecionamento, navegação e envio |
+| `demographicsSchema.ts` | validação do formulário de perfil e limites de tamanho do back |
+| `demographicsOptions.ts` | as opções de cada campo, iguais às do back |
 
-- Rota no back para gravar o perfil demográfico de um participante.
-- Decidir onde mora a `perspective`.
-- Com a rota, criar `demographicsApi.ts` e um thunk que envie o rascunho no fim
-  da etapa 3 — o corpo já tem a forma do `DemographicCreate`.
+O rascunho vive no Redux só enquanto a sessão dura: logout e novo login o
+apagam, junto com o que se sabia do perfil.
 
-## Opções ainda sujeitas à validação do produto
+## Premissas desta entrega (CREED-68)
 
-- A referência da task mostra etnia e religião como seleções múltiplas.
-- Confirmar a lista completa com o formulário oficial da cliente no Discord.
-- As faixas `56_65` e `65_mais` foram preservadas; o limite de 65 anos ainda
-  precisa ser esclarecido para não alterar unilateralmente o instrumento.
-- Não foi inventada exclusividade entre “Prefiro não responder” e outras
-  respostas, nem um limite de caracteres que o contrato ainda não definiu.
+🟡 Decididas sem confirmação, por falta de definição na tarefa. Confirmar na
+revisão:
 
-## Verificação
-
-Executar `npm run check` e `npm run build` (Node 22, como no CI).
-No navegador, conferir as três rotas em 375, 768 e 1280 px — elas exigem
-sessão, então entre primeiro e aceite o termo. Na tela 2, testar opções longas,
-navegação pelo teclado, busca por “portuguesa” e “Candomblé”, mudança de
-nacionalidade e seleção em inglês.
+- **"Pular também salva" vale para o fim do onboarding.** Cada etapa tem o seu
+  "Pular", que limpa só aquela etapa. O `PUT` acontece uma vez, no fim da
+  perspectiva, com o rascunho como estiver. Custo de mudar: baixo.
+- **Quem já tem perfil volta para a rota de onde veio**, e não sempre para o
+  questionário. Vale para quem aceita o termo de novo em outro navegador (o
+  aceite mora no `localStorage`, o perfil mora no back). Custo de mudar: baixo.
+- **Erro ao buscar o perfil trava o onboarding**, com botão de tentar de novo.
+  Deixar passar sem saber se há perfil arriscaria apagar, no `PUT`, o que a
+  pessoa já tinha gravado. Custo de mudar: baixo.
+- **Os campos de texto param nos limites do back** (100 caracteres na
+  nacionalidade por extenso, 2000 na perspectiva), sem mensagem própria.
+  Custo de mudar: baixo.

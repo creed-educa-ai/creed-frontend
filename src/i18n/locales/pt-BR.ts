@@ -66,10 +66,11 @@ export const ptBR = {
     avancar: 'Avançar',
     pular: 'Pular',
 
-    demograficos1: {
-      titulo: 'Vamos começar! Qual o seu nome?',
-      descricaoNome: 'Este será o nome que será exibido para outros usuários',
-      nomeObrigatorio: 'Informe seu nome para continuar.',
+    // Estados do onboarding ao falar com o back (demographicsFlow).
+    demograficos: {
+      carregando: 'Carregando seus dados…',
+      erroCarregar: 'Não foi possível carregar seus dados.',
+      erroSalvar: 'Não foi possível salvar seus dados. Tente novamente.',
     },
     demograficos2: {
       clear: 'Limpar {{field}}',

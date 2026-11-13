@@ -66,10 +66,10 @@ export const en: typeof ptBR = {
     avancar: 'Continue',
     pular: 'Skip',
 
-    demograficos1: {
-      titulo: "Let's get started! What's your name?",
-      descricaoNome: 'This is the name shown to other users',
-      nomeObrigatorio: 'Enter your name to continue.',
+    demograficos: {
+      carregando: 'Loading your information…',
+      erroCarregar: "We couldn't load your information.",
+      erroSalvar: "We couldn't save your information. Please try again.",
     },
 
     demograficos2: {

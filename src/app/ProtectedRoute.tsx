@@ -34,16 +34,22 @@ export function ProtectedRoute({ enabled = true }: ProtectedRouteProps) {
       <TermsModal
         open
         onOpenChange={() => undefined}
-        // Depois do aceite vêm sempre os dados demográficos (demographicsFlow):
-        // o termo só aparece no primeiro acesso, e é nele que o onboarding começa.
+        // Depois do aceite vêm os dados demográficos (demographicsFlow): o termo
+        // só aparece no primeiro acesso, e é nele que o onboarding começa.
         // Quem já aceitou antes não passa por aqui e vai direto ao destino.
+        // O aceite mora no navegador; o perfil, no back. Quem aceita o termo de
+        // novo (outro navegador) e já tem perfil não repete o onboarding: o
+        // fluxo confere no back e devolve a pessoa à rota em `from`.
         // replace: a rota por trás do termo (em geral o dashboard) sai do
-        // histórico, e a seta de voltar da etapa 1 não cai numa tela que a
-        // pessoa nunca viu.
+        // histórico, e a seta de voltar da primeira etapa não cai numa tela
+        // que a pessoa nunca viu.
         onAccept={() => {
           recordTermsAcceptance(user.id);
           setAceitouAgora(true);
-          navigate('/demographics/step-1', { replace: true });
+          navigate('/demographics/step-2', {
+            replace: true,
+            state: { from: location.pathname },
+          });
         }}
         // Sem aceitar, não usa a plataforma: desloga, e o redirecionamento
         // acima leva de volta ao login.
