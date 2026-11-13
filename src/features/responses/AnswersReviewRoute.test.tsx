@@ -61,7 +61,7 @@ const questions: ReviewQuestion[] = [
     required: false,
     answer: null,
   },
-  // Escala respondida: o back ainda recusa objetiva, então não vai.
+  // Escala respondida: vai em `option_id`, achado pelo rótulo (P-039).
   {
     id: 'q-escala',
     section: 2,
@@ -82,11 +82,11 @@ function doBack(
 ): QuestionResponse {
   return {
     id,
-    form_id: DEMO_FORM_ID,
+    instrument_id: 'instrumento-creed',
     text: id,
     order_index: 0,
     type,
-    section: 'profile',
+    section: 'S2',
     required: false,
     dimensao: null,
     prisma: null,
@@ -177,12 +177,16 @@ describe('AnswersReviewRoute', () => {
     expect(
       await screen.findByRole('heading', { name: 'Enviado' }),
     ).toBeInTheDocument();
-    // Só a descritiva preenchida foi gravada: a opcional em branco e a
-    // escala (objetiva, que o back ainda recusa) ficaram de fora.
-    expect(record).toHaveBeenCalledOnce();
-    expect(record).toHaveBeenCalledWith(FORM_RESPONSE_ID, {
+    // A descritiva e a escala preenchidas foram gravadas; a opcional em
+    // branco ficou de fora (P-038).
+    expect(record).toHaveBeenCalledTimes(2);
+    expect(record).toHaveBeenNthCalledWith(1, FORM_RESPONSE_ID, {
       question_id: 'q-perfil',
       value: 'Resposta de perfil',
+    });
+    expect(record).toHaveBeenNthCalledWith(2, FORM_RESPONSE_ID, {
+      question_id: 'q-escala',
+      option_id: 'q-escala-4',
     });
     expect(submit).toHaveBeenCalledWith(FORM_RESPONSE_ID);
   });

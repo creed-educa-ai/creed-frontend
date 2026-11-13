@@ -439,11 +439,15 @@ export interface PeriodRead extends FormRead {
 
 export type QuestionType = 'objective' | 'descriptive';
 
-// Valores provisórios no back (P-020).
-export type QuestionSection = 'profile' | 'assessment' | 'closing';
+// As seções do formulário original da cliente, uma aba por seção. S2 a S8 são
+// as dimensões da Matriz CREED; S9, as perguntas abertas.
+export type QuestionSection =
+  'S2' | 'S4' | 'S5A' | 'S5B' | 'S6' | 'S7' | 'S8' | 'S9';
 
+// A pergunta é do instrumento, e não do formulário: todo período aplica as
+// mesmas perguntas.
 export interface QuestionCreate {
-  form_id: string;
+  instrument_id: string;
   text: string;
   order_index: number;
   type: QuestionType;
@@ -472,7 +476,7 @@ export interface QuestionOptionResponse {
 
 export interface QuestionResponse {
   id: string;
-  form_id: string;
+  instrument_id: string;
   text: string;
   order_index: number;
   type: QuestionType;
