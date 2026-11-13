@@ -489,6 +489,7 @@ export const es: typeof ptBR = {
     responderTudoAviso:
       'Responde las preguntas obligatorias de la sección para continuar.',
     semPerguntas: 'Este cuestionario aún no tiene preguntas.',
+    jaRespondido: 'Ya has respondido este cuestionario.',
     concluido: 'Completado',
     perguntasRespondidas: '{{respondidas}} de {{total}} respondidas',
     concluidoTitulo: 'Todas las preguntas respondidas',
@@ -502,7 +503,8 @@ export const es: typeof ptBR = {
     menuInformacoes: 'Acerca de',
     menuSair: 'Cerrar sesión',
     erros: {
-      naoEncontrado: 'Cuestionario no encontrado.',
+      semQuestionarioAberto:
+        'No hay ningún cuestionario abierto para ti en este momento.',
       semAcesso: 'No tienes acceso a este cuestionario.',
       servicoIndisponivel:
         'No se pudo establecer conexión con el servidor. Inténtalo de nuevo.',
@@ -639,8 +641,9 @@ export const es: typeof ptBR = {
         delete: 'Eliminar',
       },
       status: {
-        ativo: 'Activo',
+        respondeu: 'Respondió',
         pendente: 'Pendiente',
+        semPeriodo: 'Sin período',
       },
     },
     errors: {
@@ -715,10 +718,11 @@ export const es: typeof ptBR = {
   painelControle: {
     toasts: {
       conviteEnviado: 'Invitación enviada',
-      conviteEnviadoDescricao: '{{email}} recibirá la invitación por correo.',
-      questionarioNoAr: 'El cuestionario está en línea',
+      conviteEnviadoDescricao:
+        '{{email}} recibirá la invitación por correo electrónico.',
+      questionarioNoAr: 'El cuestionario está activo',
       questionarioNoArDescricao:
-        'Las respuestas quedan abiertas en el período definido.',
+        'Las respuestas están abiertas durante el período definido.',
     },
     controles: 'Controles',
     administradora: 'Administradora',

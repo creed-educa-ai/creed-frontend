@@ -7,7 +7,6 @@ import {
 } from '@/features/responses/AnswersReviewView';
 import {
   clearSubmissionError,
-  DEMO_FORM_ID,
   submitResponses,
 } from '@/features/responses/responsesSlice';
 
@@ -40,7 +39,6 @@ export function AnswersReviewRoute() {
         // libera o botão.
         await dispatch(
           submitResponses({
-            formId: DEMO_FORM_ID,
             answers: questions.map((question, index) => ({
               question_id: question.id,
               answer: answers[index] ?? null,

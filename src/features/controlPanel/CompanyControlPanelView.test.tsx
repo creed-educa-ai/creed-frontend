@@ -18,13 +18,60 @@ import { CompanyControlPanelView } from './CompanyControlPanelView';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import { formsApi } from '@/features/forms/formsApi';
 import formsReducer from '@/features/forms/formsSlice';
+import { linksApi } from '@/features/links/linksApi';
+import { organizationsApi } from '@/features/organizations/organizationsApi';
+import { usersApi } from '@/features/users/usersApi';
 import usersReducer from '@/features/users/usersSlice';
-import { resetMembersMock } from '@/features/users/usersApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { ApiError } from '@/lib/apiClient';
-import type { FormRead, PeriodRead } from '@/types/api';
+import type {
+  FormRead,
+  MemberListItem,
+  OrganizationResponse,
+  PeriodRead,
+  UserResponse,
+} from '@/types/api';
 
 const ORGANIZATION_ID = '00000000-0000-0000-0000-000000000001';
+
+// Dados sintéticos, no formato do `GET /organizacoes/{id}` e do
+// `GET /organizations/{id}/members`.
+const ACME: OrganizationResponse = {
+  id: ORGANIZATION_ID,
+  name: 'Acme Inc.',
+  address: '[A informar]',
+  document_id: 'doc-acme',
+  status: 'active',
+  email: null,
+  contact_name: null,
+  phone: null,
+  document: { type: 'other', value: 'DEMO-ORG-0001' },
+  created_at: '2026-01-01T12:00:00Z',
+  updated_at: null,
+};
+
+const ENNER: MemberListItem = {
+  link_id: 'link-enner',
+  name: 'Enner Valência',
+  email: 'enner@example.com',
+  role: 'respondente',
+  type: 'emprego',
+  department: 'Marketing',
+  updated_at: '2026-01-05T12:00:00Z',
+  period: null,
+};
+
+// O que o back devolve no 201 do convite.
+const CONVIDADA: UserResponse = {
+  id: '6a1d2c3b-4e5f-4a6b-8c7d-9e0f1a2b3c4d',
+  name: 'Ana Souza',
+  email: 'ana@exemplo.com',
+  status: 'active',
+  role: 'gestor',
+  link_id: '7b2e3d4c-5f6a-4b7c-9d8e-0f1a2b3c4d5e',
+  organization_id: ORGANIZATION_ID,
+  created_at: '2026-01-10T13:00:00Z',
+};
 
 // Dado sintético, no formato do `POST /organizations/{id}/periods`.
 const criado: FormRead = {
@@ -151,7 +198,8 @@ describe('CompanyControlPanelView', () => {
   beforeEach(async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2026, 0, 10, 10, 0));
-    resetMembersMock();
+    vi.spyOn(linksApi, 'listMembers').mockResolvedValue([ENNER]);
+    vi.spyOn(organizationsApi, 'getOrganization').mockResolvedValue(ACME);
     listPeriods = vi.spyOn(formsApi, 'listPeriods').mockResolvedValue([]);
     createPeriod = vi.spyOn(formsApi, 'createPeriod').mockResolvedValue(criado);
     await i18n.changeLanguage(IDIOMA_PADRAO);
@@ -557,6 +605,64 @@ describe('CompanyControlPanelView', () => {
     expect(
       within(await screen.findByRole('table')).getByText('Enner Valência'),
     ).toBeInTheDocument();
+  });
+
+  async function convidar(user: UserEvent) {
+    await user.type(
+      screen.getByRole('textbox', {
+        name: i18n.t('organizations:addMember.name.label'),
+      }),
+      'Ana Souza',
+    );
+    await user.type(
+      screen.getByRole('textbox', {
+        name: i18n.t('organizations:addMember.email.label'),
+      }),
+      'ana@exemplo.com',
+    );
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n.t('organizations:addMember.submit'),
+      }),
+    );
+  }
+
+  it('should invite the member and reload the table after the 201', async () => {
+    const inviteMember = vi
+      .spyOn(usersApi, 'inviteMember')
+      .mockResolvedValue(CONVIDADA);
+    const user = userEvent.setup();
+    await renderizar();
+    await screen.findByRole('table');
+
+    await convidar(user);
+
+    expect(await screen.findByText('Convite enviado')).toBeInTheDocument();
+    // A função padrão do formulário é respondente; o tipo fica com o back.
+    expect(inviteMember).toHaveBeenCalledWith(ORGANIZATION_ID, {
+      name: 'Ana Souza',
+      email: 'ana@exemplo.com',
+      role: 'respondente',
+    });
+    // Uma carga ao abrir o painel e outra depois do convite.
+    await waitFor(() => {
+      expect(linksApi.listMembers).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('should show the 409 on the email field, with no toast', async () => {
+    vi.spyOn(usersApi, 'inviteMember').mockRejectedValue(
+      new ApiError('Já existe usuário com o e-mail ana@exemplo.com', 409),
+    );
+    const user = userEvent.setup();
+    await renderizar();
+
+    await convidar(user);
+
+    expect(
+      await screen.findByText(i18n.t('organizations:errors.emailTaken')),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Convite enviado')).not.toBeInTheDocument();
   });
 
   it('should highlight the control panel in the menu', async () => {

@@ -1,11 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { formsApi } from '@/features/forms/formsApi';
 import { questionsApi } from '@/features/questions/questionsApi';
 import { responsesApi } from '@/features/responses/responsesApi';
 import reducer, {
   clearSubmissionError,
-  DEMO_FORM_ID,
   loadQuestionnaire,
   paraAnswerCreate,
   selectQuestionnaireSections,
@@ -19,11 +17,13 @@ import type {
   QuestionResponse,
 } from '@/types/api';
 
+// O período aberto para a pessoa: quem escolhe é o back (`/forms/current`).
+const FORM_ID = 'd40b7a55-b9cc-4b78-ae5d-ab325fd655e2';
 const FORM_RESPONSE_ID = '3b1bb89a-471f-48b0-9025-cfda3b20d240';
 
 const formResponse: FormResponseResponse = {
   id: FORM_RESPONSE_ID,
-  form_id: DEMO_FORM_ID,
+  form_id: FORM_ID,
   vinculo_id: 'e541e500-8b88-45e7-9195-b6079023922b',
   status: 'in_progress',
   started_at: '2026-09-30T18:39:04Z',
@@ -42,12 +42,12 @@ function answerResponse(questionId: string): AnswerResponse {
 }
 
 const form: FormRead = {
-  id: DEMO_FORM_ID,
-  name: '[Demonstração] Formulário de teste',
+  id: FORM_ID,
+  name: 'Período 2026/2',
   organization_id: '00000000-0000-0000-0000-000000000001',
   status: 'draft',
-  opens_at: null,
-  closes_at: null,
+  opens_at: '2026-11-01T12:00:00Z',
+  closes_at: '2026-12-01T12:00:00Z',
   link_id: null,
   created_at: '2026-09-30T18:38:18Z',
 };
@@ -80,7 +80,11 @@ function criarStore() {
 function criarStoreCom(questions: QuestionResponse[]) {
   const store = criarStore();
   store.dispatch(
-    loadQuestionnaire.fulfilled({ form, questions }, 'teste', DEMO_FORM_ID),
+    loadQuestionnaire.fulfilled(
+      { form, formResponse: null, questions },
+      'teste',
+      'pt-BR',
+    ),
   );
   return store;
 }
@@ -123,6 +127,7 @@ describe('responsesSlice', () => {
 
     expect(state).toEqual({
       form: null,
+      formResponse: null,
       questions: [],
       status: 'idle',
       error: null,
@@ -143,45 +148,105 @@ describe('responsesSlice', () => {
     expect(state.status).toBe('loading');
   });
 
-  it('carrega o formulário e as perguntas pelo id pedido', async () => {
-    const getForm = vi.spyOn(formsApi, 'getForm').mockResolvedValue(form);
+  it('já carregado, recarregar não volta a loading', () => {
+    const carregado = reducer(
+      undefined,
+      loadQuestionnaire.fulfilled(
+        { form, formResponse: null, questions: [] },
+        'teste',
+        'pt-BR',
+      ),
+    );
+
+    const state = reducer(carregado, { type: loadQuestionnaire.pending.type });
+
+    // A troca de idioma recarrega sem desmontar o questionário da tela.
+    expect(state.status).toBe('ready');
+  });
+
+  it('carrega o questionário atual e as perguntas no idioma pedido', async () => {
+    const getCurrentForm = vi
+      .spyOn(responsesApi, 'getCurrentForm')
+      .mockResolvedValue({ form, form_response: null });
     const listQuestions = vi
       .spyOn(questionsApi, 'listQuestions')
       .mockResolvedValue([question({ id: 'q1' })]);
     const store = criarStore();
 
-    await store.dispatch(loadQuestionnaire(DEMO_FORM_ID));
+    await store.dispatch(loadQuestionnaire('en'));
 
-    expect(getForm).toHaveBeenCalledWith(DEMO_FORM_ID);
-    expect(listQuestions).toHaveBeenCalledWith(DEMO_FORM_ID);
+    expect(getCurrentForm).toHaveBeenCalledOnce();
+    expect(listQuestions).toHaveBeenCalledWith(FORM_ID, { lang: 'en' });
     const state = store.getState().responses;
     expect(state.status).toBe('ready');
     expect(state.form).toEqual(form);
+    expect(state.formResponse).toBeNull();
     expect(state.questions.map(({ id }) => id)).toEqual(['q1']);
   });
 
   it('formulário sem pergunta fica ready, com lista vazia', async () => {
-    vi.spyOn(formsApi, 'getForm').mockResolvedValue(form);
+    vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue({
+      form,
+      form_response: null,
+    });
     vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue([]);
     const store = criarStore();
 
-    await store.dispatch(loadQuestionnaire(DEMO_FORM_ID));
+    await store.dispatch(loadQuestionnaire('pt-BR'));
 
     expect(store.getState().responses.status).toBe('ready');
     expect(secoes(store)).toEqual([]);
   });
 
+  it('já enviado, guarda a resposta e não busca as perguntas', async () => {
+    const enviada: FormResponseResponse = {
+      ...formResponse,
+      status: 'submitted',
+      submitted_at: '2026-11-02T12:00:00Z',
+    };
+    vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue({
+      form,
+      form_response: enviada,
+    });
+    const listQuestions = vi.spyOn(questionsApi, 'listQuestions');
+    const store = criarStore();
+
+    await store.dispatch(loadQuestionnaire('pt-BR'));
+
+    expect(listQuestions).not.toHaveBeenCalled();
+    const state = store.getState().responses;
+    expect(state.status).toBe('ready');
+    expect(state.formResponse).toEqual(enviada);
+    // Já enviada, não é retomada.
+    expect(state.submission.formResponseId).toBeNull();
+  });
+
+  it('em andamento, o envio continua na resposta que já existe', async () => {
+    vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue({
+      form,
+      form_response: formResponse,
+    });
+    vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue([]);
+    const store = criarStore();
+
+    await store.dispatch(loadQuestionnaire('pt-BR'));
+
+    expect(store.getState().responses.submission.formResponseId).toBe(
+      FORM_RESPONSE_ID,
+    );
+  });
+
   it.each([
-    [404, 'formulario:erros.naoEncontrado'],
+    [404, 'formulario:erros.semQuestionarioAberto'],
     [403, 'formulario:erros.semAcesso'],
     [500, 'formulario:erros.servicoIndisponivel'],
   ])('erro %i vira a chave %s', async (status, chave) => {
-    vi.spyOn(formsApi, 'getForm').mockRejectedValue(
+    vi.spyOn(responsesApi, 'getCurrentForm').mockRejectedValue(
       new ApiError('erro do back', status),
     );
     const store = criarStore();
 
-    await store.dispatch(loadQuestionnaire(DEMO_FORM_ID));
+    await store.dispatch(loadQuestionnaire('pt-BR'));
 
     const state = store.getState().responses;
     expect(state.status).toBe('error');
@@ -189,12 +254,12 @@ describe('responsesSlice', () => {
   });
 
   it('erro de rede, sem ApiError, vira servicoIndisponivel', async () => {
-    vi.spyOn(formsApi, 'getForm').mockRejectedValue(
+    vi.spyOn(responsesApi, 'getCurrentForm').mockRejectedValue(
       new TypeError('Failed to fetch'),
     );
     const store = criarStore();
 
-    await store.dispatch(loadQuestionnaire(DEMO_FORM_ID));
+    await store.dispatch(loadQuestionnaire('pt-BR'));
 
     expect(store.getState().responses.error).toBe(
       'formulario:erros.servicoIndisponivel',
@@ -336,9 +401,7 @@ describe('responsesSlice', () => {
     }
 
     function enviar(store: ReturnType<typeof criarStore>) {
-      return store.dispatch(
-        submitResponses({ formId: DEMO_FORM_ID, answers: respostas }),
-      );
+      return store.dispatch(submitResponses({ answers: respostas }));
     }
 
     // Os três passos do envio, com o caminho feliz como padrão.
@@ -368,7 +431,8 @@ describe('responsesSlice', () => {
 
       await enviar(store);
 
-      expect(back.create).toHaveBeenCalledWith(DEMO_FORM_ID);
+      // O formulário é o que o carregamento trouxe.
+      expect(back.create).toHaveBeenCalledWith(FORM_ID);
       expect(back.record).toHaveBeenNthCalledWith(1, FORM_RESPONSE_ID, {
         question_id: 'q1',
         value: 'Primeira',
@@ -463,6 +527,19 @@ describe('responsesSlice', () => {
 
       await enviar(store);
 
+      expect(store.getState().responses.submission.error).toBe(
+        'questionarioRevisao:erros.envioFalhou',
+      );
+    });
+
+    it('sem questionário carregado, não chama o back', async () => {
+      const back = simularBack();
+      // Store vazio: o carregamento nunca aconteceu.
+      const store = configureStore({ reducer: { responses: reducer } });
+
+      await store.dispatch(submitResponses({ answers: respostas }));
+
+      expect(back.create).not.toHaveBeenCalled();
       expect(store.getState().responses.submission.error).toBe(
         'questionarioRevisao:erros.envioFalhou',
       );

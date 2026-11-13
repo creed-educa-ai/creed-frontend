@@ -37,6 +37,18 @@ describe('responsesApi', () => {
     vi.unstubAllGlobals();
   });
 
+  it('getCurrentForm pergunta ao back qual é o questionário atual', async () => {
+    const fetchMock = stubFetch();
+
+    await responsesApi.getCurrentForm();
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: '/api/v1/forms/current',
+      method: 'GET',
+      body: undefined,
+    });
+  });
+
   it('createFormResponse manda só o form_id, sem vínculo', async () => {
     const fetchMock = stubFetch(201);
 

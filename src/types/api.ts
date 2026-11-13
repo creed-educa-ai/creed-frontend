@@ -161,9 +161,8 @@ export interface MemberPeriod {
   has_answered: boolean;
 }
 
-// `GET /organizations/{organization_id}/members` — a lista inteira, sem
-// paginação, em ordem de nome (P-070). `?type=` filtra pelo tipo do vínculo.
-export interface MemberListItem {
+// O membro como o `PATCH .../members/{link_id}` devolve.
+export interface MemberResponse {
   link_id: string;
   name: string;
   // Nulo quando o vínculo foi criado sem convite (sem login).
@@ -172,8 +171,19 @@ export interface MemberListItem {
   type: LinkType;
   department: DepartmentType | null;
   updated_at: string | null;
+}
+
+// `GET /organizations/{organization_id}/members` — a lista inteira, sem
+// paginação, em ordem de nome (P-070). `?type=` filtra pelo tipo do vínculo.
+export interface MemberListItem extends MemberResponse {
   // Nulo quando a pessoa não tem nenhum período.
   period: MemberPeriod | null;
+}
+
+// `PATCH /organizations/{organization_id}/members/{link_id}`: só o setor;
+// `null` tira o setor.
+export interface MemberDepartmentUpdate {
+  department: DepartmentType | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -444,6 +454,10 @@ export type QuestionType = 'objective' | 'descriptive';
 export type QuestionSection =
   'S2' | 'S4' | 'S5A' | 'S5B' | 'S6' | 'S7' | 'S8' | 'S9';
 
+// `?lang=` da listagem. Sem tradução naquele idioma, o back devolve o texto
+// em português.
+export type QuestionLang = 'pt' | 'pt-BR' | 'en' | 'es';
+
 // A pergunta é do instrumento, e não do formulário: todo período aplica as
 // mesmas perguntas.
 export interface QuestionCreate {
@@ -512,6 +526,14 @@ export interface FormResponseResponse {
   submitted_at: string | null;
 }
 
+// `GET /forms/current`: o questionário aberto agora para quem está logado (o
+// da organização inteira ou o só dela) e a resposta dela nele. Nulo: ainda
+// não começou. Sem questionário aberto, o back devolve 404.
+export interface CurrentFormRead {
+  form: FormRead;
+  form_response: FormResponseResponse | null;
+}
+
 // Descritiva em `value`, objetiva em `option_id`.
 export interface AnswerCreate {
   question_id: string;
@@ -565,24 +587,22 @@ export interface InsightResponse {
 // back tiver o contrato, o tipo daqui sai e a tela passa a usar o de cima.
 // ===========================================================================
 
-// Membro da organização, na tabela do painel da empresa.
-// Falta no back: `GET /organizations/{id}/members` (listar) e
-// `DELETE` de membro. Mais perto do back: `UserResponse` + departamento.
-export type MemberStatus = 'ativo' | 'pendente';
+// Membro da organização, na tabela do painel da empresa: o `MemberListItem`
+// do back, no formato que a tabela desenha. Quem converte é o `usersSlice`.
+//
+// O status é a resposta do período do membro (`period.has_answered`): o back
+// não sabe se o convite foi aceito, e o que a gestora acompanha é quem já
+// respondeu. Sem período, `semPeriodo`.
+export type MemberStatus = 'respondeu' | 'pendente' | 'semPeriodo';
 
 export interface Member {
+  // O `link_id`: é por ele que se exclui e se troca o setor.
   id: string;
   name: string;
+  // Vazio quando o vínculo não tem login.
   email: string;
-  // No back, `RecordStatus` (`active`/`inactive`); "pendente" (convite não
-  // aceito) não existe.
   status: MemberStatus;
-  // O setor do vínculo (`links.department_id` → `DepartmentType`). Nulo até
-  // a empresa escolher: o membro entra sem tag, como o `department_id`.
+  // O setor do vínculo. Nulo até a empresa escolher.
   tag: DepartmentType | null;
-  updated_at: string;
-}
-
-export interface MemberList extends ListaPaginada<Member> {
-  organization: string;
+  updated_at: string | null;
 }

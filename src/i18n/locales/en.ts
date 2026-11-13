@@ -483,6 +483,7 @@ export const en: typeof ptBR = {
     responderTudoAviso:
       'Answer the required questions in the section to move on.',
     semPerguntas: 'This questionnaire has no questions yet.',
+    jaRespondido: 'You have already answered this questionnaire.',
     concluido: 'Completed',
     perguntasRespondidas: '{{respondidas}} of {{total}} answered',
     concluidoTitulo: 'All questions answered',
@@ -496,7 +497,8 @@ export const en: typeof ptBR = {
     menuInformacoes: 'About',
     menuSair: 'Log out',
     erros: {
-      naoEncontrado: 'Questionnaire not found.',
+      semQuestionarioAberto:
+        'There is no questionnaire open for you right now.',
       semAcesso: "You don't have access to this questionnaire.",
       servicoIndisponivel: "Couldn't reach the server. Please try again.",
     },
@@ -632,8 +634,9 @@ export const en: typeof ptBR = {
         delete: 'Delete',
       },
       status: {
-        ativo: 'Active',
+        respondeu: 'Answered',
         pendente: 'Pending',
+        semPeriodo: 'No period',
       },
     },
     errors: {
@@ -712,7 +715,7 @@ export const en: typeof ptBR = {
         '{{email}} will receive the invitation by email.',
       questionarioNoAr: 'The questionnaire is live',
       questionarioNoArDescricao:
-        'Responses are open during the period you set.',
+        'Responses remain open during the defined period.',
     },
     controles: 'Controls',
     administradora: 'Administrator',
