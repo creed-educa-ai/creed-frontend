@@ -6,6 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -25,6 +26,13 @@ interface ViewOption<T extends string> {
 
 interface CompanyViewFilterProps {
   departments: ViewOption<DepartmentType>[];
+  // O resultado de quem está logado, se ela respondeu o período: a gestora vê
+  // só o próprio, porque o resultado individual é anônimo para a empresa. Não é
+  // um recorte da empresa: abre o dashboard individual dela (`onOpenOwnResult`).
+  ownResult?: ViewOption<string> | undefined;
+  onOpenOwnResult?: (() => void) | undefined;
+  // As outras pessoas: só a administradora recebe (a da CREED, que acompanha
+  // os mentorandos).
   members: ViewOption<string>[];
   value: DashboardView;
   // O nome do recorte escolhido, mostrado no botão.
@@ -42,8 +50,13 @@ function viewKey(view: DashboardView) {
   return 'geral';
 }
 
+// Uma lista só, como a da comparação: o próprio resultado à parte, acima; a
+// empresa toda e os setores juntos. As outras pessoas ficam num submenu, que
+// só a administradora vê.
 export function CompanyViewFilter({
   departments,
+  ownResult,
+  onOpenOwnResult,
   members,
   value,
   label,
@@ -68,8 +81,26 @@ export function CompanyViewFilter({
           {label}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="max-h-80 overflow-y-auto">
         <DropdownMenuRadioGroup value={selected}>
+          {/* O próprio resultado fica à parte, acima: não é um recorte da
+              empresa, abre o dashboard individual. */}
+          {ownResult && (
+            <>
+              <DropdownMenuRadioItem
+                value={viewKey({ member_id: ownResult.id })}
+                onSelect={() => {
+                  onOpenOwnResult?.();
+                }}
+              >
+                {ownResult.label}
+              </DropdownMenuRadioItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+
+          {/* A empresa toda e os setores juntos, como na comparação. Os
+              setores somem se a organização não tem nenhum com resposta. */}
           <DropdownMenuRadioItem
             value={viewKey({})}
             onSelect={() => {
@@ -78,54 +109,45 @@ export function CompanyViewFilter({
           >
             {organizationName}
           </DropdownMenuRadioItem>
+          {departments.map((department) => (
+            <DropdownMenuRadioItem
+              key={department.id}
+              value={viewKey({ department: department.id })}
+              onSelect={() => {
+                onChange({ department: department.id });
+              }}
+            >
+              <DepartmentDot department={department.id} />
+              {department.label}
+            </DropdownMenuRadioItem>
+          ))}
         </DropdownMenuRadioGroup>
 
-        {/* SELETOR DE SETOR: some se a organização não tem setores. */}
-        {departments.length > 0 && (
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger>
-              {t('dashboard:Setor')}
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
-              <DropdownMenuRadioGroup value={selected}>
-                {departments.map((department) => (
-                  <DropdownMenuRadioItem
-                    key={department.id}
-                    value={viewKey({ department: department.id })}
-                    onSelect={() => {
-                      onChange({ department: department.id });
-                    }}
-                  >
-                    <DepartmentDot department={department.id} />
-                    {department.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
+        {members.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                {t('dashboard:Funcionario')}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
+                <DropdownMenuRadioGroup value={selected}>
+                  {members.map((member) => (
+                    <DropdownMenuRadioItem
+                      key={member.id}
+                      value={viewKey({ member_id: member.id })}
+                      onSelect={() => {
+                        onChange({ member_id: member.id });
+                      }}
+                    >
+                      {member.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </>
         )}
-
-        {/* SELETOR DE FUNCIONÁRIO */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            {t('dashboard:Funcionario')}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="max-h-64 overflow-y-auto">
-            <DropdownMenuRadioGroup value={selected}>
-              {members.map((member) => (
-                <DropdownMenuRadioItem
-                  key={member.id}
-                  value={viewKey({ member_id: member.id })}
-                  onSelect={() => {
-                    onChange({ member_id: member.id });
-                  }}
-                >
-                  {member.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
       </DropdownMenuContent>
     </DropdownMenu>
   );
