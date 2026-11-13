@@ -9,6 +9,7 @@ import { PasswordResetView } from '@/features/authentication/PasswordResetView';
 import { AboutView } from '@/features/about/AboutView';
 import { WelcomeView } from '@/features/welcome/WelcomeView';
 import { AwaitingConfirmationView } from '@/features/organizations/AwaitingConfirmationView';
+import { ErrorView } from '@/features/error/ErrorView';
 import { LoginView } from '@/features/authentication/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 import { QuestionnaireOnboardingView } from '@/features/responses/QuestionnaireOnboardingView';
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
     ],
   },
   { path: '/about', element: <AboutView /> },
+  { path: '/error', element: <ErrorView /> },
   { path: '/sign-up', element: <SignUpView /> },
   { path: '/awaiting-confirmation', element: <AwaitingConfirmationView /> },
   // Sem rota de primeiro acesso: a senha é definida na página do Keycloak,
