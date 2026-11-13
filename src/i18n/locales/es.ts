@@ -181,6 +181,7 @@ export const es: typeof ptBR = {
       pergunta:
         '¿Cómo influyó, o no, tu crianza familiar en tu trayectoria emprendedora o innovadora? Explica brevemente (opcional)',
       placeholder: 'Tu respuesta',
+      erroAoSalvar: 'No fue posible guardar tus datos',
     },
   },
   questionarioRevisao: {

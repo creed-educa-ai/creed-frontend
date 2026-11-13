@@ -180,6 +180,7 @@ export const en: typeof ptBR = {
       pergunta:
         'How did your family upbringing influence, or not, your entrepreneurial or innovative path? Briefly explain (optional)',
       placeholder: 'Your answer',
+      erroAoSalvar: "We couldn't save your data",
     },
   },
   questionarioRevisao: {

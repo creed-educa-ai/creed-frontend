@@ -1,9 +1,8 @@
 # Dados demográficos — CREED-20.4, 20.5 e 20.6
 
 A feature espelha o domínio `demographics` do backend
-(`app/domains/demographics/`). Lá já existem a tabela e os schemas
-(`DemographicCreate`, `DemographicResponse`), mas **não há rota** — por isso
-esta feature ainda não tem `demographicsApi.ts`, e nada é enviado.
+(`app/domains/demographics/`), pelas rotas `GET` e `PUT /demographics/me`
+(`demographicsApi.ts`). O perfil é sempre o de quem está logado.
 
 As três telas do onboarding estão encadeadas por `demographicsFlow.tsx`
 (etapa 1 → etapa 2 → etapa 3 → `/questionnaire`). A tela 1 coleta o nome
@@ -18,9 +17,9 @@ Os campos da tela 2 têm o nome e os valores do `DemographicCreate`:
 (`demographicsOptions.ts`) são checadas contra os tipos de `src/types/api.ts`
 com `satisfies`: valor que o back não aceita não compila.
 
-`name` (tela 1) e `perspective` (tela 3) não são do `DemographicCreate`. O nome é
-do `Participant` (`ParticipantCreate.name`); a perspectiva ainda não tem lugar no
-back.
+`perspective` (tela 3) também é do `DemographicCreate`. `name` (tela 1) não é: o
+nome é do `Participant`, e o back não tem rota para a pessoa alterar o próprio
+nome. Por isso a tela 1 ainda não grava nada (o nome do convite continua valendo).
 
 ## Estado entre etapas
 
@@ -30,8 +29,8 @@ com Zod e confirma no slice somente os campos da etapa atual. Nas telas 2 e 3,
 a nacionalidade limpa os detalhes da escolha anterior. Login e logout descartam
 todo o rascunho; nenhum dado demográfico é salvo em localStorage.
 
-O snapshot no Redux (`demographicsSlice.ts`) é uma adaptação temporária à
-convenção de formulários: não é resposta do servidor. Ele mantém um ponto de
+O snapshot no Redux (`demographicsSlice.ts`) é o rascunho do onboarding: começa
+do perfil salvo e só vai ao servidor no fim. Ele mantém um ponto de
 compartilhamento entre as três etapas sem despachar a cada tecla. A tela 2 usa
 somente `saveDemographicsStep`, que atualiza só os campos da etapa 2 e não
 sobrescreve `name` nem `perspective`.
@@ -40,12 +39,15 @@ sobrescreve `name` nem `perspective`.
 sozinhas. Quem os preenche é `demographicsFlow.tsx`. As três rotas ficam atrás
 do `ProtectedRoute` (ver `src/app/routes.tsx`).
 
-## O que falta para integrar
+## Integração com o back
 
-- Rota no back para gravar o perfil demográfico de um participante.
-- Decidir onde mora a `perspective`.
-- Com a rota, criar `demographicsApi.ts` e um thunk que envie o rascunho no fim
-  da etapa 3 — o corpo já tem a forma do `DemographicCreate`.
+- **Ao abrir a etapa 1**, `loadDemographics` traz o perfil já salvo para o
+  rascunho, uma vez por sessão. 404 é quem ainda não passou pelo onboarding.
+- **No fim da etapa 3** (Avançar ou Pular), `saveDemographics` manda o rascunho
+  inteiro no `PUT`. O `PUT` substitui o perfil, por isso o rascunho parte do que
+  já estava salvo. Texto vazio vai como nulo.
+- **Se o envio falhar**, a pessoa fica na etapa 3, com um toast, e pode tentar de
+  novo.
 
 ## Opções ainda sujeitas à validação do produto
 

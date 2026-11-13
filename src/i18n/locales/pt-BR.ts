@@ -180,6 +180,7 @@ export const ptBR = {
       pergunta:
         'De que forma a sua educação familiar influenciou, ou não, a sua trajetória empreendedora ou inovadora? Justifique brevemente (opcional)',
       placeholder: 'Sua resposta',
+      erroAoSalvar: 'Não foi possível salvar seus dados',
     },
   },
   questionarioRevisao: {

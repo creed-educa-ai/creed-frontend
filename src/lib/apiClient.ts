@@ -122,6 +122,8 @@ export const apiClient = {
     request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
   patch: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
+  put: <T>(path: string, body: unknown) =>
+    request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
   // Sem genérico: o backend responde 204 sem corpo (`request` devolve undefined).
   delete: (path: string) => request<undefined>(path, { method: 'DELETE' }),
 };
