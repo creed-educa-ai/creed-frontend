@@ -488,6 +488,7 @@ export const ptBR = {
     responderTudoAviso:
       'Responda as perguntas obrigatórias da seção para avançar.',
     semPerguntas: 'Este questionário ainda não tem perguntas.',
+    jaRespondido: 'Você já respondeu este questionário.',
     concluido: 'Concluído',
     perguntasRespondidas: '{{respondidas}} de {{total}} respondidas',
     concluidoTitulo: 'Todas as perguntas respondidas',
@@ -501,7 +502,7 @@ export const ptBR = {
     menuInformacoes: 'Sobre',
     menuSair: 'Sair',
     erros: {
-      naoEncontrado: 'Questionário não encontrado.',
+      semQuestionarioAberto: 'Nenhum questionário aberto para você no momento.',
       semAcesso: 'Você não tem acesso a este questionário.',
       servicoIndisponivel:
         'Não foi possível falar com o servidor. Tente de novo.',

@@ -6,7 +6,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { responsesApi } from './responsesApi';
-import responsesReducer from './responsesSlice';
+import responsesReducer, { loadQuestionnaire } from './responsesSlice';
 import { AnswersReviewRoute } from './AnswersReviewRoute';
 import { SubmissionConfirmationView } from './SubmissionConfirmationView';
 
@@ -112,6 +112,27 @@ describe('SubmissionConfirmationView', () => {
         responses: responsesReducer,
       },
     });
+    // O FormView já carregou o questionário antes de mandar para a revisão.
+    store.dispatch(
+      loadQuestionnaire.fulfilled(
+        {
+          form: {
+            id: 'form-1',
+            name: 'Período 2026/2',
+            organization_id: 'org-1',
+            status: 'draft',
+            opens_at: '2026-11-01T12:00:00Z',
+            closes_at: '2026-12-01T12:00:00Z',
+            link_id: null,
+            created_at: '2026-11-01T12:00:00Z',
+          },
+          formResponse: null,
+          questions: [],
+        },
+        'teste',
+        'pt-BR',
+      ),
+    );
     const user = userEvent.setup();
     render(
       <Provider store={store}>

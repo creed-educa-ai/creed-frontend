@@ -444,6 +444,10 @@ export type QuestionType = 'objective' | 'descriptive';
 export type QuestionSection =
   'S2' | 'S4' | 'S5A' | 'S5B' | 'S6' | 'S7' | 'S8' | 'S9';
 
+// `?lang=` da listagem. Sem tradução naquele idioma, o back devolve o texto
+// em português.
+export type QuestionLang = 'pt' | 'pt-BR' | 'en' | 'es';
+
 // A pergunta é do instrumento, e não do formulário: todo período aplica as
 // mesmas perguntas.
 export interface QuestionCreate {
@@ -510,6 +514,14 @@ export interface FormResponseResponse {
   status: FormResponseStatus;
   started_at: string;
   submitted_at: string | null;
+}
+
+// `GET /forms/current`: o questionário aberto agora para quem está logado (o
+// da organização inteira ou o só dela) e a resposta dela nele. Nulo: ainda
+// não começou. Sem questionário aberto, o back devolve 404.
+export interface CurrentFormRead {
+  form: FormRead;
+  form_response: FormResponseResponse | null;
 }
 
 // Descritiva em `value`, objetiva em `option_id`.

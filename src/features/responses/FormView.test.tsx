@@ -1,27 +1,29 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { FormView } from './FormView';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
-import { formsApi } from '@/features/forms/formsApi';
 import { questionsApi } from '@/features/questions/questionsApi';
-import responsesReducer, {
-  DEMO_FORM_ID,
-} from '@/features/responses/responsesSlice';
+import { responsesApi } from '@/features/responses/responsesApi';
+import responsesReducer from '@/features/responses/responsesSlice';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { ApiError } from '@/lib/apiClient';
-import type { FormRead, QuestionResponse } from '@/types/api';
+import type {
+  FormRead,
+  FormResponseResponse,
+  QuestionResponse,
+} from '@/types/api';
 
 const form: FormRead = {
-  id: DEMO_FORM_ID,
-  name: '[Demonstração] Formulário de teste',
+  id: 'd40b7a55-b9cc-4b78-ae5d-ab325fd655e2',
+  name: 'Período 2026/2',
   organization_id: '00000000-0000-0000-0000-000000000001',
   status: 'draft',
-  opens_at: null,
-  closes_at: null,
+  opens_at: '2026-11-01T12:00:00Z',
+  closes_at: '2026-12-01T12:00:00Z',
   link_id: null,
   created_at: '2026-09-30T18:38:18Z',
 };
@@ -88,7 +90,10 @@ describe('FormView', () => {
   });
 
   function comPerguntas(lista: QuestionResponse[] = perguntas) {
-    vi.spyOn(formsApi, 'getForm').mockResolvedValue(form);
+    vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue({
+      form,
+      form_response: null,
+    });
     return vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue(lista);
   }
 
@@ -148,30 +153,65 @@ describe('FormView', () => {
   }
 
   describe('carregamento', () => {
-    it('busca o formulário de demonstração no back', async () => {
+    it('busca no back o questionário aberto para a pessoa', async () => {
       const listQuestions = comPerguntas();
       renderizar();
 
       expect(screen.getByRole('status')).toHaveTextContent('Carregando');
       await screen.findByText('Texto da p1');
-      expect(listQuestions).toHaveBeenCalledWith(DEMO_FORM_ID);
+      expect(listQuestions).toHaveBeenCalledWith(form.id, { lang: 'pt-BR' });
     });
 
-    it('mostra o erro e tenta de novo', async () => {
-      vi.spyOn(formsApi, 'getForm')
-        .mockRejectedValueOnce(new ApiError('não achou', 404))
-        .mockResolvedValue(form);
+    it('sem questionário aberto, avisa e deixa tentar de novo', async () => {
+      vi.spyOn(responsesApi, 'getCurrentForm')
+        .mockRejectedValueOnce(new ApiError('nenhum aberto', 404))
+        .mockResolvedValue({ form, form_response: null });
       vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue(perguntas);
       renderizar();
 
       expect(await screen.findByRole('alert')).toHaveTextContent(
-        'Questionário não encontrado.',
+        'Nenhum questionário aberto para você no momento.',
       );
 
       await userEvent.click(
         screen.getByRole('button', { name: 'Tentar novamente' }),
       );
       expect(await screen.findByText('Texto da p1')).toBeInTheDocument();
+    });
+
+    it('avisa quando a pessoa já respondeu', async () => {
+      const enviada: FormResponseResponse = {
+        id: '3b1bb89a-471f-48b0-9025-cfda3b20d240',
+        form_id: form.id,
+        vinculo_id: 'e541e500-8b88-45e7-9195-b6079023922b',
+        status: 'submitted',
+        started_at: '2026-11-02T12:00:00Z',
+        submitted_at: '2026-11-02T12:30:00Z',
+      };
+      vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue({
+        form,
+        form_response: enviada,
+      });
+      renderizar();
+
+      expect(
+        await screen.findByText('Você já respondeu este questionário.'),
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Texto da p1')).not.toBeInTheDocument();
+    });
+
+    it('pede as perguntas de novo ao trocar o idioma, sem perder a resposta', async () => {
+      const listQuestions = comPerguntas();
+      renderizar();
+      await screen.findByText('Texto da p1');
+      await userEvent.type(screen.getByRole('textbox'), 'Guardada');
+
+      await act(() => i18n.changeLanguage('es'));
+
+      await waitFor(() => {
+        expect(listQuestions).toHaveBeenLastCalledWith(form.id, { lang: 'es' });
+      });
+      expect(screen.getByRole('textbox')).toHaveValue('Guardada');
     });
 
     it('avisa quando o formulário não tem pergunta', async () => {
