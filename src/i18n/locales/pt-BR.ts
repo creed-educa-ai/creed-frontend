@@ -641,9 +641,11 @@ export const ptBR = {
         updatedAt: 'Data recente',
         delete: 'Excluir',
       },
+      // A resposta do período atual do membro, não o status do convite.
       status: {
-        ativo: 'Ativo',
+        respondeu: 'Respondeu',
         pendente: 'Pendente',
+        semPeriodo: 'Sem período',
       },
     },
     errors: {

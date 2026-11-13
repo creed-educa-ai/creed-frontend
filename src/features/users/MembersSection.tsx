@@ -22,15 +22,23 @@ export function MembersSection() {
   const dispatch = useAppDispatch();
   const { members, status, error } = useAppSelector((state) => state.users);
 
+  // Os membros são da organização do vínculo de quem está logado (o gestor).
+  const organizationId = useAppSelector(
+    (state) => state.authentication.user?.organization_id ?? null,
+  );
+
   useEffect(() => {
-    void dispatch(loadMembers());
-  }, [dispatch]);
+    if (organizationId) {
+      void dispatch(loadMembers(organizationId));
+    }
+  }, [dispatch, organizationId]);
 
   // O toast vem depois do `unwrap`: se a exclusão falhar, quem avisa é o
   // diálogo de confirmação, que continua aberto.
   async function handleDelete(id: string) {
+    if (!organizationId) return;
     const name = members.find((member) => member.id === id)?.name ?? '';
-    await dispatch(deleteMember(id)).unwrap();
+    await dispatch(deleteMember({ organizationId, id })).unwrap();
     toast.success(t('organizations:toasts.membroExcluido'), {
       description: t('organizations:toasts.membroExcluidoDescricao', {
         nome: name,
@@ -40,9 +48,10 @@ export function MembersSection() {
 
   // A troca de tag é imediata, sem botão de salvar: o toast confirma.
   async function handleChangeTag(id: string, tag: DepartmentType | null) {
+    if (!organizationId) return;
     const name = members.find((member) => member.id === id)?.name ?? '';
     try {
-      await dispatch(updateMemberTag({ id, tag })).unwrap();
+      await dispatch(updateMemberTag({ organizationId, id, tag })).unwrap();
       toast.success(t('organizations:toasts.tagAtualizada'), {
         description: tag
           ? t('organizations:toasts.tagAtualizadaDescricao', {

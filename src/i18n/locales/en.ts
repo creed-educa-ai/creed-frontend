@@ -634,8 +634,9 @@ export const en: typeof ptBR = {
         delete: 'Delete',
       },
       status: {
-        ativo: 'Active',
+        respondeu: 'Answered',
         pendente: 'Pending',
+        semPeriodo: 'No period',
       },
     },
     errors: {
@@ -714,7 +715,7 @@ export const en: typeof ptBR = {
         '{{email}} will receive the invitation by email.',
       questionarioNoAr: 'The questionnaire is live',
       questionarioNoArDescricao:
-        'Responses are open during the period you set.',
+        'Responses remain open during the defined period.',
     },
     controles: 'Controls',
     administradora: 'Administrator',

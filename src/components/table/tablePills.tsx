@@ -7,6 +7,8 @@ const tones = {
   success: 'bg-success',
   warning: 'bg-warning',
   destructive: 'bg-destructive',
+  // Nem bom nem ruim (ex.: membro sem período): fundo apagado, texto escuro.
+  neutral: 'bg-muted text-muted-foreground',
 };
 
 // Selo de status (Ativo, Pendente…). Cor cheia e texto claro, como no Figma.
