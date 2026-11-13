@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom'; // ou de onde obtém o ID da organização
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/sonner';
@@ -22,15 +23,21 @@ export function MembersSection() {
   const dispatch = useAppDispatch();
   const { members, status, error } = useAppSelector((state) => state.users);
 
+  // Obtém o id da organização (ajuste conforme a sua rota, ex: useParams ou auth selector)
+  const { id: routeOrgId } = useParams<{ id: string }>();
+  const organizationId = routeOrgId ?? '';
+
   useEffect(() => {
-    void dispatch(loadMembers());
-  }, [dispatch]);
+    if (organizationId) {
+      void dispatch(loadMembers(organizationId));
+    }
+  }, [dispatch, organizationId]);
 
   // O toast vem depois do `unwrap`: se a exclusão falhar, quem avisa é o
   // diálogo de confirmação, que continua aberto.
   async function handleDelete(id: string) {
     const name = members.find((member) => member.id === id)?.name ?? '';
-    await dispatch(deleteMember(id)).unwrap();
+    await dispatch(deleteMember({ organizationId, id })).unwrap();
     toast.success(t('organizations:toasts.membroExcluido'), {
       description: t('organizations:toasts.membroExcluidoDescricao', {
         nome: name,
@@ -42,7 +49,7 @@ export function MembersSection() {
   async function handleChangeTag(id: string, tag: DepartmentType | null) {
     const name = members.find((member) => member.id === id)?.name ?? '';
     try {
-      await dispatch(updateMemberTag({ id, tag })).unwrap();
+      await dispatch(updateMemberTag({ organizationId, id, tag })).unwrap();
       toast.success(t('organizations:toasts.tagAtualizada'), {
         description: tag
           ? t('organizations:toasts.tagAtualizadaDescricao', {

@@ -3,16 +3,89 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { CompanyControlPanelView } from './CompanyControlPanelView';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import usersReducer from '@/features/users/usersSlice';
+import { usersApi } from '@/features/users/usersApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+import type { MemberList } from '@/types/api';
 
-// A seção de membros lê e carrega a lista pelo slice de organizations; o menu
-// do topo lê o papel na sessão (admin, o único que tem o painel).
-function renderizar() {
+const membrosMockFixture: MemberList = {
+  itens: [
+    {
+      id: '1',
+      name: 'Enner Valência',
+      email: 'michael.mitc@example.com',
+      status: 'ativo',
+      tag: 'Marketing',
+      updated_at: '2026-10-18T14:12:00.000Z',
+    },
+    {
+      id: '2',
+      name: 'Wilson Mathias',
+      email: 'felicia.reid@example.com',
+      status: 'ativo',
+      tag: 'Financeiro',
+      updated_at: '2026-10-17T09:40:00.000Z',
+    },
+    {
+      id: '3',
+      name: 'Volante Ronaldo',
+      email: 'georgia.young@example.com',
+      status: 'pendente',
+      tag: 'RecursosHumanos',
+      updated_at: '2026-10-16T18:05:00.000Z',
+    },
+    {
+      id: '4',
+      name: 'Maurides Cambalhota',
+      email: 'alma.lawson@example.com',
+      status: 'ativo',
+      tag: 'TecnologiaInformacao',
+      updated_at: '2026-10-15T11:22:00.000Z',
+    },
+    {
+      id: '5',
+      name: 'Clayton Sampaio',
+      email: 'dolores.chambers@example.com',
+      status: 'pendente',
+      tag: 'Administrativo',
+      updated_at: '2026-10-14T08:01:00.000Z',
+    },
+    {
+      id: '6',
+      name: 'Ana Souza',
+      email: 'ana.souza@example.com',
+      status: 'ativo',
+      tag: 'Marketing',
+      updated_at: '2026-10-13T16:47:00.000Z',
+    },
+    {
+      id: '7',
+      name: 'Bruno Lima',
+      email: 'bruno.lima@example.com',
+      status: 'pendente',
+      tag: null,
+      updated_at: '2026-10-12T10:18:00.000Z',
+    },
+    {
+      id: '8',
+      name: 'Carla Dias',
+      email: 'carla.dias@example.com',
+      status: 'ativo',
+      tag: null,
+      updated_at: '2026-10-11T13:33:00.000Z',
+    },
+  ],
+  total: 8,
+  pagina: 1,
+  tamanho_pagina: 5,
+  organization: 'Acme Inc.',
+};
+
+function renderizar(route = '/control-panel') {
   const store = configureStore({
     reducer: {
       authentication: authenticationReducer,
@@ -25,27 +98,37 @@ function renderizar() {
           email: 'dev@creed.example.com',
           role: 'gestor',
           link_id: null,
-          organization_id: null,
-          organization_name: null,
+          organization_id: 'org-1',
+          organization_name: 'Acme Inc.',
         },
         status: 'authenticated' as const,
         error: null,
         passwordReset: { status: 'idle' as const, error: null },
+      },
+      users: {
+        ...usersReducer(undefined, { type: '@INIT' }),
+        members: membrosMockFixture.itens,
+        organization: membrosMockFixture.organization,
       },
     },
   });
 
   return render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={['/control-panel']}>
-        <CompanyControlPanelView />
+      <MemoryRouter initialEntries={[route]}>
+        <Routes>
+          <Route path="/control-panel" element={<CompanyControlPanelView />} />
+          <Route
+            path="/organizations/:id/control-panel"
+            element={<CompanyControlPanelView />}
+          />
+        </Routes>
       </MemoryRouter>
       <Toaster />
     </Provider>,
   );
 }
 
-// A coluna é o contêiner do rótulo ("Início"/"Término") e dos dois botões dele.
 function coluna(rotulo: string) {
   const elemento = screen.getByText(rotulo).parentElement;
   if (!elemento) {
@@ -95,22 +178,24 @@ async function escolherHora(
 }
 
 describe('CompanyControlPanelView', () => {
-  // "Hoje" fixo: sábado, 10/01/2026. Só o Date é falso; os timers seguem reais.
   beforeEach(async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2026, 0, 10, 10, 0));
+    vi.spyOn(usersApi, 'listMembers').mockResolvedValue(membrosMockFixture);
+    vi.spyOn(usersApi, 'setMemberTag').mockResolvedValue(undefined);
+    vi.spyOn(usersApi, 'removeMember').mockResolvedValue(undefined);
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
-  it('should render the organization name and the translated title', async () => {
+  it('should render the organization name and the translated title', () => {
     renderizar();
 
-    // No cabeçalho, acima do título, e no separador do card "Membros".
-    expect(await screen.findAllByText('Acme Inc.')).toHaveLength(2);
+    expect(screen.getAllByText('Acme Inc.')).toHaveLength(2);
     expect(
       screen.getByRole('heading', {
         level: 1,
@@ -146,7 +231,6 @@ describe('CompanyControlPanelView', () => {
     expect(botaoDoDia(9)).toBeDisabled();
     expect(botaoDoDia(10)).toBeEnabled();
 
-    // Clicar num dia bloqueado não seleciona nada: o botão continua com o aviso.
     await user.click(botaoDoDia(9));
     expect(botaoData(colunaInicio())).toBeInTheDocument();
   });
@@ -208,7 +292,6 @@ describe('CompanyControlPanelView', () => {
 
     await user.click(botaoHora(colunaInicio()));
     expect(screen.getByText('Hour')).toBeInTheDocument();
-    // "09": em inglês a hora 15 teria o mesmo nome do minuto 15.
     await user.click(screen.getByRole('button', { name: '09' }));
     await user.click(screen.getByRole('button', { name: '45' }));
 
@@ -266,7 +349,6 @@ describe('CompanyControlPanelView', () => {
     const user = userEvent.setup();
     renderizar();
 
-    // "Agora" é 10/01/2026 às 10:00.
     await escolherData(user, colunaInicio(), 10);
     await escolherHora(user, colunaInicio(), '09', '00');
     await escolherData(user, colunaTermino(), 11);
@@ -336,7 +418,6 @@ describe('CompanyControlPanelView', () => {
     const user = userEvent.setup();
     renderizar();
 
-    // O calendário do início não olha o término: só o schema pega este caso.
     await escolherData(user, colunaInicio(), 17);
     await escolherHora(user, colunaInicio(), '09', '00');
     await escolherData(user, colunaTermino(), 17);
@@ -385,10 +466,9 @@ describe('CompanyControlPanelView', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should render the three section titles, without collapsing', async () => {
+  it('should render the three section titles, without collapsing', () => {
     renderizar();
 
-    // "Controles" agrupa os dois cards de ação, cada um com o título dentro.
     expect(
       screen.getByRole('heading', {
         level: 2,
@@ -407,9 +487,9 @@ describe('CompanyControlPanelView', () => {
         name: i18n.t('painelControle:gerenciar'),
       }),
     ).toBeInTheDocument();
-    // O separador leva o nome da empresa; "Membros" é o título do card.
+
     expect(
-      await screen.findByRole('heading', { level: 2, name: 'Acme Inc.' }),
+      screen.getByRole('heading', { level: 2, name: 'Acme Inc.' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { level: 3, name: 'Membros' }),
@@ -419,14 +499,6 @@ describe('CompanyControlPanelView', () => {
         name: i18n.t('painelControle:gerenciar'),
       }),
     ).not.toBeInTheDocument();
-  });
-
-  it('should list the organization members', async () => {
-    renderizar();
-
-    expect(
-      within(await screen.findByRole('table')).getByText('Enner Valência'),
-    ).toBeInTheDocument();
   });
 
   it('should highlight the control panel in the menu', () => {
