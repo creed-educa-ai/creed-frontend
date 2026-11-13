@@ -16,7 +16,7 @@ import { FormView } from '@/features/responses/FormView';
 import { AnswersReviewRoute } from '@/features/responses/AnswersReviewRoute';
 import { SubmissionConfirmationView } from '@/features/responses/SubmissionConfirmationView';
 import { UserDashboardView } from '@/features/dashboards/UserDashboardView';
-import { CompanyDashboardView } from '@/features/dashboards/CompanyDashboardView';
+import { CompanyDashboardRoute } from '@/features/dashboards/AdminDashboardView';
 import { CompanyControlPanelView } from '@/features/controlPanel/CompanyControlPanelView';
 import { AdminControlPanelView } from '@/features/controlPanel/AdminControlPanelView';
 
@@ -45,7 +45,9 @@ export const router = createBrowserRouter([
     // guarda que mostra o termo no primeiro acesso.
     children: [
       { path: '/dashboard', element: <UserDashboardView /> },
-      { path: '/dashboard/company', element: <CompanyDashboardView /> },
+      // A administradora tem o próprio dashboard, com o seletor de empresa e de
+      // mentorando; a gestora, o da organização dela.
+      { path: '/dashboard/company', element: <CompanyDashboardRoute /> },
       { path: '/control-panel', element: <CompanyControlPanelView /> },
       { path: '/control-panel/admin', element: <AdminControlPanelView /> },
       { path: '/demographics/step-1', element: <DemographicsStep1Route /> },

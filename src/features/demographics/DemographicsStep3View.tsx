@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -24,8 +25,10 @@ const respostaVazia: DemographicsStep3Form = { perspective: '' };
 
 interface Demograficos3ViewProps {
   // A CREED-20.7 conecta estas ações ao fluxo, no mesmo formato da tela 2.
-  onContinue?: (data: DemographicsStep3Form) => void;
-  onSkip?: () => void;
+  // Podem devolver uma promessa (o envio ao back): os botões ficam
+  // desabilitados até ela terminar.
+  onContinue?: (data: DemographicsStep3Form) => void | Promise<void>;
+  onSkip?: () => void | Promise<void>;
 }
 
 export function DemographicsStep3View({
@@ -37,6 +40,8 @@ export function DemographicsStep3View({
   const perspectivaSalva = useAppSelector(
     (state) => state.demographics.perspective,
   );
+  // O Pular não passa pelo handleSubmit: o envio dele tem estado próprio.
+  const [pulando, setPulando] = useState(false);
 
   // O texto vive no react-hook-form enquanto a pessoa digita e só vai para o
   // Redux no Avançar (formularios.md, regra 6). O valor inicial vem do slice
@@ -53,17 +58,24 @@ export function DemographicsStep3View({
 
   // Nenhuma das duas ações navega: a ligação entre as telas é da CREED-20.7,
   // que recebe o controle pelas props (P-009).
-  function salvar(dados: DemographicsStep3Form) {
+  async function salvar(dados: DemographicsStep3Form) {
     dispatch(setPerspective(dados.perspective));
-    onContinue?.(dados);
+    await onContinue?.(dados);
   }
 
   // Pular descarta a resposta desta etapa, inclusive a que já tinha sido salva.
-  function pular() {
+  async function pular() {
     reset(respostaVazia);
     dispatch(setPerspective(respostaVazia.perspective));
-    onSkip?.();
+    setPulando(true);
+    try {
+      await onSkip?.();
+    } finally {
+      setPulando(false);
+    }
   }
+
+  const enviando = isSubmitting || pulando;
 
   return (
     <FormLayout>
@@ -88,15 +100,15 @@ export function DemographicsStep3View({
         </Field>
 
         <div className="mt-2 flex flex-col gap-2">
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button type="submit" className="w-full" disabled={enviando}>
             {t('avancar')}
           </Button>
           <Button
             type="button"
             variant="outline"
             className="w-full"
-            onClick={pular}
-            disabled={isSubmitting}
+            onClick={() => void pular()}
+            disabled={enviando}
           >
             {t('pular')}
           </Button>

@@ -1,25 +1,25 @@
 // Chamadas ao backend para o domínio dashboards.
 //
-// Hoje é tudo MOCK: no back, `dashboards` tem tabela e schema
-// (`DashboardResponse`: só `user_id`, `form_id`, `is_private`), mas a rota é
-// stub, e os números do radar dependem de `prismas` e `insights`, que também
-// não têm rota. Os dados ficam aqui, e não na tela, para que integrar seja
-// trocar o corpo das funções por `apiClient.get` — o slice e as telas não
-// mudam. Lembrete do princípio 1: o back entrega os números prontos; a tela
-// não soma nem agrupa.
-import type { DepartmentType, Dimension, Prisma } from '@/types/api';
+// Os dois dashboards vêm do back: `GET /dashboards/me` (o resultado de quem
+// está logado) e `GET /dashboards/company` (o da organização, com recorte).
+// Lembrete do princípio 1: o back entrega os números prontos; a tela não soma
+// nem agrupa.
+import { apiClient } from '@/lib/apiClient';
+import type { DepartmentType, Prisma } from '@/types/api';
 import type { PrismaScores } from './components/PrismaRadarChart';
-import { DIMENSIONS, PRISMAS, type DimensionScores } from './prismas';
+import type { DimensionScores } from './prismas';
 
 // ---------------------------------------------------------------------------
 // Formas PROVISÓRIAS da tela. Moram aqui, e não em types/api.ts, porque
 // dependem do `PrismaScores` do radar e só a feature dashboards as usa.
 // ---------------------------------------------------------------------------
 
+// Um card do resumo executivo. O back manda só o prisma e a nota: o título e a
+// descrição saem do i18n (em inglês e espanhol, texto do back sairia em
+// português).
 export interface DashboardHighlight {
-  titulo: string;
+  prisma: Prisma;
   valor: number;
-  descricao: string;
 }
 
 export interface CreedSummary {
@@ -57,7 +57,9 @@ export type ComparisonScope = DepartmentType | 'organization';
  */
 export interface PrismaComparison {
   period: string | null;
-  scope: ComparisonScope | null;
+  // Um `ComparisonScope` (setor ou `organization`) no dashboard da empresa; no
+  // retrato atual da administradora, o id de uma empresa ou de um mentorando.
+  scope: string | null;
   scores: PrismaScores;
   variation: PrismaScores;
   // Notas das sete dimensões da referência.
@@ -109,6 +111,8 @@ export interface ComparisonOptions {
  */
 export interface DashboardFilters {
   period?: string | undefined;
+  // Só a administradora manda: a organização dela é a CREED, não a que quer ver.
+  organization_id?: string | undefined;
   department?: DepartmentType | undefined;
   member_id?: string | undefined;
 }
@@ -118,10 +122,19 @@ export interface DashboardMember {
   label: string;
 }
 
-/** Resultado de quem está logado. */
-export interface UserDashboard {
+/**
+ * Um período que dá para escolher: um questionário com datas. O id é o do
+ * formulário; o rótulo da tela é a data final (`periodLabeler`).
+ */
+export interface PeriodOption {
+  id: string;
+  opens_at: string;
+  closes_at: string;
+}
+
+// O que os dois dashboards têm em comum. Cada um diz como são os períodos.
+interface DashboardResult {
   organization_name: string;
-  periods: string[];
   // O período que esta resposta mostra, já resolvido pelo back.
   period: string;
   scores: PrismaScores;
@@ -133,8 +146,23 @@ export interface UserDashboard {
   creed_summary: CreedSummary;
 }
 
+/**
+ * Resultado de quem está logado (`GET /dashboards/me`). Só os períodos em que
+ * a pessoa respondeu, do mais recente ao mais antigo. Os textos do Creed.ai
+ * vêm vazios até a esteira de IA existir.
+ */
+export interface UserDashboard extends DashboardResult {
+  periods: PeriodOption[];
+  // O nome do mentorando, quando a administradora vê o resultado dele. Nulo
+  // (ou ausente) no próprio resultado.
+  member_name?: string | null;
+}
+
 /** Resultado agregado da organização, com recorte por setor ou membro. */
-export interface CompanyDashboard extends UserDashboard {
+export interface CompanyDashboard extends DashboardResult {
+  // Os períodos "para todos" com resposta, do mais recente ao mais antigo (no
+  // recorte de uma pessoa, os dela, inclusive os individuais).
+  periods: PeriodOption[];
   // O recorte que esta resposta mostra; os dois nulos são a organização.
   department: DepartmentType | null;
   member_id: string | null;
@@ -149,441 +177,75 @@ export interface CompanyDashboard extends UserDashboard {
   department_matrix: DepartmentRow[];
 }
 
-// ---------------------------------------------------------------------------
-// MOCK
-// ---------------------------------------------------------------------------
-
-const ORGANIZATION_NAME = 'Acme Inc.';
-
-// Notas da organização inteira em cada período.
-const overallScores = {
-  '2026/1': {
-    seguranca_psicologica: 79,
-    lideranca_adaptativa: 77,
-    cultura_empreendedora: 67,
-    adaptabilidade_cognitiva: 57,
-    neuroinovacao_prisma: 54,
-  },
-  '2025/2': {
-    seguranca_psicologica: 70,
-    lideranca_adaptativa: 72,
-    cultura_empreendedora: 60,
-    adaptabilidade_cognitiva: 52,
-    neuroinovacao_prisma: 48,
-  },
-  '2025/1': {
-    seguranca_psicologica: 74,
-    lideranca_adaptativa: 80,
-    cultura_empreendedora: 61,
-    adaptabilidade_cognitiva: 57,
-    neuroinovacao_prisma: 50,
-  },
-} satisfies Record<string, PrismaScores>;
-
-type MockPeriod = keyof typeof overallScores;
-
-const LATEST_PERIOD: MockPeriod = '2026/1';
-
-// Do mais recente para o mais antigo.
-const periods: MockPeriod[] = [LATEST_PERIOD, '2025/2', '2025/1'];
-
-// Quanto cada setor fica acima ou abaixo da organização, igual em todo
-// período: o bastante para o mock ter números diferentes por setor.
-const departmentOffsets: Record<DepartmentType, PrismaScores> = {
-  Marketing: {
-    seguranca_psicologica: 3,
-    lideranca_adaptativa: -2,
-    cultura_empreendedora: 3,
-    adaptabilidade_cognitiva: 3,
-    neuroinovacao_prisma: 4,
-  },
-  Financeiro: {
-    seguranca_psicologica: -3,
-    lideranca_adaptativa: -5,
-    cultura_empreendedora: -9,
-    adaptabilidade_cognitiva: -5,
-    neuroinovacao_prisma: -7,
-  },
-  Administrativo: {
-    seguranca_psicologica: -1,
-    lideranca_adaptativa: 2,
-    cultura_empreendedora: -6,
-    adaptabilidade_cognitiva: 1,
-    neuroinovacao_prisma: -3,
-  },
-  RecursosHumanos: {
-    seguranca_psicologica: 6,
-    lideranca_adaptativa: 3,
-    cultura_empreendedora: -5,
-    adaptabilidade_cognitiva: 14,
-    neuroinovacao_prisma: -4,
-  },
-  TecnologiaInformacao: {
-    seguranca_psicologica: -9,
-    lideranca_adaptativa: 1,
-    cultura_empreendedora: 7,
-    adaptabilidade_cognitiva: -12,
-    neuroinovacao_prisma: 7,
-  },
-};
-
-// Quanto cada membro fica acima ou abaixo da organização.
-const memberOffsets: Record<string, PrismaScores> = {
-  '1': {
-    seguranca_psicologica: 8,
-    lideranca_adaptativa: -10,
-    cultura_empreendedora: 12,
-    adaptabilidade_cognitiva: 4,
-    neuroinovacao_prisma: 9,
-  },
-  '2': {
-    seguranca_psicologica: -12,
-    lideranca_adaptativa: 15,
-    cultura_empreendedora: 5,
-    adaptabilidade_cognitiva: -8,
-    neuroinovacao_prisma: 2,
-  },
-  '3': {
-    seguranca_psicologica: 4,
-    lideranca_adaptativa: 6,
-    cultura_empreendedora: -4,
-    adaptabilidade_cognitiva: 10,
-    neuroinovacao_prisma: -6,
-  },
-};
-
-const departments = Object.keys(departmentOffsets) as DepartmentType[];
-
-function mapPrismas(fn: (prisma: (typeof PRISMAS)[number]) => number) {
-  return Object.fromEntries(
-    PRISMAS.map((prisma) => [prisma, fn(prisma)]),
-  ) as PrismaScores;
+/** Uma empresa (ou um mentorando) no mapa do retrato atual. */
+export interface OverviewGroup {
+  id: string;
+  label: string;
+  respondents: number;
+  scores: PrismaScores;
+  // O grupo menos a média geral.
+  difference: PrismaScores;
 }
 
-function scoresOf(period: MockPeriod, offset: PrismaScores | undefined) {
-  return mapPrismas(
-    (prisma) => overallScores[period][prisma] + (offset?.[prisma] ?? 0),
-  );
-}
+export type OverviewKind = 'companies' | 'mentees';
 
-// Notas de cada dimensão da organização em cada período. Batem com os
-// prismas acima (ex.: Segurança Psicológica = média de S6 e S7), menos com
-// Neuroinovação: as notas dela no mock vieram antes da fórmula.
-const overallDimensions: Record<MockPeriod, DimensionScores> = {
-  '2026/1': { S2: 58, S4: 58, S5A: 60, S5B: 54, S6: 76, S7: 82, S8: 72 },
-  '2025/2': { S2: 51, S4: 54, S5A: 55, S5B: 49, S6: 66, S7: 74, S8: 70 },
-  '2025/1': { S2: 52, S4: 52, S5A: 59, S5B: 55, S6: 70, S7: 78, S8: 82 },
-};
-
-// Só para o mock ter dimensões diferentes por recorte: cada dimensão leva o
-// desvio do recorte num prisma de que ela faz parte.
-const DIMENSION_PRISMA: Record<Dimension, Prisma> = {
-  S2: 'neuroinovacao_prisma',
-  S4: 'cultura_empreendedora',
-  S5A: 'adaptabilidade_cognitiva',
-  S5B: 'adaptabilidade_cognitiva',
-  S6: 'seguranca_psicologica',
-  S7: 'seguranca_psicologica',
-  S8: 'lideranca_adaptativa',
-};
-
-function dimensionsOf(period: MockPeriod, offset: PrismaScores | undefined) {
-  return Object.fromEntries(
-    DIMENSIONS.map((dimension) => [
-      dimension,
-      overallDimensions[period][dimension] +
-        (offset?.[DIMENSION_PRISMA[dimension]] ?? 0),
-    ]),
-  ) as DimensionScores;
-}
-
-function resolvePeriod(period: string | undefined): MockPeriod {
-  return periods.find((mockPeriod) => mockPeriod === period) ?? LATEST_PERIOD;
-}
-
-// O mock faz aqui o papel do back: recorta, monta todas as combinações de
-// período e setor e calcula a variação. No back real, tudo chega pronto.
-function buildResult(
-  filters: DashboardFilters,
-  comparableDepartments: DepartmentType[],
-) {
-  const period = resolvePeriod(filters.period);
-  const viewOffset = filters.department
-    ? departmentOffsets[filters.department]
-    : filters.member_id
-      ? memberOffsets[filters.member_id]
-      : undefined;
-  const scores = scoresOf(period, viewOffset);
-  const dimensions = dimensionsOf(period, viewOffset);
-
-  const otherPeriods = periods.filter((other) => other !== period);
-
-  // A empresa toda só entra onde também há setores: na visão da empresa.
-  const scopes: (ComparisonScope | null)[] =
-    comparableDepartments.length > 0
-      ? [null, 'organization', ...comparableDepartments]
-      : [null];
-
-  const comparisons: PrismaComparison[] = [null, ...otherPeriods].flatMap(
-    (comparedPeriod) =>
-      scopes
-        .filter((scope) => comparedPeriod !== null || scope !== null)
-        .map((scope) => {
-          // O que vem nulo é o mesmo do que está sendo exibido; a empresa
-          // toda não tem desvio.
-          const referencePeriod = comparedPeriod ?? period;
-          const referenceOffset =
-            scope === null
-              ? viewOffset
-              : scope === 'organization'
-                ? undefined
-                : departmentOffsets[scope];
-          const reference = scoresOf(referencePeriod, referenceOffset);
-          return {
-            period: comparedPeriod,
-            scope,
-            scores: reference,
-            variation: mapPrismas(
-              (prisma) => scores[prisma] - reference[prisma],
-            ),
-            dimensions: dimensionsOf(referencePeriod, referenceOffset),
-          };
-        }),
-  );
-
-  return {
-    period,
-    scores,
-    dimensions,
-    comparison_options: {
-      periods,
-      departments: comparableDepartments,
-      default_period: periods[periods.indexOf(period) + 1] ?? null,
-    },
-    comparisons,
-  };
-}
-
-const members: DashboardMember[] = [
-  { id: '1', label: 'Neymar Jr' },
-  { id: '2', label: 'Walter White' },
-  { id: '3', label: 'Tom Cruise' },
-];
-
-// Daqui até `members`, o mock só existe para mostrar que o recorte muda a
-// página inteira: os resumos saem das notas e do nome do recorte. No back
-// real, os números vêm da agregação e o texto, da esteira de IA.
-const MOCK_PRISMA_NAMES: Record<(typeof PRISMAS)[number], string> = {
-  seguranca_psicologica: 'Segurança Psicológica',
-  lideranca_adaptativa: 'Liderança Adaptativa',
-  cultura_empreendedora: 'Cultura Empreendedora',
-  adaptabilidade_cognitiva: 'Adaptabilidade Cognitiva',
-  neuroinovacao_prisma: 'Neuroinovação',
-};
-
-const MOCK_DEPARTMENT_NAMES: Record<DepartmentType, string> = {
-  Marketing: 'Marketing',
-  Financeiro: 'Financeiro',
-  Administrativo: 'Administrativo',
-  RecursosHumanos: 'RH',
-  TecnologiaInformacao: 'TI',
-};
-
-// Concluídos e convidados por setor; somam os 50/67 da organização.
-const departmentParticipation: Record<DepartmentType, [number, number]> = {
-  Marketing: [12, 14],
-  Financeiro: [8, 12],
-  Administrativo: [4, 11],
-  RecursosHumanos: [9, 9],
-  TecnologiaInformacao: [17, 21],
-};
-
-// Daqui até `buildAlignment`, o mock monta a distribuição a partir de um
-// nível escolhido por prisma; no back real, ela sai das notas de cada pessoa.
-type AlignmentLevel = PrismaAlignment['level'];
-
-// Que parte do grupo cai em baixa, média e alta em cada formato.
-const BAND_SHARES: Record<
-  AlignmentLevel | 'alinhadoAlto',
-  [number, number, number]
-> = {
-  alinhado: [0.1, 0.8, 0.1],
-  alinhadoAlto: [0.05, 0.2, 0.75],
-  moderado: [0.2, 0.5, 0.3],
-  dividido: [0.4, 0.15, 0.45],
-};
-
-// O nível de cada prisma na organização; os setores giram a lista, para cada
-// um ter um formato diferente.
-const OVERALL_LEVELS: AlignmentLevel[] = [
-  'alinhado',
-  'moderado',
-  'moderado',
-  'alinhado',
-  'dividido',
-];
-
-// A regra da P-062, como o back faria: dividido quando baixa e alta passam de
-// 30% cada; alinhado quando uma faixa só tem 70% ou mais.
-function levelOf(
-  bands: PrismaAlignment['bands'],
-  total: number,
-): AlignmentLevel {
-  if (bands.baixa / total > 0.3 && bands.alta / total > 0.3) return 'dividido';
-  if (Math.max(bands.baixa, bands.media, bands.alta) / total >= 0.7)
-    return 'alinhado';
-  return 'moderado';
-}
-
-function buildDepartmentMatrix(period: MockPeriod): DepartmentRow[] {
-  const overall = scoresOf(period, undefined);
-  return departments.map((department) => {
-    const scores = scoresOf(period, departmentOffsets[department]);
-    return {
-      department,
-      respondents: departmentParticipation[department][0],
-      scores,
-      difference: mapPrismas((prisma) => scores[prisma] - overall[prisma]),
-    };
-  });
-}
-
-function buildAlignment(
-  filters: DashboardFilters,
-  scores: PrismaScores,
-): TeamAlignment | null {
-  if (filters.member_id) return null;
-  const respondents = filters.department
-    ? departmentParticipation[filters.department][0]
-    : 50;
-  if (respondents === 0) return { respondents, prismas: null };
-
-  const shift = filters.department
-    ? departments.indexOf(filters.department) + 1
-    : 0;
-  const entries = PRISMAS.map((prisma, index) => {
-    const planned =
-      OVERALL_LEVELS[(index + shift) % OVERALL_LEVELS.length] ?? 'moderado';
-    const shares =
-      BAND_SHARES[
-        planned === 'alinhado' && scores[prisma] > 70 ? 'alinhadoAlto' : planned
-      ];
-    const baixa = Math.round(shares[0] * respondents);
-    const alta = Math.round(shares[2] * respondents);
-    const bands = { baixa, media: respondents - baixa - alta, alta };
-    return [prisma, { bands, level: levelOf(bands, respondents) }] as const;
-  });
-
-  return {
-    respondents,
-    prismas: Object.fromEntries(entries) as Record<Prisma, PrismaAlignment>,
-  };
-}
-
-function mockRecorteName(filters: DashboardFilters) {
-  if (filters.department) return MOCK_DEPARTMENT_NAMES[filters.department];
-  const member = members.find(({ id }) => id === filters.member_id);
-  return member?.label ?? 'a equipe';
-}
-
-function buildCreedSummary(
-  name: string,
-  period: string,
-  scores: PrismaScores,
-): CreedSummary {
-  const ordered = [...PRISMAS].sort((a, b) => scores[b] - scores[a]);
-  return {
-    analiseTexto: [
-      `Análise de ${name} no período ${period}.`,
-      'Segundo parágrafo da análise.',
-    ],
-    recomendacaoTexto: [
-      `Recomendação para ${name}. Lorem ipsum dolor sit amet.`,
-    ],
-    prismas: mapPrismaTexts(
-      (prisma) =>
-        `Leitura breve de ${MOCK_PRISMA_NAMES[prisma]} para ${name}. Lorem ipsum dolor sit amet, consectetur.`,
-    ),
-    destaque: ordered[0] ?? 'seguranca_psicologica',
-    oportunidade: ordered[ordered.length - 1] ?? 'neuroinovacao_prisma',
-  };
-}
-
-function mapPrismaTexts(fn: (prisma: Prisma) => string) {
-  return Object.fromEntries(
-    PRISMAS.map((prisma) => [prisma, fn(prisma)]),
-  ) as Record<Prisma, string>;
-}
-
-function buildCompanySummary(
-  filters: DashboardFilters,
-  scores: PrismaScores,
-): CompanySummary {
-  const ordered = [...PRISMAS].sort((a, b) => scores[b] - scores[a]);
-  const highlight = (prisma: (typeof PRISMAS)[number], descricao: string) => ({
-    titulo: MOCK_PRISMA_NAMES[prisma],
-    valor: scores[prisma],
-    descricao,
-  });
-  const [concluidos, convidados] = filters.department
-    ? departmentParticipation[filters.department]
-    : filters.member_id
-      ? [1, 1]
-      : [50, 67];
-  const name = mockRecorteName(filters);
-
-  return {
-    concluidos,
-    convidados,
-    destaque: highlight(
-      ordered[0] ?? 'seguranca_psicologica',
-      `O ponto mais forte de ${name}.`,
-    ),
-    oportunidade: highlight(
-      ordered[ordered.length - 1] ?? 'neuroinovacao_prisma',
-      `Onde ${name} tem mais espaço para crescer.`,
-    ),
-    // "Mais comum" ainda não tem definição: o mock usa a nota do meio.
-    maisComum: highlight(
-      ordered[2] ?? 'cultura_empreendedora',
-      `A nota mais próxima da média de ${name}.`,
-    ),
-  };
+/**
+ * O retrato atual (`GET /dashboards/overview`), só da administradora: cada
+ * pessoa entra com a resposta mais recente que enviou, seja qual for o
+ * período. Não há filtro de período: as empresas e os mentorandos respondem a
+ * qualquer hora. As comparações são com cada grupo (`period` nulo, `scope` o
+ * id do grupo).
+ */
+export interface OverviewDashboard {
+  kind: OverviewKind;
+  responses_from: string;
+  responses_to: string;
+  scores: PrismaScores;
+  dimensions: DimensionScores;
+  company_summary: CompanySummary;
+  alignment: TeamAlignment;
+  groups: OverviewGroup[];
+  comparisons: PrismaComparison[];
+  creed_summary: CreedSummary;
 }
 
 export const dashboardsApi = {
+  // Qualquer papel, só o próprio resultado. Com `member_id`, o de um
+  // mentorando, que só a administradora pede. Sem período, o mais recente que a
+  // pessoa respondeu. 404: ela ainda não enviou nenhum questionário.
   getUserDashboard: (
-    filters: Pick<DashboardFilters, 'period'> = {},
-  ): Promise<UserDashboard> => {
-    const result = buildResult(filters, []);
-    return Promise.resolve({
-      organization_name: ORGANIZATION_NAME,
-      periods,
-      ...result,
-      creed_summary: buildCreedSummary('você', result.period, result.scores),
-    });
+    filters: Pick<DashboardFilters, 'period' | 'member_id'> = {},
+  ) => {
+    const query = filters.period
+      ? `?${new URLSearchParams({ period: filters.period })}`
+      : '';
+    const path = filters.member_id
+      ? `/dashboards/members/${encodeURIComponent(filters.member_id)}`
+      : '/dashboards/me';
+    return apiClient.get<UserDashboard>(`${path}${query}`);
   },
 
-  getCompanyDashboard: (
-    filters: DashboardFilters,
-  ): Promise<CompanyDashboard> => {
-    const result = buildResult(filters, departments);
-    return Promise.resolve({
-      organization_name: ORGANIZATION_NAME,
-      periods,
-      ...result,
-      department: filters.department ?? null,
-      member_id: filters.member_id ?? null,
-      creed_summary: buildCreedSummary(
-        mockRecorteName(filters),
-        result.period,
-        result.scores,
-      ),
-      departments,
-      members,
-      company_summary: buildCompanySummary(filters, result.scores),
-      alignment: buildAlignment(filters, result.scores),
-      department_matrix: buildDepartmentMatrix(result.period),
-    });
+  // Gestora: a própria organização. Administradora: a do `organization_id`.
+  // 404: a organização ainda não tem resultado (ou o recorte não tem resposta
+  // no período). O `signal` cancela a carga anterior quando o filtro muda.
+  getCompanyDashboard: (filters: DashboardFilters, signal?: AbortSignal) => {
+    const params = new URLSearchParams();
+    const { period, organization_id, department, member_id } = filters;
+    if (period) params.set('period', period);
+    if (organization_id) params.set('organization_id', organization_id);
+    if (department) params.set('department', department);
+    if (member_id) params.set('member_id', member_id);
+    const query = params.toString();
+    return apiClient.get<CompanyDashboard>(
+      `/dashboards/company${query ? `?${query}` : ''}`,
+      signal ? { signal } : undefined,
+    );
   },
+
+  // Só a administradora. 404: ninguém respondeu ainda.
+  getOverview: (kind: OverviewKind, signal?: AbortSignal) =>
+    apiClient.get<OverviewDashboard>(
+      `/dashboards/overview?kind=${kind}`,
+      signal ? { signal } : undefined,
+    ),
 };

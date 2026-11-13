@@ -4,6 +4,7 @@ import type {
   ComparisonOptions,
   ComparisonScope,
   DepartmentRow,
+  OverviewGroup,
   PrismaComparison,
   TeamAlignment,
 } from '@/features/dashboards/dashboardsApi';
@@ -29,10 +30,24 @@ interface OverviewSectionProps {
   organizationName: string;
   comparisonOptions: ComparisonOptions;
   comparisons: PrismaComparison[];
+  // O rótulo de um período pelo id (a data final, `periodLabeler`). Sem ela, o
+  // id aparece como veio.
+  periodLabel?: ((period: string) => string) | undefined;
+  // O escopo que é o próprio recorte exibido: `organization` na organização
+  // inteira, o setor no recorte de um setor, nulo no de uma pessoa (e no
+  // dashboard individual). Comparar com ele só faz sentido em outro período.
+  viewScope?: ComparisonScope | null;
   // Só a visão da empresa manda; nulo no recorte de um funcionário.
   alignment?: TeamAlignment | null | undefined;
   // Também só da empresa; não depende do recorte, só do período.
   departmentMatrix?: DepartmentRow[] | undefined;
+  // O retrato atual da administradora: no lugar dos setores, as empresas (ou os
+  // mentorandos), na comparação e no mapa. Sem períodos, o botão de período
+  // some.
+  scopeOptions?: { id: string; label: string }[] | undefined;
+  scopePlaceholder?: string | undefined;
+  groupMatrix?:
+    { title: string; heading: string; rows: OverviewGroup[] } | undefined;
   pdfLayout?: boolean;
 }
 
@@ -44,8 +59,13 @@ export function OverviewSection({
   organizationName,
   comparisonOptions,
   comparisons,
+  periodLabel = (id) => id,
+  viewScope = null,
   alignment,
   departmentMatrix,
+  scopeOptions,
+  scopePlaceholder,
+  groupMatrix,
   pdfLayout = false,
 }: OverviewSectionProps) {
   const { t } = useTranslation([
@@ -60,9 +80,8 @@ export function OverviewSection({
   const [comparedPeriod, setComparedPeriod] = useState<string | null>(
     comparisonOptions.default_period,
   );
-  const [comparedScope, setComparedScope] = useState<ComparisonScope | null>(
-    null,
-  );
+  // Um setor, `organization`, ou (no retrato atual) o id de um grupo.
+  const [comparedScope, setComparedScope] = useState<string | null>(null);
 
   // No contrato, o período exibido na comparação é nulo ("o mesmo"); no
   // botão, ele aparece pelo nome. Com um setor e nenhum período marcado, o
@@ -77,11 +96,17 @@ export function OverviewSection({
   );
   const departmentName = (department: DepartmentType) =>
     t(`comum:setores.${department}`);
-  const scopeName = (scope: ComparisonScope) =>
-    scope === 'organization' ? organizationName : departmentName(scope);
-  // "Marketing 2026/1", ou só "2026/1" na organização inteira.
+  const scopeName = (scope: string) => {
+    const option = scopeOptions?.find(({ id }) => id === scope);
+    if (option) return option.label;
+    return scope === 'organization'
+      ? organizationName
+      : departmentName(scope as DepartmentType);
+  };
+  // "Marketing 2026/1", ou só "2026/1" na organização inteira. Sem período (o
+  // retrato atual), só o nome.
   const seriesLabel = (name: string | null, seriesPeriod: string) =>
-    name ? `${name} ${seriesPeriod}` : seriesPeriod;
+    [name, seriesPeriod && periodLabel(seriesPeriod)].filter(Boolean).join(' ');
   const shownLabel = seriesLabel(viewLabel, period);
   // O que a comparação deixa nulo é o mesmo do que está sendo exibido. O
   // objeto serve aos três cards: cada um usa a parte dele.
@@ -93,6 +118,23 @@ export function OverviewSection({
     scores: selected.scores,
     variation: selected.variation,
     dimensions: selected.dimensions,
+  };
+
+  // Escolher um setor (ou a empresa toda) quando ainda não havia setor marcado
+  // compara no período exibido: "comparar com Financeiro" é Financeiro agora,
+  // não no período anterior que estava marcado por padrão. Trocando de um
+  // setor para outro, o período escolhido fica.
+  const chooseScope = (scope: string | null) => {
+    if (scope !== null && scope === viewScope) {
+      // O próprio recorte: no período exibido seria ele contra ele mesmo,
+      // então a comparação fica (ou volta) no período anterior.
+      if (comparedPeriod === null || comparedPeriod === period) {
+        setComparedPeriod(comparisonOptions.default_period);
+      }
+    } else if (scope !== null && comparedScope === null) {
+      setComparedPeriod(period);
+    }
+    setComparedScope(scope);
   };
 
   const clear = () => {
@@ -119,20 +161,32 @@ export function OverviewSection({
             >
               {t('dashboardPrisma:compararCom')}
             </span>
-            <ComparisonFilter
-              placeholder={t('dashboard:Periodo')}
-              options={comparisonOptions.periods.map((option) => ({
-                id: option,
-                label: option,
-                // Sem setor, o período exibido seria o recorte contra ele mesmo.
-                disabled: option === period && comparedScope === null,
-              }))}
-              value={shownComparedPeriod}
-              onChange={setComparedPeriod}
-              onClear={clear}
-              className="min-w-0 flex-1 sm:flex-none"
-            />
-            {comparisonOptions.departments.length > 0 && (
+            {comparisonOptions.periods.length > 0 && (
+              <ComparisonFilter
+                placeholder={t('dashboard:Periodo')}
+                options={comparisonOptions.periods.map((option) => ({
+                  id: option,
+                  label: periodLabel(option),
+                  // Sem setor, o período exibido seria o recorte contra ele mesmo.
+                  disabled: option === period && comparedScope === null,
+                }))}
+                value={shownComparedPeriod}
+                onChange={setComparedPeriod}
+                onClear={clear}
+                className="min-w-0 flex-1 sm:flex-none"
+              />
+            )}
+            {scopeOptions && scopeOptions.length > 0 && (
+              <ComparisonFilter
+                placeholder={scopePlaceholder ?? t('dashboard:Setor')}
+                options={scopeOptions}
+                value={comparedScope}
+                onChange={chooseScope}
+                onClear={clear}
+                className="min-w-0 flex-1 sm:flex-none"
+              />
+            )}
+            {!scopeOptions && comparisonOptions.departments.length > 0 && (
               <ComparisonFilter
                 placeholder={t('dashboard:Setor')}
                 // A empresa toda primeiro: compara o recorte com a média de
@@ -149,7 +203,7 @@ export function OverviewSection({
                   })),
                 ]}
                 value={comparedScope}
-                onChange={setComparedScope}
+                onChange={chooseScope}
                 onClear={clear}
                 className="min-w-0 flex-1 sm:flex-none"
               />
@@ -191,11 +245,13 @@ export function OverviewSection({
           alinhamento fica estreito (as barras leem bem assim) e a tabela com
           o resto. Sem alinhamento (recorte de funcionário), a tabela ocupa a
           linha. Nenhum dos dois segue a comparação. */}
-      {(alignment ?? departmentMatrix) && (
+      {(alignment ?? departmentMatrix ?? groupMatrix) && (
         <div
           className={cn(
             'mt-4 grid grid-cols-1 gap-4',
-            alignment && departmentMatrix && 'xl:grid-cols-[2fr_3fr]',
+            alignment &&
+              (departmentMatrix ?? groupMatrix) &&
+              'xl:grid-cols-[2fr_3fr]',
             pdfLayout &&
               alignment &&
               departmentMatrix &&
@@ -206,7 +262,18 @@ export function OverviewSection({
             <AlignmentCard alignment={alignment} shownLabel={shownLabel} />
           )}
           {departmentMatrix && (
-            <DepartmentMatrixCard rows={departmentMatrix} period={period} />
+            <DepartmentMatrixCard
+              rows={departmentMatrix}
+              period={periodLabel(period)}
+            />
+          )}
+          {groupMatrix && (
+            <DepartmentMatrixCard
+              rows={groupMatrix.rows}
+              period={shownLabel}
+              title={groupMatrix.title}
+              heading={groupMatrix.heading}
+            />
           )}
         </div>
       )}
