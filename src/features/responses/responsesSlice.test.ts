@@ -56,11 +56,11 @@ function question(
   overrides: Partial<QuestionResponse> & Pick<QuestionResponse, 'id'>,
 ): QuestionResponse {
   return {
-    form_id: DEMO_FORM_ID,
+    instrument_id: 'instrumento-creed',
     text: `Pergunta ${overrides.id}`,
     order_index: 0,
     type: 'descriptive',
-    section: 'profile',
+    section: 'S2',
     required: true,
     dimensao: null,
     prisma: null,
@@ -76,7 +76,7 @@ function criarStore() {
 }
 
 // Store com as perguntas já no estado, como se o carregamento tivesse
-// terminado, mas sem passar pelo thunk (que soma as de demonstração).
+// terminado, mas sem passar pelo thunk.
 function criarStoreCom(questions: QuestionResponse[]) {
   const store = criarStore();
   store.dispatch(
@@ -157,12 +157,7 @@ describe('responsesSlice', () => {
     const state = store.getState().responses;
     expect(state.status).toBe('ready');
     expect(state.form).toEqual(form);
-    // As do back e, depois delas, as duas de demonstração (até a CREED-37).
-    expect(state.questions.map(({ id }) => id)).toEqual([
-      'q1',
-      'demo-escala',
-      'demo-objetiva',
-    ]);
+    expect(state.questions.map(({ id }) => id)).toEqual(['q1']);
   });
 
   it('formulário sem pergunta fica ready, com lista vazia', async () => {
@@ -207,39 +202,39 @@ describe('responsesSlice', () => {
   });
 
   describe('selectQuestionnaireSections', () => {
-    // Põe as perguntas direto no estado, sem as de demonstração: aqui o que
+    // Põe as perguntas direto no estado: aqui o que
     // se testa é só a regra do seletor.
     function storeCom(questions: QuestionResponse[]) {
       return criarStoreCom(questions);
     }
 
-    it('ordena as seções por profile, assessment e closing, numeradas de 1', () => {
+    it('ordena as seções na ordem do formulário original, numeradas de 1', () => {
       const store = storeCom([
-        question({ id: 'c', section: 'closing', order_index: 2 }),
-        question({ id: 'p', section: 'profile', order_index: 0 }),
-        question({ id: 'a', section: 'assessment', order_index: 1 }),
+        question({ id: 'c', section: 'S9', order_index: 2 }),
+        question({ id: 'p', section: 'S2', order_index: 0 }),
+        question({ id: 'a', section: 'S4', order_index: 1 }),
       ]);
 
       expect(
         secoes(store).map(({ numero, section }) => [numero, section]),
       ).toEqual([
-        [1, 'profile'],
-        [2, 'assessment'],
-        [3, 'closing'],
+        [1, 'S2'],
+        [2, 'S4'],
+        [3, 'S9'],
       ]);
     });
 
     it('pula seção sem pergunta, sem deixar buraco na numeração', () => {
       const store = storeCom([
-        question({ id: 'p', section: 'profile' }),
-        question({ id: 'c', section: 'closing', order_index: 1 }),
+        question({ id: 'p', section: 'S2' }),
+        question({ id: 'c', section: 'S9', order_index: 1 }),
       ]);
 
       expect(
         secoes(store).map(({ numero, section }) => [numero, section]),
       ).toEqual([
-        [1, 'profile'],
-        [2, 'closing'],
+        [1, 'S2'],
+        [2, 'S9'],
       ]);
     });
 
@@ -261,7 +256,7 @@ describe('responsesSlice', () => {
         question({ id: 'objetiva', order_index: 1, type: 'objective' }),
         question({
           id: 'so-objetiva',
-          section: 'closing',
+          section: 'S9',
           order_index: 2,
           type: 'objective',
           options: [],
@@ -332,7 +327,7 @@ describe('responsesSlice', () => {
       // Opcional em branco e sem resposta: não vão para o back (P-038).
       { question_id: 'q3', answer: '   ' },
       { question_id: 'q4', answer: null },
-      // Objetiva respondida: o back ainda recusa, então não vai (CREED-37).
+      // Objetiva respondida: vai em `option_id`, achado pelo rótulo (P-039).
       { question_id: 'q5', answer: 'Rótulo 3' },
     ];
 
@@ -378,7 +373,7 @@ describe('responsesSlice', () => {
         question_id: 'q1',
         value: 'Primeira',
       });
-      expect(gravadas(back.record)).toEqual(['q1', 'q2']);
+      expect(gravadas(back.record)).toEqual(['q1', 'q2', 'q5']);
       expect(back.submit).toHaveBeenCalledWith(FORM_RESPONSE_ID);
       // Enviado: a retomada começa do zero.
       expect(store.getState().responses.submission).toEqual({
@@ -430,7 +425,7 @@ describe('responsesSlice', () => {
 
       // Não abriu outra resposta e não gravou a q1 de novo.
       expect(back.create).toHaveBeenCalledOnce();
-      expect(gravadas(back.record)).toEqual(['q2']);
+      expect(gravadas(back.record)).toEqual(['q2', 'q5']);
       expect(back.submit).toHaveBeenCalledOnce();
       expect(store.getState().responses.submission.status).toBe('ready');
     });
@@ -446,7 +441,7 @@ describe('responsesSlice', () => {
 
       await enviar(store);
 
-      expect(gravadas(back.record)).toEqual(['q1', 'q2']);
+      expect(gravadas(back.record)).toEqual(['q1', 'q2', 'q5']);
       expect(back.submit).toHaveBeenCalledOnce();
       expect(store.getState().responses.submission.status).toBe('ready');
     });
@@ -484,7 +479,7 @@ describe('responsesSlice', () => {
       const submission = store.getState().responses.submission;
       expect(submission.error).toBeNull();
       expect(submission.formResponseId).toBe(FORM_RESPONSE_ID);
-      expect(submission.savedQuestionIds).toEqual(['q1', 'q2']);
+      expect(submission.savedQuestionIds).toEqual(['q1', 'q2', 'q5']);
     });
   });
   describe('paraAnswerCreate', () => {

@@ -29,21 +29,21 @@ describe('questionsApi', () => {
   it('listQuestions filtra pela seção quando pedida', async () => {
     const fetchMock = stubFetch(200, []);
 
-    await questionsApi.listQuestions(FORM_ID, 'assessment');
+    await questionsApi.listQuestions(FORM_ID, 'S4');
 
     expect(lastCall(fetchMock).url).toBe(
-      `/api/v1/forms/${FORM_ID}/questions?section=assessment`,
+      `/api/v1/forms/${FORM_ID}/questions?section=S4`,
     );
   });
 
   it('createQuestion manda a pergunta para /questions', async () => {
     const fetchMock = stubFetch(201);
     const question = {
-      form_id: FORM_ID,
+      instrument_id: '00000000-0000-0000-0000-00000000c4ed',
       text: 'Como você avalia sua adaptabilidade?',
       order_index: 0,
       type: 'objective' as const,
-      section: 'assessment' as const,
+      section: 'S4' as const,
       dimensao: 'S2' as const,
     };
 

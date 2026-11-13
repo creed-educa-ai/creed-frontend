@@ -9,7 +9,6 @@ import {
 } from '@reduxjs/toolkit';
 import type { RootState } from '@/app/store';
 import type { QuestionType as TipoDaTela } from '@/features/responses/Question';
-import { demoQuestions } from '@/features/responses/demoQuestions';
 import { formsApi } from '@/features/forms/formsApi';
 import { questionsApi } from '@/features/questions/questionsApi';
 import { responsesApi } from '@/features/responses/responsesApi';
@@ -27,7 +26,16 @@ export const DEMO_FORM_ID = '00000000-0000-0000-0000-000000000003';
 
 // 🟡 Premissa P-036: a ordem das abas. Seção que o back criar e não estiver
 // aqui não aparece: acrescente o valor novo nesta lista.
-const SECTION_ORDER: QuestionSection[] = ['profile', 'assessment', 'closing'];
+const SECTION_ORDER: QuestionSection[] = [
+  'S2',
+  'S4',
+  'S5A',
+  'S5B',
+  'S6',
+  'S7',
+  'S8',
+  'S9',
+];
 
 // O envio tem estado próprio: carregar e enviar acontecem em momentos
 // diferentes, e um erro de envio não pode apagar as perguntas da tela.
@@ -86,15 +94,6 @@ export const loadQuestionnaire = createAsyncThunk<
   try {
     const form = await formsApi.getForm(formId);
     const questions = await questionsApi.listQuestions(formId);
-    // DEMONSTRAÇÃO: escala e objetiva no formato do back, até a CREED-37.
-    // Só num formulário que tem pergunta: o vazio continua vazio. Apagar este
-    // `if`, e o arquivo demoQuestions.ts, quando a CREED-37 chegar.
-    if (questions.length > 0) {
-      return {
-        form,
-        questions: [...questions, ...demoQuestions(formId)],
-      };
-    }
     return { form, questions };
   } catch (erro) {
     return rejectWithValue(chaveDeErro(erro));
@@ -157,12 +156,6 @@ export const submitResponses = createAsyncThunk<
       for (const { question_id, answer } of answers) {
         const question = questions.find(({ id }) => id === question_id);
         if (!question) continue;
-        // O back já aceita `option_id` (creed-backend 590be26), mas o
-        // `GET /forms/{id}/questions` ainda não devolve as alternativas: as
-        // objetivas que a tela tem são as de demonstração, com ids que o back
-        // não conhece. Quando a listagem trouxer `options`, apagar esta
-        // linha: o corpo com `option_id` já sai pronto de `paraAnswerCreate`.
-        if (question.type === 'objective') continue;
 
         const corpo = paraAnswerCreate(question, answer);
         if (!corpo) continue;
