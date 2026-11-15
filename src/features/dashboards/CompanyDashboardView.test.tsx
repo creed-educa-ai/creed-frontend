@@ -594,6 +594,24 @@ describe('CompanyDashboardView', () => {
     expect(screen.getByRole('menuitem', { name: 'CSV' })).toBeInTheDocument();
   });
 
+  it('should export the company dashboard as a CSV file when clicking CSV', async () => {
+    const csvExportModule = await import('./exportDashboardCsv');
+    const exportCsvSpy = vi
+      .spyOn(csvExportModule, 'exportDashboardCsv')
+      .mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Baixar' }));
+    await user.click(screen.getByRole('menuitem', { name: 'CSV' }));
+
+    expect(exportCsvSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'company',
+      }),
+    );
+  });
+
   it('should export the latest organization-wide dashboard as a PDF', async () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     const getDashboard = vi.spyOn(dashboardsApi, 'getCompanyDashboard');
