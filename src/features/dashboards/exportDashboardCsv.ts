@@ -90,27 +90,28 @@ export function buildDashboardCsvRows(
     // 3. Pontuação dos 5 Prismas
     rows.push(['Prisma', 'Pontuação (0-100)']);
     for (const prisma of PRISMAS) {
-      rows.push([getPrismaName(prisma), data.scores[prisma] ?? 0]);
+      rows.push([getPrismaName(prisma), data.scores[prisma]]);
     }
     rows.push([]);
 
     // 4. Desempenho por Dimensão (7 Dimensões)
     rows.push(['Código', 'Dimensão', 'Pontuação (0-100)']);
     for (const dim of DIMENSIONS) {
-      rows.push([dim, getDimName(dim), data.dimensions[dim] ?? 0]);
+      rows.push([dim, getDimName(dim), data.dimensions[dim]]);
     }
     rows.push([]);
 
     // 5. Comparações com períodos anteriores
-    if (data.comparisons && data.comparisons.length > 0) {
+    if (data.comparisons.length > 0) {
       rows.push(['Comparações com Períodos Anteriores', '', '', '']);
       rows.push(['Período', 'Prisma', 'Pontuação', 'Variação']);
       for (const comp of data.comparisons) {
         const compPeriod = periodLabel(comp.period);
         for (const prisma of PRISMAS) {
-          const score = comp.scores[prisma] ?? 0;
-          const variation = comp.variation[prisma] ?? 0;
-          const varStr = variation > 0 ? `+${variation}` : String(variation);
+          const score = comp.scores[prisma];
+          const variation = comp.variation[prisma];
+          const varStr =
+            variation > 0 ? `+${String(variation)}` : String(variation);
           rows.push([compPeriod, getPrismaName(prisma), score, varStr]);
         }
       }
@@ -128,40 +129,48 @@ export function buildDashboardCsvRows(
 
     // 2. Resumo da Empresa
     const { company_summary: summary } = data;
+    const completionRate =
+      summary.convidados > 0
+        ? Math.round((summary.concluidos / summary.convidados) * 100)
+        : 0;
+
     rows.push(['Resumo da Organização', 'Valor']);
     rows.push(['Convidados', summary.convidados]);
     rows.push(['Concluídos', summary.concluidos]);
-    rows.push(['Taxa de Conclusão', `${summary.completion_rate}%`]);
+    rows.push(['Taxa de Conclusão', `${String(completionRate)}%`]);
     rows.push([
       'Destaque',
-      `${getPrismaName(summary.destaque.prisma)} (${summary.destaque.valor})`,
+      `${getPrismaName(summary.destaque.prisma)} (${String(summary.destaque.valor)})`,
     ]);
     rows.push([
       'Oportunidade',
-      `${getPrismaName(summary.oportunidade.prisma)} (${summary.oportunidade.valor})`,
+      `${getPrismaName(summary.oportunidade.prisma)} (${String(summary.oportunidade.valor)})`,
     ]);
-    rows.push(['Prisma mais comum', getPrismaName(summary.most_common)]);
+    rows.push([
+      'Mais Comum',
+      `${getPrismaName(summary.maisComum.prisma)} (${String(summary.maisComum.valor)})`,
+    ]);
     rows.push([]);
 
     // 3. Pontuação dos Prismas
     rows.push(['Prisma', 'Pontuação (0-100)']);
     for (const prisma of PRISMAS) {
-      rows.push([getPrismaName(prisma), data.scores[prisma] ?? 0]);
+      rows.push([getPrismaName(prisma), data.scores[prisma]]);
     }
     rows.push([]);
 
     // 4. Desempenho por Dimensão
     rows.push(['Código', 'Dimensão', 'Pontuação (0-100)']);
     for (const dim of DIMENSIONS) {
-      rows.push([dim, getDimName(dim), data.dimensions[dim] ?? 0]);
+      rows.push([dim, getDimName(dim), data.dimensions[dim]]);
     }
     rows.push([]);
 
     // 5. Alinhamento da Equipe
-    if (data.alignment && data.alignment.prismas) {
+    if (data.alignment?.prismas) {
       rows.push([
         'Alinhamento da Equipe',
-        `Respondentes: ${data.alignment.respondents}`,
+        `Respondentes: ${String(data.alignment.respondents)}`,
         '',
         '',
         '',
@@ -175,24 +184,22 @@ export function buildDashboardCsvRows(
       ]);
       for (const prisma of PRISMAS) {
         const align = data.alignment.prismas[prisma];
-        if (align) {
-          const levelStr = t(`resultado:alinhamento.niveis.${align.level}`, {
-            defaultValue: align.level,
-          });
-          rows.push([
-            getPrismaName(prisma),
-            levelStr,
-            align.bands.baixa,
-            align.bands.media,
-            align.bands.alta,
-          ]);
-        }
+        const levelStr = t(`resultado:alinhamento.niveis.${align.level}`, {
+          defaultValue: align.level,
+        });
+        rows.push([
+          getPrismaName(prisma),
+          levelStr,
+          align.bands.baixa,
+          align.bands.media,
+          align.bands.alta,
+        ]);
       }
       rows.push([]);
     }
 
     // 6. Mapa de Setores × Prismas
-    if (data.department_matrix && data.department_matrix.length > 0) {
+    if (data.department_matrix.length > 0) {
       rows.push(['Mapa de Setores × Prismas', '', '', '', '', '', '']);
       rows.push([
         'Setor',
@@ -210,18 +217,18 @@ export function buildDashboardCsvRows(
         rows.push([
           deptLabel,
           row.respondents,
-          row.scores?.seguranca_psicologica ?? '',
-          row.scores?.lideranca_adaptativa ?? '',
-          row.scores?.cultura_empreendedora ?? '',
-          row.scores?.adaptabilidade_cognitiva ?? '',
-          row.scores?.neuroinovacao_prisma ?? '',
+          row.scores ? row.scores.seguranca_psicologica : '',
+          row.scores ? row.scores.lideranca_adaptativa : '',
+          row.scores ? row.scores.cultura_empreendedora : '',
+          row.scores ? row.scores.adaptabilidade_cognitiva : '',
+          row.scores ? row.scores.neuroinovacao_prisma : '',
         ]);
       }
       rows.push([]);
     }
 
     // 7. Comparações
-    if (data.comparisons && data.comparisons.length > 0) {
+    if (data.comparisons.length > 0) {
       rows.push(['Comparações', '', '', '', '']);
       rows.push([
         'Recorte / Setor',
@@ -240,9 +247,10 @@ export function buildDashboardCsvRows(
           ? periodLabel(comp.period)
           : currentPeriod;
         for (const prisma of PRISMAS) {
-          const score = comp.scores[prisma] ?? 0;
-          const variation = comp.variation[prisma] ?? 0;
-          const varStr = variation > 0 ? `+${variation}` : String(variation);
+          const score = comp.scores[prisma];
+          const variation = comp.variation[prisma];
+          const varStr =
+            variation > 0 ? `+${String(variation)}` : String(variation);
           rows.push([
             compScope,
             compPeriod,
@@ -267,7 +275,7 @@ export function triggerCsvDownload(content: string, filename: string): void {
   });
   if (
     typeof window !== 'undefined' &&
-    typeof window.URL?.createObjectURL === 'function'
+    typeof window.URL.createObjectURL === 'function'
   ) {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');

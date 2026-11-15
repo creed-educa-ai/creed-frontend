@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { TFunction } from 'i18next';
 import {
   buildDashboardCsvRows,
   formatCsv,
@@ -8,9 +9,12 @@ import { userDashboardFixture } from './__fixtures__/userDashboard';
 import { companyDashboardFixture } from './__fixtures__/companyDashboard';
 
 describe('exportDashboardCsv', () => {
-  const fakeT = ((key: string, options?: { defaultValue?: string }) => {
-    return options?.defaultValue ?? key;
-  }) as any;
+  const fakeT = vi
+    .fn()
+    .mockImplementation(
+      (key: string, options?: { defaultValue?: string }) =>
+        options?.defaultValue ?? key,
+    ) as unknown as TFunction;
 
   const fakePeriodLabel = (id: string | null) =>
     id === 'form-outubro' ? 'Outubro 2026' : 'Setembro 2026';
