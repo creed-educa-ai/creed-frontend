@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { sectionTitleClassName } from '@/lib/typography';
 import type { DashboardHighlight as Metrica } from '../dashboardsApi';
+import { completionRate } from '../completionRate';
 
 interface SummaryCardsProps {
   nomeEmpresa: string;
@@ -76,7 +77,7 @@ export function SummaryCards({
   const [isOpen, setIsOpen] = useState(true);
   const conteudoId = useId();
 
-  const taxa = convidados > 0 ? Math.round((concluidos / convidados) * 100) : 0;
+  const taxa = completionRate(concluidos, convidados);
 
   return (
     <section className="w-full">

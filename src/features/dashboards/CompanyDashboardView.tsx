@@ -146,11 +146,14 @@ export function CompanyDashboardView({
     exportDashboardCsv({
       kind: 'company',
       data,
-      t,
+      t: i18n.getFixedT(i18n.language, ['comum', 'dashboardPrisma']),
       periodLabel,
-      viewLabel: viewName(view) ?? data.organization_name,
+      locale: i18n.language,
+      // O recorte dos dados na tela, não o pedido: até a resposta chegar,
+      // `data` ainda é o recorte anterior.
+      viewLabel: viewName(data) ?? data.organization_name,
     });
-  }, [data, t, periodLabel, view, viewName]);
+  }, [data, i18n, periodLabel, viewName]);
 
   return (
     <div className="dashboard-view flex min-h-svh flex-col overflow-hidden bg-background">

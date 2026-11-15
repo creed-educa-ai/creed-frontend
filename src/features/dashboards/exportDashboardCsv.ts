@@ -1,39 +1,74 @@
 import type { TFunction } from 'i18next';
 import type {
   CompanyDashboard,
+  PrismaComparison,
   UserDashboard,
 } from '@/features/dashboards/dashboardsApi';
+import { completionRate } from './completionRate';
 import { DIMENSIONS, PRISMAS } from './prismas';
-import type { Dimension, Prisma } from '@/types/api';
+import type { ptBR } from '@/i18n/locales/pt-BR';
+import type { DepartmentType, Dimension, Prisma } from '@/types/api';
+
+type CsvCell = string | number | null | undefined;
+// Os namespaces que a planilha lê. Tipar o `t` com eles mantém a checagem de
+// chave: uma chave que não existe vira erro de compilação, não código cru.
+export type CsvT = TFunction<['comum', 'dashboardPrisma']>;
+type CsvLabel = Exclude<
+  keyof (typeof ptBR)['dashboardPrisma']['csv'],
+  'respondentesTotal'
+>;
 
 export type ExportCsvParams =
   | {
       kind: 'user';
       data: UserDashboard;
-      t: TFunction;
+      t: CsvT;
       periodLabel: (id: string) => string;
+      locale: string;
     }
   | {
       kind: 'company';
       data: CompanyDashboard;
-      t: TFunction;
+      t: CsvT;
       periodLabel: (id: string) => string;
+      locale: string;
       viewLabel?: string;
     };
+
+// Números com o separador decimal do idioma (vírgula em pt-BR/es): o Excel lê
+// "72.5" como texto ou data numa planilha brasileira.
+function numberFormatter(locale: string) {
+  const format = new Intl.NumberFormat(locale, {
+    useGrouping: false,
+    maximumFractionDigits: 2,
+  });
+  return (value: number) => format.format(value);
+}
+
+/**
+ * Neutraliza texto vindo de quem usa o sistema (nome da organização, do
+ * membro): uma célula que começa com =, +, -, @ vira fórmula no Excel. O
+ * apóstrofo na frente faz a planilha mostrar o texto como está.
+ */
+export function safeText(value: string): string {
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+}
 
 /**
  * Converte uma matriz de células em string CSV com delimitador ';' e escape padrão RFC 4180.
  */
 export function formatCsv(
-  rows: (string | number | null | undefined)[][],
+  rows: CsvCell[][],
+  locale = 'pt-BR',
   separator = ';',
 ): string {
+  const formatNumber = numberFormatter(locale);
   return rows
     .map((row) =>
       row
         .map((cell) => {
           if (cell === null || cell === undefined) return '';
-          const str = String(cell);
+          const str = typeof cell === 'number' ? formatNumber(cell) : cell;
           if (
             str.includes(separator) ||
             str.includes('"') ||
@@ -52,146 +87,162 @@ export function formatCsv(
 /**
  * Monta as linhas estruturadas de dados para o CSV a partir dos dados do dashboard.
  */
-export function buildDashboardCsvRows(
-  params: ExportCsvParams,
-): (string | number | null | undefined)[][] {
-  const { kind, data, t, periodLabel } = params;
-  const rows: (string | number | null | undefined)[][] = [];
+export function buildDashboardCsvRows(params: ExportCsvParams): CsvCell[][] {
+  const { kind, data, t, periodLabel, locale } = params;
+  const rows: CsvCell[][] = [];
+  const formatNumber = numberFormatter(locale);
 
-  const getPrismaName = (p: Prisma) =>
-    t(`resultado:prismas.${p}`, { defaultValue: p });
+  const getPrismaName = (p: Prisma) => t(`dashboardPrisma:prismas.${p}`);
   const getDimName = (d: Dimension) =>
-    t(`resultado:dimensoes.nomes.${d}`, { defaultValue: d });
+    t(`dashboardPrisma:dimensoes.nomes.${d}`);
+  const label = (key: CsvLabel) => t(`dashboardPrisma:csv.${key}`);
+  const signed = (value: number) =>
+    value > 0 ? `+${formatNumber(value)}` : formatNumber(value);
 
   const currentPeriod = periodLabel(data.period);
+  const organizationName = safeText(data.organization_name);
+
+  const pushPrismaScores = () => {
+    rows.push([t('dashboardPrisma:prisma'), label('pontuacaoEscala')]);
+    for (const prisma of PRISMAS) {
+      rows.push([getPrismaName(prisma), data.scores[prisma]]);
+    }
+    rows.push([]);
+  };
+
+  const pushDimensions = () => {
+    rows.push([label('codigo'), label('dimensao'), label('pontuacaoEscala')]);
+    for (const dim of DIMENSIONS) {
+      rows.push([dim, getDimName(dim), data.dimensions[dim]]);
+    }
+    rows.push([]);
+  };
+
+  // Uma linha por prisma de cada comparação; `leading` são as colunas que vêm
+  // antes do prisma (período, e o recorte no dashboard da organização).
+  const pushComparisons = (
+    title: string,
+    leadingHeaders: string[],
+    leading: (comp: PrismaComparison) => CsvCell[],
+  ) => {
+    const header = [
+      ...leadingHeaders,
+      t('dashboardPrisma:prisma'),
+      label('pontuacao'),
+      label('variacao'),
+    ];
+    rows.push([title, ...header.slice(1).map(() => '')]);
+    rows.push(header);
+    for (const comp of data.comparisons) {
+      for (const prisma of PRISMAS) {
+        rows.push([
+          ...leading(comp),
+          getPrismaName(prisma),
+          comp.scores[prisma],
+          signed(comp.variation[prisma]),
+        ]);
+      }
+    }
+  };
+
+  const comparisonPeriod = (comp: PrismaComparison) =>
+    comp.period ? periodLabel(comp.period) : currentPeriod;
 
   if (kind === 'user') {
     // 1. Identificação
-    rows.push(['Relatório', 'Dashboard Individual - CREED.ai']);
-    rows.push(['Organização', data.organization_name]);
+    rows.push([label('relatorio'), label('tituloIndividual')]);
+    rows.push([label('organizacao'), organizationName]);
     if (data.member_name) {
-      rows.push(['Mentorando', data.member_name]);
+      rows.push([label('mentorando'), safeText(data.member_name)]);
     }
-    rows.push(['Período', currentPeriod]);
+    rows.push([label('periodo'), currentPeriod]);
     rows.push([]);
 
     // 2. Resumo CREED.ai
-    rows.push(['Resumo CREED.ai', '']);
+    rows.push([label('resumoCreed'), '']);
     rows.push([
-      'Prisma de Destaque',
+      label('prismaDestaque'),
       getPrismaName(data.creed_summary.destaque),
     ]);
     rows.push([
-      'Prisma de Oportunidade',
+      label('prismaOportunidade'),
       getPrismaName(data.creed_summary.oportunidade),
     ]);
     rows.push([]);
 
     // 3. Pontuação dos 5 Prismas
-    rows.push(['Prisma', 'Pontuação (0-100)']);
-    for (const prisma of PRISMAS) {
-      rows.push([getPrismaName(prisma), data.scores[prisma]]);
-    }
-    rows.push([]);
+    pushPrismaScores();
 
     // 4. Desempenho por Dimensão (7 Dimensões)
-    rows.push(['Código', 'Dimensão', 'Pontuação (0-100)']);
-    for (const dim of DIMENSIONS) {
-      rows.push([dim, getDimName(dim), data.dimensions[dim]]);
-    }
-    rows.push([]);
+    pushDimensions();
 
     // 5. Comparações com períodos anteriores
     if (data.comparisons.length > 0) {
-      rows.push(['Comparações com Períodos Anteriores', '', '', '']);
-      rows.push(['Período', 'Prisma', 'Pontuação', 'Variação']);
-      for (const comp of data.comparisons) {
-        const compPeriod = comp.period
-          ? periodLabel(comp.period)
-          : currentPeriod;
-        for (const prisma of PRISMAS) {
-          const score = comp.scores[prisma];
-          const variation = comp.variation[prisma];
-          const varStr =
-            variation > 0 ? `+${String(variation)}` : String(variation);
-          rows.push([compPeriod, getPrismaName(prisma), score, varStr]);
-        }
-      }
+      pushComparisons(
+        label('comparacoesAnteriores'),
+        [label('periodo')],
+        (comp) => [comparisonPeriod(comp)],
+      );
     }
   } else {
     // kind === 'company'
-    const viewLabel = params.viewLabel ?? 'Organização Inteira';
+    const viewLabel = params.viewLabel
+      ? safeText(params.viewLabel)
+      : organizationName;
 
     // 1. Identificação
-    rows.push(['Relatório', 'Dashboard da Organização - CREED.ai']);
-    rows.push(['Organização', data.organization_name]);
-    rows.push(['Recorte / Visão', viewLabel]);
-    rows.push(['Período', currentPeriod]);
+    rows.push([label('relatorio'), label('tituloOrganizacao')]);
+    rows.push([label('organizacao'), organizationName]);
+    rows.push([label('recorte'), viewLabel]);
+    rows.push([label('periodo'), currentPeriod]);
     rows.push([]);
 
     // 2. Resumo da Empresa
     const { company_summary: summary } = data;
-    const completionRate =
-      summary.convidados > 0
-        ? Math.round((summary.concluidos / summary.convidados) * 100)
-        : 0;
+    const highlight = (metric: { prisma: Prisma; valor: number }) =>
+      `${getPrismaName(metric.prisma)} (${formatNumber(metric.valor)})`;
 
-    rows.push(['Resumo da Organização', 'Valor']);
-    rows.push(['Convidados', summary.convidados]);
-    rows.push(['Concluídos', summary.concluidos]);
-    rows.push(['Taxa de Conclusão', `${String(completionRate)}%`]);
+    rows.push([label('resumoOrganizacao'), label('valor')]);
+    rows.push([label('convidados'), summary.convidados]);
+    rows.push([label('concluidos'), summary.concluidos]);
     rows.push([
-      'Destaque',
-      `${getPrismaName(summary.destaque.prisma)} (${String(summary.destaque.valor)})`,
+      label('taxaConclusao'),
+      `${String(completionRate(summary.concluidos, summary.convidados))}%`,
     ]);
-    rows.push([
-      'Oportunidade',
-      `${getPrismaName(summary.oportunidade.prisma)} (${String(summary.oportunidade.valor)})`,
-    ]);
-    rows.push([
-      'Mais Comum',
-      `${getPrismaName(summary.maisComum.prisma)} (${String(summary.maisComum.valor)})`,
-    ]);
+    rows.push([label('destaque'), highlight(summary.destaque)]);
+    rows.push([label('oportunidade'), highlight(summary.oportunidade)]);
+    rows.push([label('maisComum'), highlight(summary.maisComum)]);
     rows.push([]);
 
     // 3. Pontuação dos Prismas
-    rows.push(['Prisma', 'Pontuação (0-100)']);
-    for (const prisma of PRISMAS) {
-      rows.push([getPrismaName(prisma), data.scores[prisma]]);
-    }
-    rows.push([]);
+    pushPrismaScores();
 
     // 4. Desempenho por Dimensão
-    rows.push(['Código', 'Dimensão', 'Pontuação (0-100)']);
-    for (const dim of DIMENSIONS) {
-      rows.push([dim, getDimName(dim), data.dimensions[dim]]);
-    }
-    rows.push([]);
+    pushDimensions();
 
     // 5. Alinhamento da Equipe
     if (data.alignment?.prismas) {
       rows.push([
-        'Alinhamento da Equipe',
-        `Respondentes: ${String(data.alignment.respondents)}`,
+        label('alinhamento'),
+        t('dashboardPrisma:csv.respondentesTotal', {
+          total: data.alignment.respondents,
+        }),
         '',
         '',
         '',
       ]);
       rows.push([
-        'Prisma',
-        'Nível',
-        'Baixa (<=40)',
-        'Média (41-70)',
-        'Alta (>70)',
+        t('dashboardPrisma:prisma'),
+        label('nivel'),
+        t('dashboardPrisma:alinhamento.faixas.baixa'),
+        t('dashboardPrisma:alinhamento.faixas.media'),
+        t('dashboardPrisma:alinhamento.faixas.alta'),
       ]);
       for (const prisma of PRISMAS) {
         const align = data.alignment.prismas[prisma];
-        const levelStr = t(`resultado:alinhamento.niveis.${align.level}`, {
-          defaultValue: align.level,
-        });
         rows.push([
           getPrismaName(prisma),
-          levelStr,
+          t(`dashboardPrisma:alinhamento.niveis.${align.level}`),
           align.bands.baixa,
           align.bands.media,
           align.bands.alta,
@@ -202,28 +253,18 @@ export function buildDashboardCsvRows(
 
     // 6. Mapa de Setores × Prismas
     if (data.department_matrix.length > 0) {
-      rows.push(['Mapa de Setores × Prismas', '', '', '', '', '', '']);
-      rows.push([
-        'Setor',
-        'Respondentes',
-        getPrismaName('seguranca_psicologica'),
-        getPrismaName('lideranca_adaptativa'),
-        getPrismaName('cultura_empreendedora'),
-        getPrismaName('adaptabilidade_cognitiva'),
-        getPrismaName('neuroinovacao_prisma'),
-      ]);
+      const header = [
+        label('setor'),
+        label('respondentes'),
+        ...PRISMAS.map(getPrismaName),
+      ];
+      rows.push([label('mapa'), ...header.slice(1).map(() => '')]);
+      rows.push(header);
       for (const row of data.department_matrix) {
-        const deptLabel = t(`comum:setores.${row.department}`, {
-          defaultValue: row.department,
-        });
         rows.push([
-          deptLabel,
+          t(`comum:setores.${row.department}`),
           row.respondents,
-          row.scores ? row.scores.seguranca_psicologica : '',
-          row.scores ? row.scores.lideranca_adaptativa : '',
-          row.scores ? row.scores.cultura_empreendedora : '',
-          row.scores ? row.scores.adaptabilidade_cognitiva : '',
-          row.scores ? row.scores.neuroinovacao_prisma : '',
+          ...PRISMAS.map((prisma) => row.scores?.[prisma] ?? ''),
         ]);
       }
       rows.push([]);
@@ -231,37 +272,20 @@ export function buildDashboardCsvRows(
 
     // 7. Comparações
     if (data.comparisons.length > 0) {
-      rows.push(['Comparações', '', '', '', '']);
-      rows.push([
-        'Recorte / Setor',
-        'Período',
-        'Prisma',
-        'Pontuação',
-        'Variação',
-      ]);
-      for (const comp of data.comparisons) {
-        const compScope = comp.scope
-          ? comp.scope === 'organization'
-            ? 'Empresa inteira'
-            : t(`comum:setores.${comp.scope}`, { defaultValue: comp.scope })
-          : viewLabel;
-        const compPeriod = comp.period
-          ? periodLabel(comp.period)
-          : currentPeriod;
-        for (const prisma of PRISMAS) {
-          const score = comp.scores[prisma];
-          const variation = comp.variation[prisma];
-          const varStr =
-            variation > 0 ? `+${String(variation)}` : String(variation);
-          rows.push([
-            compScope,
-            compPeriod,
-            getPrismaName(prisma),
-            score,
-            varStr,
-          ]);
-        }
-      }
+      pushComparisons(
+        label('comparacoes'),
+        [label('recorteSetor'), label('periodo')],
+        (comp) => [
+          comp.scope
+            ? comp.scope === 'organization'
+              ? organizationName
+              : t(`comum:setores.${comp.scope as DepartmentType}`, {
+                  defaultValue: comp.scope,
+                })
+            : viewLabel,
+          comparisonPeriod(comp),
+        ],
+      );
     }
   }
 
@@ -272,7 +296,7 @@ export function buildDashboardCsvRows(
  * Dispara o download de um arquivo CSV no navegador com encoding UTF-8 (BOM).
  */
 export function triggerCsvDownload(content: string, filename: string): void {
-  const blob = new Blob(['\uFEFF' + content], {
+  const blob = new Blob(['﻿' + content], {
     type: 'text/csv;charset=utf-8;',
   });
   if (
@@ -286,7 +310,11 @@ export function triggerCsvDownload(content: string, filename: string): void {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    // Revogar no mesmo tick do clique cancela o download no Safari e em
+    // Firefox antigo: o browser ainda não começou a ler o blob.
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 1000);
   }
 }
 
@@ -295,12 +323,12 @@ export function triggerCsvDownload(content: string, filename: string): void {
  */
 export function exportDashboardCsv(params: ExportCsvParams): void {
   const rows = buildDashboardCsvRows(params);
-  const csvText = formatCsv(rows);
+  const csvText = formatCsv(rows, params.locale);
 
   const orgSlug = params.data.organization_name
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
 

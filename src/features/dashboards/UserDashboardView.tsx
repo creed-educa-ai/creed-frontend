@@ -96,10 +96,11 @@ export function UserDashboardView({
     exportDashboardCsv({
       kind: 'user',
       data,
-      t,
+      t: i18n.getFixedT(i18n.language, ['comum', 'dashboardPrisma']),
       periodLabel,
+      locale: i18n.language,
     });
-  }, [data, t, periodLabel]);
+  }, [data, i18n, periodLabel]);
 
   // Cada troca de período pede ao back o resultado daquele período.
   useEffect(() => {
