@@ -315,6 +315,24 @@ describe('UserDashboardView', () => {
     expect(screen.getByRole('menuitem', { name: 'CSV' })).toBeInTheDocument();
   });
 
+  it('should export the user dashboard as a CSV file when clicking CSV', async () => {
+    const csvExportModule = await import('./exportDashboardCsv');
+    const exportCsvSpy = vi
+      .spyOn(csvExportModule, 'exportDashboardCsv')
+      .mockImplementation(() => undefined);
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Baixar' }));
+    await user.click(screen.getByRole('menuitem', { name: 'CSV' }));
+
+    expect(exportCsvSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'user',
+      }),
+    );
+  });
+
   it('should export the latest period using the dedicated PDF report', async () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => undefined);
     const getDashboard = vi.spyOn(dashboardsApi, 'getUserDashboard');

@@ -27,6 +27,7 @@ import { LoadingState } from '@/components/states/LoadingState';
 import { dashboardsApi, type UserDashboard } from './dashboardsApi';
 import { DashboardPdfReport } from './components/DashboardPdfReport';
 import { periodLabeler } from './periods';
+import { exportDashboardCsv } from './exportDashboardCsv';
 
 interface UserDashboardViewProps {
   // O mentorando que a administradora abriu. Sem ele, o resultado de quem está
@@ -89,6 +90,16 @@ export function UserDashboardView({
     setExportingPdf(false);
     toast.error(t('dashboard:erroAoExportarPdf'));
   }, [t]);
+
+  const exportCsv = useCallback(() => {
+    if (!data) return;
+    exportDashboardCsv({
+      kind: 'user',
+      data,
+      t,
+      periodLabel,
+    });
+  }, [data, t, periodLabel]);
 
   // Cada troca de período pede ao back o resultado daquele período.
   useEffect(() => {
@@ -166,6 +177,7 @@ export function UserDashboardView({
                 void exportPdf();
               }}
               exportingPdf={exportingPdf}
+              onExportCsv={exportCsv}
               filters={
                 <>
                   {extraFilters}

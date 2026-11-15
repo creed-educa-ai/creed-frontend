@@ -31,6 +31,7 @@ import { LoadingState } from '@/components/states/LoadingState';
 import { dashboardsApi, type CompanyDashboard } from './dashboardsApi';
 import { DashboardPdfReport } from './components/DashboardPdfReport';
 import { periodLabeler } from './periods';
+import { exportDashboardCsv } from './exportDashboardCsv';
 
 interface CompanyDashboardViewProps {
   // A administradora escolhe a organização (a dela é a CREED); a gestora não
@@ -124,18 +125,32 @@ export function CompanyDashboardView({
 
   // Nome do setor ou do membro; nulo na organização inteira. Serve ao filtro
   // escolhido e ao recorte que a resposta do back diz mostrar.
-  const viewName = (selected: {
-    department?: DepartmentType | null | undefined;
-    member_id?: string | null | undefined;
-  }) => {
-    if (selected.department) return t(`comum:setores.${selected.department}`);
-    if (selected.member_id)
-      return (
-        data?.members.find((member) => member.id === selected.member_id)
-          ?.label ?? null
-      );
-    return null;
-  };
+  const viewName = useCallback(
+    (selected: {
+      department?: DepartmentType | null | undefined;
+      member_id?: string | null | undefined;
+    }) => {
+      if (selected.department) return t(`comum:setores.${selected.department}`);
+      if (selected.member_id)
+        return (
+          data?.members.find((member) => member.id === selected.member_id)
+            ?.label ?? null
+        );
+      return null;
+    },
+    [data?.members, t],
+  );
+
+  const exportCsv = useCallback(() => {
+    if (!data) return;
+    exportDashboardCsv({
+      kind: 'company',
+      data,
+      t,
+      periodLabel,
+      viewLabel: viewName(view) ?? data.organization_name,
+    });
+  }, [data, t, periodLabel, view, viewName]);
 
   return (
     <div className="dashboard-view flex min-h-svh flex-col overflow-hidden bg-background">
@@ -183,6 +198,7 @@ export function CompanyDashboardView({
                 void exportPdf();
               }}
               exportingPdf={exportingPdf}
+              onExportCsv={exportCsv}
               filters={
                 <>
                   {extraFilters}

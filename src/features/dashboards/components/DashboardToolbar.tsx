@@ -14,6 +14,7 @@ interface DashboardToolbarProps {
   filters: ReactNode;
   onExportPdf: () => void;
   exportingPdf: boolean;
+  onExportCsv?: () => void;
 }
 
 // Barra entre o header e o conteúdo: os filtros valem para a página inteira,
@@ -22,6 +23,7 @@ export function DashboardToolbar({
   filters,
   onExportPdf,
   exportingPdf,
+  onExportCsv,
 }: DashboardToolbarProps) {
   const { t } = useTranslation(['dashboard']);
 
@@ -40,8 +42,9 @@ export function DashboardToolbar({
           <DropdownMenuItem disabled={exportingPdf} onSelect={onExportPdf}>
             PDF
           </DropdownMenuItem>
-          {/* TODO: IMPLEMENTAR LOGICA DE DOWNLOAD DE CSV */}
-          <DropdownMenuItem>CSV</DropdownMenuItem>
+          <DropdownMenuItem disabled={!onExportCsv} onSelect={onExportCsv}>
+            CSV
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
