@@ -5,7 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
-import responsesReducer from './responsesSlice';
+import responsesReducer, { loadQuestionnaire } from './responsesSlice';
 import { responsesApi } from './responsesApi';
 import { questionsApi } from '@/features/questions/questionsApi';
 import { ApiError } from '@/lib/apiClient';
@@ -53,18 +53,22 @@ describe('QuestionnaireOnboardingView', () => {
   });
 
   // O menu do topo lê o papel na sessão; vazia, ele mostra o de respondente.
-  function renderizar(
-    getCurrentForm: () => Promise<CurrentFormRead> = () =>
-      Promise.resolve(currentForm),
-  ) {
-    vi.spyOn(responsesApi, 'getCurrentForm').mockImplementation(getCurrentForm);
-    vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue([]);
-    const store = configureStore({
+  function criarStore() {
+    return configureStore({
       reducer: {
         authentication: authenticationReducer,
         responses: responsesReducer,
       },
     });
+  }
+
+  function renderizar(
+    getCurrentForm: () => Promise<CurrentFormRead> = () =>
+      Promise.resolve(currentForm),
+    store = criarStore(),
+  ) {
+    vi.spyOn(responsesApi, 'getCurrentForm').mockImplementation(getCurrentForm);
+    vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue([]);
     return render(
       <Provider store={store}>
         <MemoryRouter>
@@ -84,19 +88,82 @@ describe('QuestionnaireOnboardingView', () => {
     return screen.findByText('Você tem um questionário disponível');
   });
 
-  it('shows loading while checking the current questionnaire', () => {
-    const { promise } = createDeferredCurrentForm();
+  // Os testes de "carregando" terminam a carga no fim: um thunk pendurado
+  // seguiria rodando depois que o teste seguinte trocou os spies da API.
+  it('shows loading while checking the current questionnaire', async () => {
+    const { promise, resolve } = createDeferredCurrentForm();
     renderizar(() => promise);
 
     expect(screen.getByText('Vamos começar?')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Carregando');
+
+    resolve(currentForm);
+    await screen.findByText('Você tem um questionário disponível');
   });
 
-  it('keeps start disabled while checking the current questionnaire', () => {
-    const { promise } = createDeferredCurrentForm();
+  it('keeps start disabled while checking the current questionnaire', async () => {
+    const { promise, resolve } = createDeferredCurrentForm();
     renderizar(() => promise);
 
     expect(screen.getByRole('button', { name: 'Iniciar' })).toBeDisabled();
+
+    resolve(currentForm);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Iniciar' })).toBeEnabled();
+    });
+  });
+
+  it('does not show the available card from a previous visit while checking', async () => {
+    // Visita anterior: o slice ficou "disponível". A pessoa enviou e voltou.
+    const store = criarStore();
+    vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue(currentForm);
+    vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue([]);
+    await store.dispatch(loadQuestionnaire('pt-BR'));
+    const { promise, resolve } = createDeferredCurrentForm();
+    renderizar(() => promise, store);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Carregando');
+    expect(screen.queryByText('~15 minutos')).not.toBeInTheDocument();
+
+    resolve({ ...currentForm, form_response: submittedResponse });
+    expect(
+      await screen.findByText('Você já respondeu este questionário.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('~15 minutos')).not.toBeInTheDocument();
+  });
+
+  it('shows a server error as an alert and retries on request', async () => {
+    const getCurrentForm = vi
+      .fn<() => Promise<CurrentFormRead>>()
+      .mockRejectedValueOnce(new ApiError('erro', 500))
+      .mockResolvedValueOnce(currentForm);
+    renderizar(getCurrentForm);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      i18n.t('formulario:erros.servicoIndisponivel'),
+    );
+    expect(screen.getByRole('button', { name: 'Iniciar' })).toBeDisabled();
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Tentar novamente' }),
+    );
+
+    expect(
+      await screen.findByText('Você tem um questionário disponível'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(getCurrentForm).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not offer retrying when access is denied', async () => {
+    renderizar(() => Promise.reject(new ApiError('forbidden', 403)));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      i18n.t('formulario:erros.semAcesso'),
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Tentar novamente' }),
+    ).not.toBeInTheDocument();
   });
 
   it('enables starting when a questionnaire is open', async () => {

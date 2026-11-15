@@ -56,6 +56,12 @@ interface ResponsesState {
   status: 'idle' | 'loading' | 'ready' | 'error';
   /** Chave de i18n, não mensagem pronta: a tela é que traduz. */
   error: string | null;
+  // A carga mais recente pedida. Trocar de idioma no meio de uma carga dispara
+  // outra: a resposta que chegar atrasada, de um pedido antigo, é descartada.
+  requestId: string | null;
+  // Se essa carga ainda não voltou. O `status` não diz: recarregar mantém
+  // 'ready' (veja o `pending`), e a tela precisa saber que o dado é velho.
+  fetching: boolean;
   submission: SubmissionState;
 }
 
@@ -72,6 +78,8 @@ const initialState: ResponsesState = {
   questions: [],
   status: 'idle',
   error: null,
+  requestId: null,
+  fetching: false,
   submission: initialSubmission,
 };
 
@@ -202,6 +210,10 @@ export const submitResponses = createAsyncThunk<
   },
 );
 
+function isLatestLoad(state: ResponsesState, requestId: string) {
+  return state.requestId === null || state.requestId === requestId;
+}
+
 const responsesSlice = createSlice({
   name: 'responses',
   initialState,
@@ -234,13 +246,17 @@ const responsesSlice = createSlice({
         state.submission.error =
           action.payload ?? 'questionarioRevisao:erros.envioFalhou';
       })
-      .addCase(loadQuestionnaire.pending, (state) => {
+      .addCase(loadQuestionnaire.pending, (state, action) => {
         // Já carregado, a troca de idioma recarrega sem voltar a "carregando":
         // assim a tela não desmonta e não perde o que a pessoa já respondeu.
         if (state.status !== 'ready') state.status = 'loading';
         state.error = null;
+        state.requestId = action.meta.requestId;
+        state.fetching = true;
       })
       .addCase(loadQuestionnaire.fulfilled, (state, action) => {
+        if (!isLatestLoad(state, action.meta.requestId)) return;
+        state.fetching = false;
         const { form, formResponse, questions } = action.payload;
         state.status = 'ready';
         state.form = form;
@@ -259,6 +275,8 @@ const responsesSlice = createSlice({
         }
       })
       .addCase(loadQuestionnaire.rejected, (state, action) => {
+        if (!isLatestLoad(state, action.meta.requestId)) return;
+        state.fetching = false;
         state.status = 'error';
         state.error = action.payload ?? 'formulario:erros.servicoIndisponivel';
       });

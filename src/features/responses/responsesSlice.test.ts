@@ -131,6 +131,8 @@ describe('responsesSlice', () => {
       questions: [],
       status: 'idle',
       error: null,
+      requestId: null,
+      fetching: false,
       submission: {
         status: 'idle',
         error: null,
@@ -141,9 +143,10 @@ describe('responsesSlice', () => {
   });
 
   it('fica em loading enquanto carrega', () => {
-    const state = reducer(undefined, {
-      type: loadQuestionnaire.pending.type,
-    });
+    const state = reducer(
+      undefined,
+      loadQuestionnaire.pending('teste', 'pt-BR'),
+    );
 
     expect(state.status).toBe('loading');
   });
@@ -158,10 +161,58 @@ describe('responsesSlice', () => {
       ),
     );
 
-    const state = reducer(carregado, { type: loadQuestionnaire.pending.type });
+    const state = reducer(carregado, loadQuestionnaire.pending('outra', 'en'));
 
     // A troca de idioma recarrega sem desmontar o questionário da tela.
     expect(state.status).toBe('ready');
+    // Mas avisa que o que está ali ainda é da carga anterior.
+    expect(state.fetching).toBe(true);
+  });
+
+  it('descarta a resposta atrasada de uma carga mais antiga', () => {
+    const emPortugues = question({ id: 'q1', text: 'Pergunta em português' });
+    const emIngles = question({ id: 'q1', text: 'Question in English' });
+
+    // Troca de idioma no meio da carga: a de inglês volta primeiro.
+    let state = reducer(undefined, loadQuestionnaire.pending('pt', 'pt-BR'));
+    state = reducer(state, loadQuestionnaire.pending('en', 'en'));
+    state = reducer(
+      state,
+      loadQuestionnaire.fulfilled(
+        { form, formResponse: null, questions: [emIngles] },
+        'en',
+        'en',
+      ),
+    );
+    state = reducer(
+      state,
+      loadQuestionnaire.fulfilled(
+        { form, formResponse: null, questions: [emPortugues] },
+        'pt',
+        'pt-BR',
+      ),
+    );
+
+    expect(state.questions).toEqual([emIngles]);
+    expect(state.fetching).toBe(false);
+  });
+
+  it('um erro de uma carga antiga não derruba a mais recente', () => {
+    let state = reducer(undefined, loadQuestionnaire.pending('pt', 'pt-BR'));
+    state = reducer(state, loadQuestionnaire.pending('en', 'en'));
+    state = reducer(
+      state,
+      loadQuestionnaire.rejected(
+        null,
+        'pt',
+        'pt-BR',
+        'formulario:erros.servicoIndisponivel',
+      ),
+    );
+
+    expect(state.status).toBe('loading');
+    expect(state.error).toBeNull();
+    expect(state.fetching).toBe(true);
   });
 
   it('carrega o questionário atual e as perguntas no idioma pedido', async () => {
