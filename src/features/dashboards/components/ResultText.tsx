@@ -16,9 +16,21 @@ interface ResultTextProps extends CreedSummary {
   showPrismaSummaries?: boolean;
 }
 
+// Os textos do Creed.ai vêm vazios até a esteira de IA existir: no lugar do
+// texto, o aviso. Os cards e as marcas de destaque e oportunidade ficam.
+function Indisponivel() {
+  const { t } = useTranslation(['resultado']);
+  return (
+    <p className="text-muted-foreground">
+      {t('resultado:analiseIndisponivel')}
+    </p>
+  );
+}
+
 interface PrismaCardProps {
   prisma: Prisma;
-  texto: string;
+  // Sem texto (ou nulo): o aviso de análise indisponível.
+  texto: string | undefined;
   marca: 'destaque' | 'oportunidade' | null;
 }
 
@@ -53,7 +65,13 @@ function PrismaCard({ prisma, texto, marca }: PrismaCardProps) {
             <h3 className={cardTitleClassName}>{nome}</h3>
             <InfoTip title={nome} text={t('dashboard:info.creedPrisma')} />
           </div>
-          <p className="mt-2 text-sm text-card-foreground">{texto}</p>
+          {texto ? (
+            <p className="mt-2 text-sm text-card-foreground">{texto}</p>
+          ) : (
+            <div className="mt-2 text-sm">
+              <Indisponivel />
+            </div>
+          )}
         </CardContent>
       </article>
     </Card>
@@ -133,9 +151,13 @@ export function ResultText({
                     />
                   </div>
                   <div className="mt-3 flex flex-col gap-4 text-sm text-card-foreground">
-                    {analiseTexto.map((paragrafo) => (
-                      <p key={paragrafo}>{paragrafo}</p>
-                    ))}
+                    {analiseTexto.length > 0 ? (
+                      analiseTexto.map((paragrafo) => (
+                        <p key={paragrafo}>{paragrafo}</p>
+                      ))
+                    ) : (
+                      <Indisponivel />
+                    )}
                   </div>
                 </CardContent>
               </article>
@@ -164,9 +186,13 @@ export function ResultText({
                       />
                     </div>
                     <div className="mt-2 flex flex-col gap-2 text-sm text-card-foreground">
-                      {recomendacaoTexto.map((paragrafo) => (
-                        <p key={paragrafo}>{paragrafo}</p>
-                      ))}
+                      {recomendacaoTexto.length > 0 ? (
+                        recomendacaoTexto.map((paragrafo) => (
+                          <p key={paragrafo}>{paragrafo}</p>
+                        ))
+                      ) : (
+                        <Indisponivel />
+                      )}
                     </div>
                   </CardContent>
                 </article>

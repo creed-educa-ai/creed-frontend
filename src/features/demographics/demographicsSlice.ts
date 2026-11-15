@@ -1,4 +1,10 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from '@reduxjs/toolkit';
+import type { DemographicCreate, DemographicResponse } from '@/types/api';
+import { demographicsApi } from './demographicsApi';
 import {
   emptyDemographics,
   normalizeDemographics,
@@ -9,13 +15,64 @@ import { login, logout } from '@/features/authentication/authenticationSlice';
 export type DemographicsDraft = DemographicsForm & {
   name: string;
   perspective: string;
+  // Se o perfil salvo no back já veio para o rascunho nesta sessão. Só vem uma
+  // vez: voltar à etapa 1 não apaga o que a pessoa mudou nas outras.
+  loaded: boolean;
 };
 
 const initialState: DemographicsDraft = {
   ...emptyDemographics,
   name: '',
   perspective: '',
+  loaded: false,
 };
+
+// O perfil que a pessoa já salvou, para o rascunho começar dele. 404 é quem
+// ainda não passou pelo onboarding: o rascunho fica vazio.
+export const loadDemographics = createAsyncThunk<
+  DemographicResponse | null,
+  undefined,
+  { state: { demographics: DemographicsDraft } }
+>(
+  'demographics/load',
+  async () => {
+    try {
+      return await demographicsApi.getMine();
+    } catch {
+      return null;
+    }
+  },
+  { condition: (_, { getState }) => !getState().demographics.loaded },
+);
+
+// O corpo do `PUT`: o rascunho no formato do `DemographicCreate`. Texto vazio
+// vai como nulo.
+export function demographicsPayload(
+  draft: DemographicsDraft,
+): DemographicCreate {
+  const form = normalizeDemographics(draft);
+  return {
+    gender: form.gender,
+    age_range: form.age_range,
+    ethnicities: form.ethnicities,
+    religions: form.religions,
+    nationality: form.nationality,
+    brazil_state: form.brazil_state,
+    portugal_region: form.portugal_region,
+    other_nationality: form.other_nationality.trim() || null,
+    perspective: draft.perspective.trim() || null,
+  };
+}
+
+// No fim da etapa 3, o rascunho inteiro vai ao back. Quem chama decide o que
+// fazer com a falha (a tela continua, para tentar de novo).
+export const saveDemographics = createAsyncThunk<
+  DemographicResponse,
+  undefined,
+  { state: { demographics: DemographicsDraft } }
+>('demographics/save', (_, { getState }) =>
+  demographicsApi.saveMine(demographicsPayload(getState().demographics)),
+);
 
 // Limpa os campos dependentes de nacionalidade que nao correspondem mais a
 // opcao escolhida, pra nao ficar lixo salvo de uma escolha anterior.
@@ -79,6 +136,22 @@ const demographicsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(loadDemographics.fulfilled, (state, action) => {
+        state.loaded = true;
+        const profile = action.payload;
+        if (!profile) return;
+        Object.assign(state, {
+          gender: profile.gender,
+          age_range: profile.age_range,
+          ethnicities: profile.ethnicities,
+          religions: profile.religions,
+          nationality: profile.nationality,
+          brazil_state: profile.brazil_state,
+          portugal_region: profile.portugal_region,
+          other_nationality: profile.other_nationality ?? '',
+          perspective: profile.perspective ?? '',
+        });
+      })
       .addCase(logout, () => initialState)
       .addCase(login.pending, () => initialState);
   },

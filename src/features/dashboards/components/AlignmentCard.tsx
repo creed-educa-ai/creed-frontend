@@ -24,10 +24,11 @@ const BAND_COLORS: Record<(typeof BANDS)[number], string> = {
 };
 
 // O nível como tag, no selo de status das tabelas: verde alinhado, amarelo
-// dividido e cinza no meio.
+// dividido e, no meio, o roxo claro da marca, o mesmo da faixa "média" da
+// barra acima.
 const LEVEL_COLORS = {
   alinhado: 'bg-success',
-  moderado: 'bg-muted-foreground',
+  moderado: 'bg-chart-2',
   dividido: 'bg-warning',
 };
 

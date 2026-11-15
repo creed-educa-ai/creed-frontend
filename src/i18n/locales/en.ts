@@ -180,6 +180,7 @@ export const en: typeof ptBR = {
       pergunta:
         'How did your family upbringing influence, or not, your entrepreneurial or innovative path? Briefly explain (optional)',
       placeholder: 'Your answer',
+      erroAoSalvar: "We couldn't save your data",
     },
   },
   questionarioRevisao: {
@@ -526,6 +527,7 @@ export const en: typeof ptBR = {
     destaque: 'Highlight',
     oportunidade: 'Opportunity',
     analise: 'Creed.ai Analysis',
+    analiseIndisponivel: 'Analysis not available yet.',
     recomendacao: 'Recommendation',
     resumoEmpresa: 'Summary of {{empresa}}',
     taxaConclusao: 'Completion Rate',
@@ -535,6 +537,33 @@ export const en: typeof ptBR = {
   dashboard: {
     titulo: 'Dashboard',
     erroAoCarregar: 'Could not load the dashboard.',
+    semResultado:
+      'You do not have a result yet. It shows up here after you submit a questionnaire.',
+    irParaQuestionario: 'Go to the questionnaire',
+    semResultadoMentorando:
+      'This mentee has no result yet. It shows up here after they submit a questionnaire.',
+    voltarParaEmpresa: 'Back to the company dashboard',
+    todasEmpresas: 'All companies',
+    todosMentorandos: 'All mentees',
+    Empresa: 'Company',
+    Mentorando: 'Mentee',
+    respostasEntre: 'Responses from {{inicio}} to {{fim}}',
+    mapaEmpresas: 'Companies × prisms',
+    mapaMentorandos: 'Mentees × prisms',
+    semResultadoEmpresa:
+      'There are no results yet. They show up here after someone answers a questionnaire.',
+    descricaoPrisma: {
+      seguranca_psicologica:
+        'The team shows openness and trust to share opinions and experiment.',
+      lideranca_adaptativa:
+        'The ability of leaders and teams to adapt to fast changes in context.',
+      cultura_empreendedora:
+        'Encouragement of proactivity, ownership and a continuous search for innovation.',
+      adaptabilidade_cognitiva:
+        'Cognitive flexibility to solve problems and learn from new situations.',
+      neuroinovacao_prisma:
+        'Potential for collective intelligence and relevant impact on the market.',
+    },
     Funcionario: 'Employee',
     Baixar: 'Download',
     erroAoExportarPdf: 'Could not generate the dashboard PDF.',
@@ -548,7 +577,8 @@ export const en: typeof ptBR = {
       destaque: 'The prism with the highest score.',
       oportunidade:
         'The prism with the lowest score: where there is most room to grow.',
-      maisComum: 'The prism whose score is closest to the average.',
+      maisComum:
+        'The prism that is most often the strongest point of each person in the view.',
       variacao:
         'How much each prism went up (▲) or down (▼) compared with what is chosen in "Compare with".',
       prisma:

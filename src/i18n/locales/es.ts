@@ -181,6 +181,7 @@ export const es: typeof ptBR = {
       pergunta:
         '¿Cómo influyó, o no, tu crianza familiar en tu trayectoria emprendedora o innovadora? Explica brevemente (opcional)',
       placeholder: 'Tu respuesta',
+      erroAoSalvar: 'No fue posible guardar tus datos',
     },
   },
   questionarioRevisao: {
@@ -532,6 +533,7 @@ export const es: typeof ptBR = {
     destaque: 'Destacado',
     oportunidade: 'Oportunidad',
     analise: 'Análisis de Creed.ai',
+    analiseIndisponivel: 'Análisis aún no disponible.',
     recomendacao: 'Recomendación',
     resumoEmpresa: 'Resumen de {{empresa}}',
     taxaConclusao: 'Tasa de Finalización',
@@ -541,6 +543,33 @@ export const es: typeof ptBR = {
   dashboard: {
     titulo: 'Dashboard',
     erroAoCarregar: 'No se pudo cargar el dashboard.',
+    semResultado:
+      'Todavía no tienes resultado. Aparece aquí después de que envíes un cuestionario.',
+    irParaQuestionario: 'Ir al cuestionario',
+    semResultadoMentorando:
+      'Este mentoreado aún no tiene resultado. Aparece aquí después de que envíe un cuestionario.',
+    voltarParaEmpresa: 'Volver al dashboard de la empresa',
+    todasEmpresas: 'Todas las empresas',
+    todosMentorandos: 'Todos los mentorados',
+    Empresa: 'Empresa',
+    Mentorando: 'Mentorado',
+    respostasEntre: 'Respuestas del {{inicio}} al {{fim}}',
+    mapaEmpresas: 'Empresas × prismas',
+    mapaMentorandos: 'Mentorados × prismas',
+    semResultadoEmpresa:
+      'Todavía no hay resultados. Aparecen aquí después de que alguien responda un cuestionario.',
+    descricaoPrisma: {
+      seguranca_psicologica:
+        'El equipo muestra apertura y confianza para compartir opiniones y experimentar.',
+      lideranca_adaptativa:
+        'Capacidad de los líderes y equipos de adaptarse a cambios rápidos de contexto.',
+      cultura_empreendedora:
+        'Estímulo a la proactividad, sentido de pertenencia y búsqueda continua de innovación.',
+      adaptabilidade_cognitiva:
+        'Flexibilidad cognitiva para resolver problemas y aprender de nuevas situaciones.',
+      neuroinovacao_prisma:
+        'Potencial de inteligencia colectiva y de generar un impacto relevante en el mercado.',
+    },
     Funcionario: 'Empleado',
     Baixar: 'Descargar',
     erroAoExportarPdf: 'No se pudo generar el PDF del dashboard.',
@@ -554,7 +583,8 @@ export const es: typeof ptBR = {
       destaque: 'El prisma con la nota más alta.',
       oportunidade:
         'El prisma con la nota más baja: donde hay más espacio para crecer.',
-      maisComum: 'El prisma con la nota más cercana al promedio.',
+      maisComum:
+        'El prisma que más veces es el punto fuerte de cada persona del recorte.',
       variacao:
         'Cuánto subió (▲) o bajó (▼) cada prisma en relación con lo elegido en "Comparar con".',
       prisma:

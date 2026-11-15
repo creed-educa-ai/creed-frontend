@@ -180,6 +180,7 @@ export const ptBR = {
       pergunta:
         'De que forma a sua educação familiar influenciou, ou não, a sua trajetória empreendedora ou inovadora? Justifique brevemente (opcional)',
       placeholder: 'Sua resposta',
+      erroAoSalvar: 'Não foi possível salvar seus dados',
     },
   },
   questionarioRevisao: {
@@ -533,6 +534,8 @@ export const ptBR = {
     destaque: 'Destaque',
     oportunidade: 'Oportunidade',
     analise: 'Análise do Creed.ai',
+    // Os textos do Creed.ai vêm vazios até a esteira de IA existir.
+    analiseIndisponivel: 'Análise ainda não disponível.',
     recomendacao: 'Recomendação',
     resumoEmpresa: 'Resumo de {{empresa}}',
     taxaConclusao: 'Taxa de Conclusão',
@@ -542,6 +545,35 @@ export const ptBR = {
   dashboard: {
     titulo: 'Dashboard',
     erroAoCarregar: 'Não foi possível carregar o dashboard.',
+    semResultado:
+      'Você ainda não tem resultado. Ele aparece aqui depois que você enviar um questionário.',
+    irParaQuestionario: 'Ir para o questionário',
+    semResultadoMentorando:
+      'Este mentorando ainda não tem resultado. Ele aparece aqui depois que o mentorando enviar um questionário.',
+    voltarParaEmpresa: 'Voltar ao dashboard da empresa',
+    // O seletor e o retrato atual da administradora.
+    todasEmpresas: 'Todas as empresas',
+    todosMentorandos: 'Todos os mentorandos',
+    Empresa: 'Empresa',
+    Mentorando: 'Mentorando',
+    respostasEntre: 'Respostas de {{inicio}} a {{fim}}',
+    mapaEmpresas: 'Empresas × prismas',
+    mapaMentorandos: 'Mentorandos × prismas',
+    semResultadoEmpresa:
+      'Ainda não há resultados. Eles aparecem aqui depois que alguém responder um questionário.',
+    // A descrição de cada prisma nos cards do resumo executivo.
+    descricaoPrisma: {
+      seguranca_psicologica:
+        'A equipe demonstra abertura e confiança para compartilhar opiniões e experimentar.',
+      lideranca_adaptativa:
+        'Capacidade dos líderes e equipes de se adaptarem a mudanças rápidas de contexto.',
+      cultura_empreendedora:
+        'Estímulo à proatividade, senso de dono e busca contínua por inovação.',
+      adaptabilidade_cognitiva:
+        'Flexibilidade cognitiva para solucionar problemas e aprender com novas situações.',
+      neuroinovacao_prisma:
+        'Potencial de inteligência coletiva e geração de impacto relevante no mercado.',
+    },
     Funcionario: 'Funcionário',
     Baixar: 'Baixar',
     erroAoExportarPdf: 'Não foi possível gerar o PDF do dashboard.',
@@ -555,7 +587,8 @@ export const ptBR = {
       destaque: 'O prisma com a maior nota.',
       oportunidade:
         'O prisma com a menor nota: onde há mais espaço para crescer.',
-      maisComum: 'O prisma com a nota mais próxima da média.',
+      maisComum:
+        'O prisma que mais vezes é o ponto forte de cada pessoa do recorte.',
       variacao:
         'Quanto cada prisma subiu (▲) ou caiu (▼) em relação ao que está escolhido em "Comparar com".',
       prisma:

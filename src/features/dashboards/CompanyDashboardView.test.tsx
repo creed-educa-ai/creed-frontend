@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
@@ -9,9 +9,17 @@ import dashboardsReducer from '@/features/dashboards/dashboardsSlice';
 import { dashboardsApi } from '@/features/dashboards/dashboardsApi';
 import { CompanyDashboardView } from './CompanyDashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+import { ApiError } from '@/lib/apiClient';
+import { companyDashboardFixture } from './__fixtures__/companyDashboard';
 
 // O menu do topo lê o papel na sessão e marca o item da rota atual.
-async function renderizar() {
+// A sessão destes testes é a da administradora, que vê todas as pessoas.
+async function renderizar(
+  sessao: { role: string; link_id: string | null } = {
+    role: 'admin',
+    link_id: null,
+  },
+) {
   const store = configureStore({
     reducer: {
       authentication: authenticationReducer,
@@ -22,8 +30,7 @@ async function renderizar() {
         user: {
           id: 'usuario-1',
           email: 'dev@creed.example.com',
-          role: 'admin',
-          link_id: null,
+          ...sessao,
           organization_id: null,
           organization_name: null,
         },
@@ -37,7 +44,10 @@ async function renderizar() {
   const view = render(
     <Provider store={store}>
       <MemoryRouter initialEntries={['/dashboard/company']}>
-        <CompanyDashboardView />
+        <Routes>
+          <Route path="/dashboard/company" element={<CompanyDashboardView />} />
+          <Route path="/dashboard" element={<h1>Dashboard individual</h1>} />
+        </Routes>
       </MemoryRouter>
     </Provider>,
   );
@@ -63,6 +73,10 @@ describe('CompanyDashboardView', () => {
   });
 
   beforeEach(async () => {
+    // O back responde o recorte pedido (a fixture faz o papel dele).
+    vi.spyOn(dashboardsApi, 'getCompanyDashboard').mockImplementation(
+      (filters) => Promise.resolve(companyDashboardFixture(filters)),
+    );
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
@@ -167,45 +181,89 @@ describe('CompanyDashboardView', () => {
     ).toBeInTheDocument();
   });
 
-  it('should compare with a department in another period', async () => {
+  it('should compare with a department in the displayed period when picking it', async () => {
     const user = userEvent.setup();
     await renderizar();
 
-    // Começa em 2025/2; marcar o setor junta os dois: Marketing em 2025/2.
+    // Começa no período anterior; escolher o setor compara com ele agora.
     await user.click(screen.getByRole('button', { name: 'Setor' }));
     await user.click(screen.getByRole('menuitemradio', { name: 'Marketing' }));
 
     expect(
-      await screen.findByRole('button', { name: 'Marketing' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('Acme Inc. 2026/1 em relação a Marketing 2025/2'),
+      await screen.findByText(
+        'Acme Inc. 30/06/2026 em relação a Marketing 30/06/2026',
+      ),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('table', { name: /^Resultados/ }),
-    ).toHaveTextContent('Marketing 2025/2');
+    ).toHaveTextContent('Marketing 30/06/2026');
   });
 
-  it('should compare with a department in the displayed period by picking it', async () => {
+  it('should compare with a department in another period by changing the period', async () => {
     const user = userEvent.setup();
     await renderizar();
 
     // Sem setor, o período exibido aparece no menu, mas não dá para escolher:
     // seria comparar a organização com ela mesma.
-    await user.click(screen.getByRole('button', { name: '2025/2' }));
+    await user.click(screen.getByRole('button', { name: '31/12/2025' }));
     expect(
-      screen.getByRole('menuitemradio', { name: '2026/1' }),
+      screen.getByRole('menuitemradio', { name: '30/06/2026' }),
     ).toHaveAttribute('aria-disabled', 'true');
     await user.keyboard('{Escape}');
 
-    // Com o setor marcado, o período exibido vale: Marketing em 2026/1.
     await user.click(await screen.findByRole('button', { name: 'Setor' }));
     await user.click(screen.getByRole('menuitemradio', { name: 'Marketing' }));
-    await user.click(await screen.findByRole('button', { name: '2025/2' }));
-    await user.click(screen.getByRole('menuitemradio', { name: '2026/1' }));
+    await user.click(await screen.findByRole('button', { name: '30/06/2026' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '31/12/2025' }));
 
     expect(
-      await screen.findByText('Acme Inc. 2026/1 em relação a Marketing 2026/1'),
+      await screen.findByText(
+        'Acme Inc. 30/06/2026 em relação a Marketing 31/12/2025',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('should keep the chosen period when switching from one department to another', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(screen.getByRole('button', { name: 'Setor' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Marketing' }));
+    await user.click(await screen.findByRole('button', { name: '30/06/2026' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '31/12/2025' }));
+    await user.click(await screen.findByRole('button', { name: 'Marketing' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'RH' }));
+
+    expect(
+      await screen.findByText(
+        'Acme Inc. 30/06/2026 em relação a RH 31/12/2025',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('should compare two departments in the same period', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    // O recorte do topo é Marketing...
+    await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
+    const marketing = await screen.findByRole('menuitemradio', {
+      name: 'Marketing',
+    });
+    marketing.focus();
+    await user.keyboard('{Enter}');
+    await screen.findByText(
+      'Marketing 30/06/2026 em relação a Marketing 31/12/2025',
+    );
+
+    // ...e a comparação, Financeiro agora.
+    await user.click(screen.getByRole('button', { name: 'Setor' }));
+    await user.click(screen.getByRole('menuitemradio', { name: 'Financeiro' }));
+
+    expect(
+      await screen.findByText(
+        'Marketing 30/06/2026 em relação a Financeiro 30/06/2026',
+      ),
     ).toBeInTheDocument();
   });
 
@@ -215,13 +273,15 @@ describe('CompanyDashboardView', () => {
 
     // "Sem comparação" limpa o período; aí escolher o setor compara com ele
     // no período exibido.
-    await user.click(screen.getByRole('button', { name: '2025/2' }));
+    await user.click(screen.getByRole('button', { name: '31/12/2025' }));
     await user.click(screen.getByRole('menuitem', { name: 'Sem comparação' }));
     await user.click(await screen.findByRole('button', { name: 'Setor' }));
     await user.click(screen.getByRole('menuitemradio', { name: 'RH' }));
 
     expect(
-      await screen.findByText('Acme Inc. 2026/1 em relação a RH 2026/1'),
+      await screen.findByText(
+        'Acme Inc. 30/06/2026 em relação a RH 30/06/2026',
+      ),
     ).toBeInTheDocument();
     expect(screen.getByText('diminuiu 14')).toBeInTheDocument();
   });
@@ -240,7 +300,7 @@ describe('CompanyDashboardView', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Setor' })).toBeInTheDocument();
     expect(
-      screen.getByText('Acme Inc. 2026/1, sem comparação.'),
+      screen.getByText('Acme Inc. 30/06/2026, sem comparação.'),
     ).toBeInTheDocument();
   });
 
@@ -249,9 +309,6 @@ describe('CompanyDashboardView', () => {
     await renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
-    const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
-    setorSub.focus();
-    await user.keyboard('{Enter}');
     const marketing = await screen.findByRole('menuitemradio', {
       name: 'Marketing',
     });
@@ -259,7 +316,9 @@ describe('CompanyDashboardView', () => {
     await user.keyboard('{Enter}');
 
     expect(
-      await screen.findByText('Marketing 2026/1 em relação a Marketing 2025/2'),
+      await screen.findByText(
+        'Marketing 30/06/2026 em relação a Marketing 31/12/2025',
+      ),
     ).toBeInTheDocument();
 
     // O recorte muda a página inteira, não só o radar.
@@ -268,15 +327,17 @@ describe('CompanyDashboardView', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('12/14')).toBeInTheDocument();
     expect(
-      screen.getByText('Análise de Marketing no período 2026/1.'),
+      screen.getByText('Análise de Marketing no período 30/06/2026.'),
     ).toBeInTheDocument();
 
     // O setor exibido também pode ser escolhido na comparação: Marketing em
-    // 2026/1 contra Marketing em 2025/2.
+    // 30/06/2026 contra Marketing em 31/12/2025.
     await user.click(screen.getByRole('button', { name: 'Setor' }));
     await user.click(screen.getByRole('menuitemradio', { name: 'Marketing' }));
     expect(
-      await screen.findByText('Marketing 2026/1 em relação a Marketing 2025/2'),
+      await screen.findByText(
+        'Marketing 30/06/2026 em relação a Marketing 31/12/2025',
+      ),
     ).toBeInTheDocument();
     // O recorte do topo também se chama Marketing: a busca fica no grupo.
     expect(
@@ -292,9 +353,6 @@ describe('CompanyDashboardView', () => {
     await renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
-    const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
-    setorSub.focus();
-    await user.keyboard('{Enter}');
     const marketing = await screen.findByRole('menuitemradio', {
       name: 'Marketing',
     });
@@ -304,11 +362,15 @@ describe('CompanyDashboardView', () => {
     await user.click(await screen.findByRole('button', { name: 'Setor' }));
     await user.click(screen.getByRole('menuitemradio', { name: 'Acme Inc.' }));
 
+    // Escolher a empresa toda compara com ela no período exibido.
     expect(
-      await screen.findByText('Marketing 2026/1 em relação a Acme Inc. 2025/2'),
+      await screen.findByText(
+        'Marketing 30/06/2026 em relação a Acme Inc. 30/06/2026',
+      ),
     ).toBeInTheDocument();
-    // Segurança Psicológica: Marketing 82 contra a empresa 70.
-    expect(screen.getByText('aumentou 12')).toBeInTheDocument();
+    // Marketing fica 3 acima da empresa em vários prismas (82 contra 79 em
+    // Segurança Psicológica).
+    expect(screen.getAllByText('aumentou 3').length).toBeGreaterThan(0);
   });
 
   it('should swap a department for the whole company without losing the period', async () => {
@@ -321,9 +383,13 @@ describe('CompanyDashboardView', () => {
     await user.click(screen.getByRole('menuitemradio', { name: 'Acme Inc.' }));
 
     expect(
-      await screen.findByText('Acme Inc. 2026/1 em relação a Acme Inc. 2025/2'),
+      await screen.findByText(
+        'Acme Inc. 30/06/2026 em relação a Acme Inc. 31/12/2025',
+      ),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '2025/2' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '31/12/2025' }),
+    ).toBeInTheDocument();
   });
 
   it('should show the chosen employee as the main line', async () => {
@@ -344,7 +410,7 @@ describe('CompanyDashboardView', () => {
 
     expect(
       await screen.findByText(
-        'Walter White 2026/1 em relação a Walter White 2025/2',
+        'Walter White 30/06/2026 em relação a Walter White 31/12/2025',
       ),
     ).toBeInTheDocument();
     // Uma pessoa só não tem alinhamento.
@@ -384,7 +450,7 @@ describe('CompanyDashboardView', () => {
       screen.getByRole('heading', { name: 'Alinhamento da equipe' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText('Acme Inc. 2026/1 · 50 respostas'),
+      screen.getByText('Acme Inc. 30/06/2026 · 50 respostas'),
     ).toBeInTheDocument();
     expect(screen.getByText('Dividido')).toBeInTheDocument();
   });
@@ -394,9 +460,6 @@ describe('CompanyDashboardView', () => {
     await renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
-    const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
-    setorSub.focus();
-    await user.keyboard('{Enter}');
     const administrativo = await screen.findByRole('menuitemradio', {
       name: 'Administrativo',
     });
@@ -405,7 +468,7 @@ describe('CompanyDashboardView', () => {
 
     // A empresa já vê o resultado de cada pessoa: não há mínimo a proteger.
     expect(
-      await screen.findByText('Administrativo 2026/1 · 4 respostas'),
+      await screen.findByText('Administrativo 30/06/2026 · 4 respostas'),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Alinhamento da equipe' }),
@@ -418,7 +481,7 @@ describe('CompanyDashboardView', () => {
 
     const mapa = () =>
       screen.getByRole('table', {
-        name: '2026/1 · diferença em relação à empresa',
+        name: '30/06/2026 · diferença em relação à empresa',
       });
     // RH: 3 pontos acima da empresa em Liderança Adaptativa.
     expect(within(mapa()).getByRole('row', { name: /RH/ })).toHaveTextContent(
@@ -441,7 +504,7 @@ describe('CompanyDashboardView', () => {
 
     expect(
       await screen.findByText(
-        'Tom Cruise 2026/1 em relação a Tom Cruise 2025/2',
+        'Tom Cruise 30/06/2026 em relação a Tom Cruise 31/12/2025',
       ),
     ).toBeInTheDocument();
     expect(within(mapa()).getByRole('row', { name: /RH/ })).toHaveTextContent(
@@ -465,16 +528,12 @@ describe('CompanyDashboardView', () => {
     ).toBeInTheDocument();
   });
 
-  it('should select a department from the submenu', async () => {
+  it('should select a department from the list', async () => {
     const user = userEvent.setup();
     await renderizar();
 
     const viewTrigger = screen.getByRole('button', { name: 'Acme Inc.' });
     await user.click(viewTrigger);
-
-    const setorSub = await screen.findByRole('menuitem', { name: 'Setor' });
-    setorSub.focus();
-    await user.keyboard('{Enter}'); // abre submenu por teclado
 
     // Todos os setores do `DepartmentType` do back.
     for (const name of [
@@ -547,7 +606,7 @@ describe('CompanyDashboardView', () => {
     await waitFor(() => {
       expect(print).toHaveBeenCalledTimes(1);
     });
-    expect(getDashboard).toHaveBeenLastCalledWith({ period: '2026/1' });
+    expect(getDashboard).toHaveBeenLastCalledWith({ period: 'periodo-2026-1' });
     expect(
       container.querySelector(
         '.dashboard-pdf-report .pdf-company-summary-grid',
@@ -572,7 +631,7 @@ describe('CompanyDashboardView', () => {
       '.dashboard-pdf-report .dashboard-pdf-summary',
     );
     expect(creedSummary).toHaveTextContent(
-      'Análise de a equipe no período 2026/1.',
+      'Análise de a equipe no período 30/06/2026.',
     );
     expect(creedSummary).toHaveTextContent('Recomendação para a equipe.');
     expect(
@@ -587,11 +646,6 @@ describe('CompanyDashboardView', () => {
     const { container } = await renderizar();
 
     await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
-    const departmentMenu = await screen.findByRole('menuitem', {
-      name: 'Setor',
-    });
-    departmentMenu.focus();
-    await user.keyboard('{Enter}');
     const marketing = await screen.findByRole('menuitemradio', {
       name: 'Marketing',
     });
@@ -605,7 +659,7 @@ describe('CompanyDashboardView', () => {
       expect(print).toHaveBeenCalledTimes(1);
     });
     expect(getDashboard).toHaveBeenLastCalledWith({
-      period: '2026/1',
+      period: 'periodo-2026-1',
       department: 'Marketing',
     });
     expect(container.querySelector('.dashboard-pdf-report')).toHaveTextContent(
@@ -638,11 +692,103 @@ describe('CompanyDashboardView', () => {
     expect(
       screen.getByRole('menuitemradio', { name: 'Acme Inc.' }),
     ).toBeInTheDocument();
+    // Os setores ficam na própria lista, junto da empresa; as outras pessoas,
+    // num submenu (a sessão destes testes é a da administradora).
     expect(
-      screen.getByRole('menuitem', { name: 'Department' }),
+      screen.getByRole('menuitemradio', { name: 'Marketing' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: 'Employee' }),
     ).toBeInTheDocument();
+  });
+
+  it('should take the summary card texts from the screen language', async () => {
+    await i18n.changeLanguage('en');
+    await renderizar();
+
+    // O back manda só o prisma: o nome e a descrição vêm do i18n.
+    expect(
+      screen.getByText(
+        'The team shows openness and trust to share opinions and experiment.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('should say there are no results yet when the organization has none', async () => {
+    vi.spyOn(dashboardsApi, 'getCompanyDashboard').mockRejectedValue(
+      new ApiError('Ainda não há resultados', 404),
+    );
+    const store = configureStore({
+      reducer: {
+        authentication: authenticationReducer,
+        dashboards: dashboardsReducer,
+      },
+    });
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/dashboard/company']}>
+          <CompanyDashboardView />
+        </MemoryRouter>
+      </Provider>,
+    );
+
+    expect(
+      await screen.findByText(
+        'Ainda não há resultados. Eles aparecem aqui depois que alguém responder um questionário.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('should cancel the previous load when the filter changes', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+    const getDashboard = vi.mocked(dashboardsApi.getCompanyDashboard);
+
+    await user.click(
+      screen.getByRole('button', { name: /^30\/06\/2026\s*Período$/ }),
+    );
+    await user.click(screen.getByRole('menuitemradio', { name: '31/12/2025' }));
+
+    await waitFor(() => {
+      expect(getDashboard).toHaveBeenLastCalledWith(
+        { period: 'periodo-2025-2' },
+        expect.any(AbortSignal),
+      );
+    });
+    // A carga da primeira tela foi cancelada ao trocar o período.
+    const [, primeiroSignal] = getDashboard.mock.calls[0] ?? [];
+    expect(primeiroSignal?.aborted).toBe(true);
+  });
+
+  it('should open the manager own result in the individual dashboard', async () => {
+    // O back manda à gestora só ela mesma (a Walter White, aqui).
+    vi.spyOn(dashboardsApi, 'getCompanyDashboard').mockImplementation(
+      (filters) =>
+        Promise.resolve({
+          ...companyDashboardFixture(filters),
+          members: [{ id: '2', label: 'Walter White' }],
+        }),
+    );
+    const user = userEvent.setup();
+    await renderizar({ role: 'gestor', link_id: '2' });
+
+    await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
+
+    expect(
+      screen.queryByRole('menuitem', { name: 'Funcionário' }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole('menuitemradio', { name: 'Walter White' }),
+    );
+
+    // O próprio nome não é um recorte da empresa: abre o dashboard individual.
+    expect(
+      await screen.findByRole('heading', { name: 'Dashboard individual' }),
+    ).toBeInTheDocument();
+    expect(dashboardsApi.getCompanyDashboard).not.toHaveBeenCalledWith(
+      { member_id: '2' },
+      expect.anything(),
+    );
   });
 });

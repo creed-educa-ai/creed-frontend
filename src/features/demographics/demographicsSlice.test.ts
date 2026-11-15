@@ -12,6 +12,7 @@ import reducer, {
 
 const estadoInicial: DemographicsDraft = {
   name: '',
+  loaded: false,
   gender: null,
   age_range: null,
   ethnicities: [],

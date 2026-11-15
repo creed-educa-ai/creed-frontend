@@ -9,9 +9,11 @@ import { dashboardsApi } from '@/features/dashboards/dashboardsApi';
 import dashboardsReducer from '@/features/dashboards/dashboardsSlice';
 import { UserDashboardView } from './UserDashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+import { ApiError } from '@/lib/apiClient';
+import { userDashboardFixture } from './__fixtures__/userDashboard';
 
 // O menu do topo lê o papel na sessão e marca o item da rota atual.
-async function renderizar() {
+async function renderizar(role = 'respondente') {
   const store = configureStore({
     reducer: {
       authentication: authenticationReducer,
@@ -22,7 +24,7 @@ async function renderizar() {
         user: {
           id: 'usuario-1',
           email: 'dev@creed.example.com',
-          role: 'respondente',
+          role,
           link_id: null,
           organization_id: null,
           organization_name: null,
@@ -41,7 +43,7 @@ async function renderizar() {
       </MemoryRouter>
     </Provider>,
   );
-  // A tela carrega pelo slice: espera o mock do dashboardsApi chegar.
+  // A tela carrega pelo slice: espera a resposta do back (a fixture) chegar.
   await waitFor(() => {
     expect(store.getState().dashboards.user.status).toBe('ready');
   });
@@ -54,6 +56,10 @@ describe('UserDashboardView', () => {
   });
 
   beforeEach(async () => {
+    // O back responde o período pedido, ou o mais recente.
+    vi.spyOn(dashboardsApi, 'getUserDashboard').mockImplementation(
+      (filters = {}) => Promise.resolve(userDashboardFixture(filters.period)),
+    );
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
@@ -129,9 +135,13 @@ describe('UserDashboardView', () => {
     expect(
       screen.getByRole('group', { name: 'Comparar com' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '2025/2' })).toBeInTheDocument();
-    expect(screen.getByText('2026/1 em relação a 2025/2')).toBeInTheDocument();
-    expect(screen.getByRole('table')).toHaveTextContent('2025/2');
+    expect(
+      screen.getByRole('button', { name: '31/12/2025' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('30/06/2026 em relação a 31/12/2025'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('table')).toHaveTextContent('31/12/2025');
     // Quem responde só compara com os próprios períodos, não com setores.
     expect(
       screen.queryByRole('button', { name: 'Setor' }),
@@ -142,16 +152,18 @@ describe('UserDashboardView', () => {
     const user = userEvent.setup();
     await renderizar();
 
-    await user.click(screen.getByRole('button', { name: '2025/2' }));
-    await user.click(screen.getByRole('menuitemradio', { name: '2025/1' }));
+    await user.click(screen.getByRole('button', { name: '31/12/2025' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '30/06/2025' }));
 
     expect(
-      await screen.findByRole('button', { name: '2025/1' }),
+      await screen.findByRole('button', { name: '30/06/2025' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('2026/1 em relação a 2025/1')).toBeInTheDocument();
+    expect(
+      screen.getByText('30/06/2026 em relação a 30/06/2025'),
+    ).toBeInTheDocument();
     expect(screen.getByText('diminuiu 3')).toBeInTheDocument();
-    expect(screen.getByRole('table')).toHaveTextContent('2025/1');
-    // As dimensões seguem a mesma comparação (S7: 82 contra 78 em 2025/1).
+    expect(screen.getByRole('table')).toHaveTextContent('30/06/2025');
+    // As dimensões seguem a mesma comparação (S7: 82 contra 78 em 30/06/2025).
     expect(screen.getByText(/S7/).closest('li')).toHaveTextContent('82 / 78');
   });
 
@@ -159,25 +171,27 @@ describe('UserDashboardView', () => {
     const user = userEvent.setup();
     await renderizar();
 
-    await user.click(screen.getByRole('button', { name: '2025/2' }));
-    await user.click(screen.getByRole('menuitemradio', { name: '2025/2' }));
+    await user.click(screen.getByRole('button', { name: '31/12/2025' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '31/12/2025' }));
 
     // Só "Sem comparação" limpa.
     expect(
-      await screen.findByRole('button', { name: '2025/2' }),
+      await screen.findByRole('button', { name: '31/12/2025' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('2026/1 em relação a 2025/2')).toBeInTheDocument();
+    expect(
+      screen.getByText('30/06/2026 em relação a 31/12/2025'),
+    ).toBeInTheDocument();
   });
 
   it('should show only the current period when choosing no comparison', async () => {
     const user = userEvent.setup();
     await renderizar();
 
-    await user.click(screen.getByRole('button', { name: '2025/2' }));
+    await user.click(screen.getByRole('button', { name: '31/12/2025' }));
     await user.click(screen.getByRole('menuitem', { name: 'Sem comparação' }));
 
     expect(
-      await screen.findByText('2026/1, sem comparação.'),
+      await screen.findByText('30/06/2026, sem comparação.'),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Período' })).toBeInTheDocument();
     expect(screen.queryByText(/aumentou|diminuiu/)).not.toBeInTheDocument();
@@ -191,17 +205,17 @@ describe('UserDashboardView', () => {
     await renderizar();
 
     await user.click(
-      screen.getByRole('button', { name: /^2026\/1\s*Período$/ }),
+      screen.getByRole('button', { name: /^30\/06\/2026\s*Período$/ }),
     );
-    await user.click(screen.getByRole('menuitemradio', { name: '2025/2' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '31/12/2025' }));
 
     expect(
-      await screen.findByText('2025/2 em relação a 2025/1'),
+      await screen.findByText('31/12/2025 em relação a 30/06/2025'),
     ).toBeInTheDocument();
-    // Linha cheia (2025/2) e tracejada (2025/1) na tabela do radar.
+    // Linha cheia (31/12/2025) e tracejada (30/06/2025) na tabela do radar.
     const header = screen.getByRole('table').querySelector('thead');
-    expect(header).toHaveTextContent('2025/2');
-    expect(header).toHaveTextContent('2025/1');
+    expect(header).toHaveTextContent('31/12/2025');
+    expect(header).toHaveTextContent('30/06/2025');
   });
 
   it('should not compare the oldest period with anything by default', async () => {
@@ -209,12 +223,12 @@ describe('UserDashboardView', () => {
     await renderizar();
 
     await user.click(
-      screen.getByRole('button', { name: /^2026\/1\s*Período$/ }),
+      screen.getByRole('button', { name: /^30\/06\/2026\s*Período$/ }),
     );
-    await user.click(screen.getByRole('menuitemradio', { name: '2025/1' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '30/06/2025' }));
 
     expect(
-      await screen.findByText('2025/1, sem comparação.'),
+      await screen.findByText('30/06/2025, sem comparação.'),
     ).toBeInTheDocument();
   });
 
@@ -275,17 +289,19 @@ describe('UserDashboardView', () => {
     await renderizar();
 
     // No jsdom não há CSS: os dois spans (desktop e mobile) entram no nome do botão.
-    await user.click(screen.getByRole('button', { name: /2026\/1/ }));
+    await user.click(screen.getByRole('button', { name: /30\/06\/2026/ }));
     expect(
-      screen.getByRole('menuitemradio', { name: '2026/1' }),
+      screen.getByRole('menuitemradio', { name: '30/06/2026' }),
     ).toHaveAttribute('aria-checked', 'true');
 
-    await user.click(screen.getByRole('menuitemradio', { name: '2025/2' }));
+    await user.click(screen.getByRole('menuitemradio', { name: '31/12/2025' }));
 
     // O botão do topo leva o rótulo de celular no nome ("Período"); o de
-    // comparação também se chama "2025/2", e sem esse sufixo os dois casariam.
+    // comparação também se chama "31/12/2025", e sem esse sufixo os dois casariam.
     expect(
-      await screen.findByRole('button', { name: /^2025\/2\s*Período$/ }),
+      await screen.findByRole('button', {
+        name: /^31\/12\/2025\s*Período$/,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -311,7 +327,7 @@ describe('UserDashboardView', () => {
     await waitFor(() => {
       expect(print).toHaveBeenCalledTimes(1);
     });
-    expect(getDashboard).toHaveBeenLastCalledWith({ period: '2026/1' });
+    expect(getDashboard).toHaveBeenLastCalledWith({ period: 'periodo-2026-1' });
     expect(
       container.querySelector('.dashboard-pdf-report'),
     ).toBeInTheDocument();
@@ -377,5 +393,103 @@ describe('UserDashboardView', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Não foi possível carregar o dashboard.',
     );
+  });
+
+  it('should show the period by its end date, not by the form id', async () => {
+    await renderizar();
+
+    expect(
+      screen.getByRole('button', { name: /^30\/06\/2026\s*Período$/ }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/periodo-2026-1/)).not.toBeInTheDocument();
+  });
+
+  it('should show the end date in the format of the screen language', async () => {
+    await i18n.changeLanguage('en');
+    await renderizar();
+
+    expect(
+      screen.getByRole('button', { name: /^06\/30\/2026\s*Period$/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('should ask for the chosen period by its id', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(
+      screen.getByRole('button', { name: /^30\/06\/2026\s*Período$/ }),
+    );
+    await user.click(screen.getByRole('menuitemradio', { name: '31/12/2025' }));
+
+    await waitFor(() => {
+      expect(dashboardsApi.getUserDashboard).toHaveBeenLastCalledWith({
+        period: 'periodo-2025-2',
+      });
+    });
+  });
+
+  it('should say the analysis is not available yet when the texts come empty', async () => {
+    vi.spyOn(dashboardsApi, 'getUserDashboard').mockResolvedValue({
+      ...userDashboardFixture(),
+      creed_summary: {
+        ...userDashboardFixture().creed_summary,
+        analiseTexto: [],
+        recomendacaoTexto: [],
+        prismas: {} as never,
+      },
+    });
+    await renderizar();
+
+    // Um na análise e um em cada um dos cinco cards de prisma.
+    expect(screen.getAllByText('Análise ainda não disponível.')).toHaveLength(
+      6,
+    );
+    expect(screen.getByText('Destaque')).toBeInTheDocument();
+  });
+
+  it('should point to the questionnaire when the person has no result yet', async () => {
+    vi.spyOn(dashboardsApi, 'getUserDashboard').mockRejectedValue(
+      new ApiError('Você ainda não tem resultado', 404),
+    );
+    const store = configureStore({
+      reducer: {
+        authentication: authenticationReducer,
+        dashboards: dashboardsReducer,
+      },
+    });
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/dashboard']}>
+          <UserDashboardView />
+        </MemoryRouter>
+      </Provider>,
+    );
+
+    expect(
+      await screen.findByText(
+        'Você ainda não tem resultado. Ele aparece aqui depois que você enviar um questionário.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Ir para o questionário' }),
+    ).toHaveAttribute('href', '/questionnaire');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('should offer the manager a way back to the company dashboard', async () => {
+    await renderizar('gestor');
+
+    expect(
+      screen.getByRole('link', { name: 'Voltar ao dashboard da empresa' }),
+    ).toHaveAttribute('href', '/dashboard/company');
+  });
+
+  it('should not offer the way back to whoever answers', async () => {
+    await renderizar();
+
+    expect(
+      screen.queryByRole('link', { name: 'Voltar ao dashboard da empresa' }),
+    ).not.toBeInTheDocument();
   });
 });

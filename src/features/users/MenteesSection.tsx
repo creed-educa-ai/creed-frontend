@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/sonner';
@@ -24,6 +25,7 @@ import { cardTitleClassName } from '@/lib/typography';
 export function MenteesSection() {
   const { t } = useTranslation(['comum', 'mentees', 'painelControle']);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const organizationId = useAppSelector(
     (state) => state.authentication.user?.organization_id ?? null,
   );
@@ -88,9 +90,12 @@ export function MenteesSection() {
           {status === 'ready' && organizationId && (
             <MenteesTable
               mentees={items}
+              // O dashboard da administradora, já com o mentorando escolhido
+              // (um recorte da organização da CREED).
               onViewResults={(mentee) => {
-                console.log('Ver resultados do mentorando:', mentee.link_id);
-                // TODO: integração com o backend
+                navigate(
+                  `/dashboard/company?member_id=${encodeURIComponent(mentee.link_id)}`,
+                );
               }}
               onEditQuestionnaire={setEditing}
               deleteErrorMessage={deleteError && t(deleteError)}

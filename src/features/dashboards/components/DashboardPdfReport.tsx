@@ -6,6 +6,7 @@ import type {
   CompanyDashboard,
   UserDashboard,
 } from '@/features/dashboards/dashboardsApi';
+import { periodLabeler } from '../periods';
 import { ResultText } from './ResultText';
 import { SummaryCards } from './SummaryCards';
 import { OverviewSection } from './OverviewSection';
@@ -19,8 +20,9 @@ type DashboardPdfReportProps = {
 );
 
 export function DashboardPdfReport(props: DashboardPdfReportProps) {
-  const { t } = useTranslation(['comum']);
+  const { t, i18n } = useTranslation(['comum']);
   const { data, kind, onAfterPrint, onPrintError } = props;
+  const periodLabel = periodLabeler(data.periods, i18n.language);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +95,7 @@ export function DashboardPdfReport(props: DashboardPdfReportProps) {
             organizationName={data.organization_name}
             comparisonOptions={data.comparison_options}
             comparisons={data.comparisons}
+            periodLabel={periodLabel}
             alignment={empresa ? data.alignment : undefined}
             departmentMatrix={empresa ? data.department_matrix : undefined}
           />
