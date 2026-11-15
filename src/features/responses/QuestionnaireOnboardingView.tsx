@@ -4,14 +4,63 @@ import { PageHeader } from '@/components/layout/pageHeader';
 import { InfoModal } from '@/features/responses/InfoModal';
 import { screenEnterClassName } from '@/lib/animations';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sectionTitleClassName } from '@/lib/typography';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { IDIOMAS, IDIOMA_PADRAO } from '@/i18n/config';
+import type { QuestionLang } from '@/types/api';
+import { loadQuestionnaire } from '@/features/responses/responsesSlice';
 
 export function QuestionnaireOnboardingView() {
-  const { t } = useTranslation(['onboardQuestionario']);
+  const { t, i18n } = useTranslation([
+    'onboardQuestionario',
+    'formulario',
+    'comum',
+  ]);
+  const dispatch = useAppDispatch();
+  const status = useAppSelector((state) => state.responses.status);
+  const error = useAppSelector((state) => state.responses.error);
+  const formResponse = useAppSelector((state) => state.responses.formResponse);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
+  const lang: QuestionLang =
+    IDIOMAS.find((idioma) => idioma === i18n.resolvedLanguage) ?? IDIOMA_PADRAO;
+
+  useEffect(() => {
+    let active = true;
+    setChecking(true);
+    void dispatch(loadQuestionnaire(lang)).then(() => {
+      if (active) setChecking(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [dispatch, lang]);
+
+  const isSubmitted =
+    status === 'ready' && formResponse?.status === 'submitted';
+  const isAvailable = status === 'ready' && !isSubmitted;
+  const noOpenQuestionnaire =
+    status === 'error' && error === 'formulario:erros.semQuestionarioAberto';
+  const isDisabled = checking || !isAvailable;
+
+  let statusMessage: string;
+  if (checking || status === 'idle' || status === 'loading') {
+    statusMessage = t('comum:carregando');
+  } else if (isSubmitted) {
+    statusMessage = t('formulario:jaRespondido');
+  } else if (noOpenQuestionnaire) {
+    statusMessage = t('formulario:erros.semQuestionarioAberto');
+  } else if (status === 'error') {
+    statusMessage = t(
+      (error ?? 'formulario:erros.servicoIndisponivel') as never,
+    );
+  } else {
+    statusMessage = t('onboardQuestionario:subtitulo');
+  }
 
   return (
     // isolate: a camada do fundo (-z-10) fica atrás do conteúdo, mas dentro
@@ -46,28 +95,38 @@ export function QuestionnaireOnboardingView() {
               >
                 {t('onboardQuestionario:start')}
               </h2>
-              <p className="text-balance">
-                {t('onboardQuestionario:subtitulo')}
+              <p role="status" aria-live="polite" className="text-balance">
+                {statusMessage}
               </p>
             </div>
-            <div className="p-4 pt-6">
-              <p className="text-sm leading-relaxed text-card-foreground">
-                {t('onboardQuestionario:mensagem')}
-              </p>
-            </div>
-            <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-2xl border border-border bg-background p-2 pl-4">
-              <div className="flex gap-4 text-sm text-foreground">
-                <p>{t('onboardQuestionario:tempo')}</p>
-                <p>{t('onboardQuestionario:secao')}</p>
+            {isAvailable && (
+              <>
+                <div className="p-4 pt-6">
+                  <p className="text-sm leading-relaxed text-card-foreground">
+                    {t('onboardQuestionario:mensagem')}
+                  </p>
+                </div>
+                <div className="flex w-full flex-wrap items-center justify-between gap-2 rounded-2xl border border-border bg-background p-2 pl-4">
+                  <div className="flex gap-4 text-sm text-foreground">
+                    <p>{t('onboardQuestionario:tempo')}</p>
+                    <p>{t('onboardQuestionario:secao')}</p>
+                  </div>
+                  <Button
+                    disabled={isDisabled}
+                    onClick={() => {
+                      setInfoOpen(true);
+                    }}
+                  >
+                    {t('onboardQuestionario:iniciar')}
+                  </Button>
+                </div>
+              </>
+            )}
+            {!isAvailable && (
+              <div className="flex justify-end p-2">
+                <Button disabled>{t('onboardQuestionario:iniciar')}</Button>
               </div>
-              <Button
-                onClick={() => {
-                  setInfoOpen(true);
-                }}
-              >
-                {t('onboardQuestionario:iniciar')}
-              </Button>
-            </div>
+            )}
           </div>
         </div>
       </div>
