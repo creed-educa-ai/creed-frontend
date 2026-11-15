@@ -42,7 +42,12 @@ export function DashboardToolbar({
           <DropdownMenuItem disabled={exportingPdf} onSelect={onExportPdf}>
             PDF
           </DropdownMenuItem>
-          <DropdownMenuItem disabled={!onExportCsv} onSelect={onExportCsv}>
+          <DropdownMenuItem
+            disabled={!onExportCsv}
+            onSelect={() => {
+              onExportCsv?.();
+            }}
+          >
             CSV
           </DropdownMenuItem>
         </DropdownMenuContent>

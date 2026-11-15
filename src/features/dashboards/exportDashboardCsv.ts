@@ -11,13 +11,13 @@ export type ExportCsvParams =
       kind: 'user';
       data: UserDashboard;
       t: TFunction;
-      periodLabel: (id: string | null) => string;
+      periodLabel: (id: string) => string;
     }
   | {
       kind: 'company';
       data: CompanyDashboard;
       t: TFunction;
-      periodLabel: (id: string | null) => string;
+      periodLabel: (id: string) => string;
       viewLabel?: string;
     };
 
@@ -106,7 +106,9 @@ export function buildDashboardCsvRows(
       rows.push(['Comparações com Períodos Anteriores', '', '', '']);
       rows.push(['Período', 'Prisma', 'Pontuação', 'Variação']);
       for (const comp of data.comparisons) {
-        const compPeriod = periodLabel(comp.period);
+        const compPeriod = comp.period
+          ? periodLabel(comp.period)
+          : currentPeriod;
         for (const prisma of PRISMAS) {
           const score = comp.scores[prisma];
           const variation = comp.variation[prisma];

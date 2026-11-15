@@ -16,7 +16,7 @@ describe('exportDashboardCsv', () => {
         options?.defaultValue ?? key,
     ) as unknown as TFunction;
 
-  const fakePeriodLabel = (id: string | null) =>
+  const fakePeriodLabel = (id: string) =>
     id === 'form-outubro' ? 'Outubro 2026' : 'Setembro 2026';
 
   describe('formatCsv', () => {
