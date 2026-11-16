@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -329,5 +329,51 @@ describe('AdminDashboardView', () => {
     expect(
       screen.queryByRole('button', { name: 'Todas as empresas' }),
     ).not.toBeInTheDocument();
+  });
+
+  describe('with the Creed.ai text of the chosen company being prepared', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should show what its manager sees, asking again for that company', async () => {
+      const pronto = companyDashboardFixture();
+      const busca = vi
+        .spyOn(dashboardsApi, 'getCompanyDashboard')
+        .mockResolvedValueOnce({
+          ...pronto,
+          creed_summary: {
+            ...pronto.creed_summary,
+            analiseTexto: [],
+            recomendacaoTexto: [],
+            prismas: {} as never,
+            insight_status: 'pending',
+            generated_at: null,
+          },
+        })
+        .mockResolvedValue(pronto);
+      renderizar('admin', '/dashboard/company?organization_id=org-a');
+
+      expect(
+        await screen.findAllByText('O Creed.ai está preparando este texto.'),
+      ).toHaveLength(7);
+
+      await act(() => vi.advanceTimersByTimeAsync(15_000));
+      // A busca repetida é a da empresa escolhida, não a da administradora.
+      expect(busca).toHaveBeenLastCalledWith(
+        expect.objectContaining({ organization_id: 'org-a' }),
+        expect.any(AbortSignal),
+      );
+      expect(screen.getByText('Gerado em 02/07/2026')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Recomendação para a equipe. Lorem ipsum dolor sit amet.',
+        ),
+      ).toBeInTheDocument();
+    });
   });
 });

@@ -13,6 +13,7 @@ import { PageHeader } from '@/components/layout/pageHeader';
 import { pageGutterClassName } from '@/lib/layout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { loadCompanyDashboard } from '@/features/dashboards/dashboardsSlice';
+import { useRepeatWhile } from '@/hooks/useRepeatWhile';
 import { screenEnterClassName } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 import type { DepartmentType } from '@/types/api';
@@ -110,18 +111,33 @@ export function CompanyDashboardView({
 
   // Cada troca de filtro pede ao back o recorte novo, e cancela o pedido
   // anterior: trocando rápido, só o último recorte chega à tela.
+  const carregar = useCallback(
+    () =>
+      dispatch(
+        loadCompanyDashboard({
+          ...fixedFilters,
+          period: period ?? undefined,
+          ...view,
+        }),
+      ),
+    [dispatch, period, view, fixedFilters],
+  );
+
   useEffect(() => {
-    const carga = dispatch(
-      loadCompanyDashboard({
-        ...fixedFilters,
-        period: period ?? undefined,
-        ...view,
-      }),
-    );
+    const carga = carregar();
     return () => {
       carga.abort();
     };
-  }, [dispatch, period, view, fixedFilters]);
+  }, [carregar]);
+
+  // Com o texto do Creed.ai da empresa em preparo, pede de novo a cada 15 s,
+  // por até 2 min. Ao sair da tela ou trocar o filtro, a busca é cancelada.
+  // Com recorte por setor ou pessoa o back manda `none`: não há o que esperar.
+  useRepeatWhile(
+    data?.creed_summary.insight_status === 'pending',
+    15_000,
+    carregar,
+  );
 
   // Nome do setor ou do membro; nulo na organização inteira. Serve ao filtro
   // escolhido e ao recorte que a resposta do back diz mostrar.

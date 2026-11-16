@@ -458,22 +458,40 @@ function buildCompanySummary(
   };
 }
 
+// Com recorte por setor ou por pessoa, o back não manda texto: o insight é da
+// empresa inteira (P-089). Destaque e oportunidade são do cálculo e ficam.
+function semTextoDoCreed(summary: CreedSummary): CreedSummary {
+  return {
+    ...summary,
+    analiseTexto: [],
+    recomendacaoTexto: [],
+    // O back manda o dicionário vazio.
+    prismas: {} as Record<Prisma, string>,
+    insight_status: 'none',
+    generated_at: null,
+  };
+}
+
 /** O resultado do recorte pedido, como o back devolveria. */
 export function companyDashboardFixture(
   filters: DashboardFilters = {},
 ): CompanyDashboard {
   const result = buildResult(filters, departments);
+  const creedSummary = buildCreedSummary(
+    mockRecorteName(filters),
+    result.period,
+    result.scores,
+  );
   return {
     organization_name: ORGANIZATION_NAME,
     periods: PERIODOS,
     ...result,
     department: filters.department ?? null,
     member_id: filters.member_id ?? null,
-    creed_summary: buildCreedSummary(
-      mockRecorteName(filters),
-      result.period,
-      result.scores,
-    ),
+    creed_summary:
+      filters.department || filters.member_id
+        ? semTextoDoCreed(creedSummary)
+        : creedSummary,
     departments,
     members,
     company_summary: buildCompanySummary(filters, result.scores),
