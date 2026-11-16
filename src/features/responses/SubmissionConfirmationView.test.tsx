@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
@@ -18,10 +18,17 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-// O Voltar leva ao dashboard do papel de quem está na sessão.
-function renderizar(role: string | null = null) {
+// O Voltar leva ao dashboard do papel de quem está na sessão. O `routeState`
+// é o que a revisão manda ao navegar para cá: o id da resposta enviada.
+function renderizar(
+  role: string | null = null,
+  routeState?: { formResponseId: string },
+) {
   const store = configureStore({
-    reducer: { authentication: authenticationReducer },
+    reducer: {
+      authentication: authenticationReducer,
+      responses: responsesReducer,
+    },
     preloadedState: {
       authentication: {
         user: role
@@ -43,11 +50,24 @@ function renderizar(role: string | null = null) {
 
   return render(
     <Provider store={store}>
-      <MemoryRouter>
+      <MemoryRouter
+        initialEntries={[
+          { pathname: '/questionnaire/submitted', state: routeState },
+        ]}
+      >
         <SubmissionConfirmationView />
       </MemoryRouter>
     </Provider>,
   );
+}
+
+// O que o `GET /form-responses/{id}/insight` responde em cada estado.
+function insight(status: 'pending' | 'done' | 'failed') {
+  return {
+    status,
+    content: null,
+    completed_at: status === 'done' ? '2026-11-15T13:30:00Z' : null,
+  };
 }
 
 describe('SubmissionConfirmationView', () => {
@@ -178,5 +198,128 @@ describe('SubmissionConfirmationView', () => {
     expect(
       await screen.findByRole('heading', { name: 'Obrigado por responder' }),
     ).toBeInTheDocument();
+    // A revisão mandou o id da resposta: a tela acompanha o insight dela.
+    expect(
+      screen.getByText('O Creed.ai está preparando o seu insight.'),
+    ).toBeInTheDocument();
+  });
+
+  describe('o insight da resposta enviada', () => {
+    // O relógio falso também anda sozinho, para o React terminar as
+    // atualizações entre um passo e outro.
+    beforeEach(() => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('avisa que está em preparo e, quando fica pronto, leva ao dashboard', async () => {
+      const consulta = vi
+        .spyOn(responsesApi, 'getInsightStatus')
+        .mockResolvedValueOnce(insight('pending'))
+        .mockResolvedValue(insight('done'));
+      renderizar('gestor', { formResponseId: 'fr-1' });
+
+      expect(
+        screen.getByText('O Creed.ai está preparando o seu insight.'),
+      ).toBeInTheDocument();
+
+      await act(() => vi.advanceTimersByTimeAsync(5_000));
+      expect(consulta).toHaveBeenCalledWith('fr-1', expect.any(AbortSignal));
+      expect(
+        screen.getByText('O Creed.ai está preparando o seu insight.'),
+      ).toBeInTheDocument();
+
+      await act(() => vi.advanceTimersByTimeAsync(5_000));
+      expect(
+        screen.getByText('O seu insight do Creed.ai está pronto.'),
+      ).toBeInTheDocument();
+      // O insight é o individual, mesmo para a gestora.
+      expect(
+        screen.getByRole('link', { name: 'Ver meu insight' }),
+      ).toHaveAttribute('href', '/dashboard');
+
+      // Pronto: para de perguntar.
+      await act(() => vi.advanceTimersByTimeAsync(30_000));
+      expect(consulta).toHaveBeenCalledTimes(2);
+    });
+
+    it('no teto de 2 minutos, diz que o insight aparece no dashboard', async () => {
+      const consulta = vi
+        .spyOn(responsesApi, 'getInsightStatus')
+        .mockImplementation(() => Promise.resolve(insight('pending')));
+      renderizar('respondente', { formResponseId: 'fr-1' });
+
+      await act(() => vi.advanceTimersByTimeAsync(2 * 60 * 1000));
+
+      // 2 min / 5 s.
+      expect(consulta).toHaveBeenCalledTimes(24);
+      expect(
+        screen.getByText(
+          'O seu insight aparece no dashboard quando ficar pronto.',
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('link', { name: 'Ver meu insight' }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('indisponível, para de perguntar e não oferece tentar de novo (P-095)', async () => {
+      const consulta = vi
+        .spyOn(responsesApi, 'getInsightStatus')
+        .mockResolvedValue(insight('failed'));
+      renderizar('respondente', { formResponseId: 'fr-1' });
+
+      await act(() => vi.advanceTimersByTimeAsync(5_000));
+      expect(
+        screen.getByText(
+          'O insight desta resposta não ficou disponível. O seu resultado já está no dashboard.',
+        ),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /tentar/i }),
+      ).not.toBeInTheDocument();
+
+      await act(() => vi.advanceTimersByTimeAsync(30_000));
+      expect(consulta).toHaveBeenCalledOnce();
+    });
+
+    it('sem o id da resposta, não consulta e aponta para o dashboard', async () => {
+      const consulta = vi.spyOn(responsesApi, 'getInsightStatus');
+      renderizar('respondente');
+
+      await act(() => vi.advanceTimersByTimeAsync(60_000));
+
+      expect(consulta).not.toHaveBeenCalled();
+      expect(
+        screen.getByText(
+          'O seu insight aparece no dashboard quando ficar pronto.',
+        ),
+      ).toBeInTheDocument();
+    });
+
+    it('ao sair da tela, cancela a consulta a caminho', async () => {
+      let sinal: AbortSignal | undefined;
+      const consulta = vi
+        .spyOn(responsesApi, 'getInsightStatus')
+        .mockImplementation((_id, signal) => {
+          sinal = signal;
+          return new Promise(() => undefined);
+        });
+      const { unmount } = renderizar('respondente', {
+        formResponseId: 'fr-1',
+      });
+
+      await act(() => vi.advanceTimersByTimeAsync(5_000));
+      expect(sinal?.aborted).toBe(false);
+
+      unmount();
+      await vi.advanceTimersByTimeAsync(30_000);
+
+      expect(sinal?.aborted).toBe(true);
+      expect(consulta).toHaveBeenCalledOnce();
+    });
   });
 });

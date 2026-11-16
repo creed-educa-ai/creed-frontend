@@ -22,16 +22,27 @@ export interface DashboardHighlight {
   valor: number;
 }
 
+/**
+ * Em que ponto está o texto do Creed.ai (`CreedSummaryRead.insight_status`).
+ * `none` é quando não há texto para esta tela: uma resposta de antes da
+ * esteira, ou um recorte que não tem insight.
+ */
+export type CreedInsightStatus = 'pending' | 'done' | 'failed' | 'none';
+
 export interface CreedSummary {
+  // Os textos só vêm com `insight_status` em `done`. Nos outros estados vêm
+  // vazios.
   analiseTexto: string[];
   recomendacaoTexto: string[];
-  // Um texto curto por prisma. No back, são os `insights` marcados com o
-  // prisma em `insight_prismas`.
+  // Um texto curto por prisma.
   prismas: Record<Prisma, string>;
   // Quais prismas os cards marcam como destaque e oportunidade: quem decide é
-  // o back, a tela só marca.
+  // o cálculo do back, não a IA (P-088), e a tela só marca.
   destaque: Prisma;
   oportunidade: Prisma;
+  insight_status: CreedInsightStatus;
+  // Quando o texto ficou pronto. Nulo fora do `done`.
+  generated_at: string | null;
 }
 
 export interface CompanySummary {
@@ -149,7 +160,7 @@ interface DashboardResult {
 /**
  * Resultado de quem está logado (`GET /dashboards/me`). Só os períodos em que
  * a pessoa respondeu, do mais recente ao mais antigo. Os textos do Creed.ai
- * vêm vazios até a esteira de IA existir.
+ * são os do insight da resposta mostrada.
  */
 export interface UserDashboard extends DashboardResult {
   periods: PeriodOption[];
@@ -212,9 +223,11 @@ export interface OverviewDashboard {
 export const dashboardsApi = {
   // Qualquer papel, só o próprio resultado. Com `member_id`, o de um
   // mentorando, que só a administradora pede. Sem período, o mais recente que a
-  // pessoa respondeu. 404: ela ainda não enviou nenhum questionário.
+  // pessoa respondeu. 404: ela ainda não enviou nenhum questionário. O
+  // `signal` cancela a busca que se repete enquanto o texto está em preparo.
   getUserDashboard: (
     filters: Pick<DashboardFilters, 'period' | 'member_id'> = {},
+    signal?: AbortSignal,
   ) => {
     const query = filters.period
       ? `?${new URLSearchParams({ period: filters.period })}`
@@ -222,7 +235,10 @@ export const dashboardsApi = {
     const path = filters.member_id
       ? `/dashboards/members/${encodeURIComponent(filters.member_id)}`
       : '/dashboards/me';
-    return apiClient.get<UserDashboard>(`${path}${query}`);
+    return apiClient.get<UserDashboard>(
+      `${path}${query}`,
+      signal ? { signal } : undefined,
+    );
   },
 
   // Gestora: a própria organização. Administradora: a do `organization_id`.

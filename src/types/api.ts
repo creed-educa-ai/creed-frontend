@@ -572,7 +572,7 @@ export interface DashboardResponse {
 }
 
 // ---------------------------------------------------------------------------
-// insights — schema e tabela existem, sem rota (ADR-0010).
+// insights (ADR-0010). A tela só lê o estado do insight de uma resposta.
 // ---------------------------------------------------------------------------
 
 export interface InsightResponse {
@@ -580,6 +580,27 @@ export interface InsightResponse {
   form_response_id: string;
   content: string;
   created_at: string;
+}
+
+// O texto do insight: de 2 a 4 parágrafos de análise, um texto curto por
+// prisma e de 1 a 3 parágrafos de recomendação (P-088).
+export interface InsightContent {
+  analise: string[];
+  prismas: Record<Prisma, string>;
+  recomendacao: string[];
+}
+
+// `GET /form-responses/{id}/insight`: em que ponto está o insight de uma
+// resposta enviada, para a tela perguntar de novo enquanto está em preparo. O
+// `dispatched` do back aparece como `pending`. 403: a resposta é de outro
+// vínculo; 404: a resposta não existe ou não tem insight.
+export type InsightStatus = 'pending' | 'done' | 'failed';
+
+export interface InsightStatusRead {
+  status: InsightStatus;
+  // Nulo enquanto não estiver `done`.
+  content: InsightContent | null;
+  completed_at: string | null;
 }
 
 // prismas, prognosticos e relatorios: stubs no back, sem schema.

@@ -100,4 +100,22 @@ describe('responsesApi', () => {
       body: undefined,
     });
   });
+
+  it('getInsightStatus lê o insight da resposta e repassa o signal', async () => {
+    const fetchMock = stubFetch();
+    const controller = new AbortController();
+
+    await responsesApi.getInsightStatus(FORM_RESPONSE_ID, controller.signal);
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: `/api/v1/form-responses/${FORM_RESPONSE_ID}/insight`,
+      method: 'GET',
+      body: undefined,
+    });
+    const [, init] = fetchMock.mock.lastCall as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(init.signal).toBe(controller.signal);
+  });
 });

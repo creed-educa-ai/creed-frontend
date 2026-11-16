@@ -15,6 +15,7 @@ import { PageHeader } from '@/components/layout/pageHeader';
 import { pageGutterClassName } from '@/lib/layout';
 import { Skeleton } from '@/components/ui/skeleton';
 import { loadUserDashboard } from '@/features/dashboards/dashboardsSlice';
+import { useRepeatWhile } from '@/hooks/useRepeatWhile';
 import { screenEnterClassName } from '@/lib/animations';
 import { cn } from '@/lib/utils';
 import { DashboardToolbar } from './components/DashboardToolbar';
@@ -103,11 +104,25 @@ export function UserDashboardView({
   }, [data, i18n, periodLabel]);
 
   // Cada troca de período pede ao back o resultado daquele período.
+  const carregar = useCallback(
+    () =>
+      dispatch(
+        loadUserDashboard({ period: period ?? undefined, member_id: memberId }),
+      ),
+    [dispatch, period, memberId],
+  );
+
   useEffect(() => {
-    void dispatch(
-      loadUserDashboard({ period: period ?? undefined, member_id: memberId }),
-    );
-  }, [dispatch, period, memberId]);
+    void carregar();
+  }, [carregar]);
+
+  // Com o texto do Creed.ai em preparo, pede de novo a cada 15 s, por até
+  // 2 min. Ao sair da tela, a busca é cancelada.
+  useRepeatWhile(
+    data?.creed_summary.insight_status === 'pending',
+    15_000,
+    carregar,
+  );
 
   return (
     <div className="dashboard-view flex min-h-svh flex-col overflow-hidden bg-background">

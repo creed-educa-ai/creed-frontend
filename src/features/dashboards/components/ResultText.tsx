@@ -1,7 +1,10 @@
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
-import type { CreedSummary } from '@/features/dashboards/dashboardsApi';
+import type {
+  CreedInsightStatus,
+  CreedSummary,
+} from '@/features/dashboards/dashboardsApi';
 import { PRISMAS } from '@/features/dashboards/prismas';
 import { cn } from '@/lib/utils';
 import type { Prisma } from '@/types/api';
@@ -16,27 +19,33 @@ interface ResultTextProps extends CreedSummary {
   showPrismaSummaries?: boolean;
 }
 
-// Os textos do Creed.ai vêm vazios até a esteira de IA existir: no lugar do
-// texto, o aviso. Os cards e as marcas de destaque e oportunidade ficam.
-function Indisponivel() {
+// O aviso no lugar de cada texto, conforme o estado do insight. Os textos só
+// vêm em `done`; em `none` não há insight para esta tela. Sem "tentar de
+// novo" (P-044). Os cards e as marcas de destaque e oportunidade ficam em
+// todos os estados: são do cálculo, não da IA.
+const AVISO_SEM_TEXTO = {
+  pending: 'resultado:insightEmPreparo',
+  failed: 'resultado:insightIndisponivel',
+  none: 'resultado:analiseIndisponivel',
+  done: 'resultado:analiseIndisponivel',
+} as const satisfies Record<CreedInsightStatus, string>;
+
+function SemTexto({ status }: { status: CreedInsightStatus }) {
   const { t } = useTranslation(['resultado']);
-  return (
-    <p className="text-muted-foreground">
-      {t('resultado:analiseIndisponivel')}
-    </p>
-  );
+  return <p className="text-muted-foreground">{t(AVISO_SEM_TEXTO[status])}</p>;
 }
 
 interface PrismaCardProps {
   prisma: Prisma;
-  // Sem texto (ou nulo): o aviso de análise indisponível.
+  // Sem texto (ou nulo): o aviso do estado do insight.
   texto: string | undefined;
   marca: 'destaque' | 'oportunidade' | null;
+  status: CreedInsightStatus;
 }
 
 // Um card curto por prisma. O destaque e a oportunidade não têm card próprio:
 // são marcados no card do prisma, para nada aparecer duas vezes.
-function PrismaCard({ prisma, texto, marca }: PrismaCardProps) {
+function PrismaCard({ prisma, texto, marca, status }: PrismaCardProps) {
   const { t } = useTranslation(['resultado', 'dashboardPrisma', 'dashboard']);
   const nome = t(`dashboardPrisma:prismas.${prisma}`);
 
@@ -69,7 +78,7 @@ function PrismaCard({ prisma, texto, marca }: PrismaCardProps) {
             <p className="mt-2 text-sm text-card-foreground">{texto}</p>
           ) : (
             <div className="mt-2 text-sm">
-              <Indisponivel />
+              <SemTexto status={status} />
             </div>
           )}
         </CardContent>
@@ -84,13 +93,24 @@ export function ResultText({
   prismas,
   destaque,
   oportunidade,
+  insight_status,
+  generated_at,
   empresa = false,
   collapsible = true,
   showPrismaSummaries = true,
 }: ResultTextProps) {
-  const { t } = useTranslation(['resultado', 'dashboard']);
+  const { t, i18n } = useTranslation(['resultado', 'dashboard']);
   const [isOpen, setIsOpen] = useState(true);
   const conteudoId = useId();
+  // A data em que o texto ficou pronto, no formato do idioma da tela.
+  const geradoEm =
+    insight_status === 'done' && generated_at
+      ? new Intl.DateTimeFormat(i18n.language, {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }).format(new Date(generated_at))
+      : null;
 
   const marcaDe = (prisma: Prisma) =>
     prisma === destaque
@@ -131,6 +151,12 @@ export function ResultText({
 
       {(!collapsible || isOpen) && (
         <div id={conteudoId} className="mt-6 flex flex-col gap-4">
+          {geradoEm && (
+            <p className="text-sm text-muted-foreground">
+              {t('resultado:geradoEm', { data: geradoEm })}
+            </p>
+          )}
+
           {/* Análise geral, grande; a recomendação ao lado, na empresa. */}
           <div
             className={cn(
@@ -156,7 +182,7 @@ export function ResultText({
                         <p key={paragrafo}>{paragrafo}</p>
                       ))
                     ) : (
-                      <Indisponivel />
+                      <SemTexto status={insight_status} />
                     )}
                   </div>
                 </CardContent>
@@ -191,7 +217,7 @@ export function ResultText({
                           <p key={paragrafo}>{paragrafo}</p>
                         ))
                       ) : (
-                        <Indisponivel />
+                        <SemTexto status={insight_status} />
                       )}
                     </div>
                   </CardContent>
@@ -209,6 +235,7 @@ export function ResultText({
                   prisma={prisma}
                   texto={prismas[prisma]}
                   marca={marcaDe(prisma)}
+                  status={insight_status}
                 />
               ))}
             </div>

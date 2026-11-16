@@ -506,6 +506,14 @@ export const ptBR = {
     titulo: 'Obrigado por responder',
     mensagem: 'Suas respostas foram enviadas.',
     voltar: 'Voltar',
+    // O insight do Creed.ai da resposta enviada (CREED-80).
+    insightEmPreparo: 'O Creed.ai está preparando o seu insight.',
+    insightPronto: 'O seu insight do Creed.ai está pronto.',
+    verInsight: 'Ver meu insight',
+    insightNoDashboard:
+      'O seu insight aparece no dashboard quando ficar pronto.',
+    insightIndisponivel:
+      'O insight desta resposta não ficou disponível. O seu resultado já está no dashboard.',
   },
   formulario: {
     titulo: 'Formulário',
@@ -569,8 +577,13 @@ export const ptBR = {
     destaque: 'Destaque',
     oportunidade: 'Oportunidade',
     analise: 'Análise do Creed.ai',
-    // Os textos do Creed.ai vêm vazios até a esteira de IA existir.
+    // Sem insight para esta tela: resposta de antes da esteira, ou um recorte
+    // sem texto.
     analiseIndisponivel: 'Análise ainda não disponível.',
+    // Os estados do insight (CREED-80), no lugar de cada texto.
+    insightEmPreparo: 'O Creed.ai está preparando este texto.',
+    insightIndisponivel: 'Este texto não ficou disponível.',
+    geradoEm: 'Gerado em {{data}}',
     recomendacao: 'Recomendação',
     resumoEmpresa: 'Resumo de {{empresa}}',
     taxaConclusao: 'Taxa de Conclusão',

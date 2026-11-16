@@ -148,6 +148,8 @@ const porPeriodo: Record<string, UserDashboard> = {
       },
       destaque: 'seguranca_psicologica',
       oportunidade: 'neuroinovacao_prisma',
+      insight_status: 'done',
+      generated_at: '2026-07-02T13:30:00Z',
     },
   },
   'periodo-2025-2': {
@@ -269,6 +271,8 @@ const porPeriodo: Record<string, UserDashboard> = {
       },
       destaque: 'lideranca_adaptativa',
       oportunidade: 'neuroinovacao_prisma',
+      insight_status: 'done',
+      generated_at: '2026-01-02T13:30:00Z',
     },
   },
   'periodo-2025-1': {
@@ -390,6 +394,8 @@ const porPeriodo: Record<string, UserDashboard> = {
       },
       destaque: 'lideranca_adaptativa',
       oportunidade: 'neuroinovacao_prisma',
+      insight_status: 'done',
+      generated_at: '2025-07-02T13:30:00Z',
     },
   },
 };

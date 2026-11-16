@@ -501,6 +501,12 @@ export const en: typeof ptBR = {
     titulo: 'Thank you for responding',
     mensagem: 'Your answers have been submitted.',
     voltar: 'Back',
+    insightEmPreparo: 'Creed.ai is preparing your insight.',
+    insightPronto: 'Your Creed.ai insight is ready.',
+    verInsight: 'See my insight',
+    insightNoDashboard: 'Your insight will appear on the dashboard when ready.',
+    insightIndisponivel:
+      'The insight for this response is not available. Your result is already on the dashboard.',
   },
   formulario: {
     titulo: 'Form',
@@ -563,6 +569,9 @@ export const en: typeof ptBR = {
     oportunidade: 'Opportunity',
     analise: 'Creed.ai Analysis',
     analiseIndisponivel: 'Analysis not available yet.',
+    insightEmPreparo: 'Creed.ai is preparing this text.',
+    insightIndisponivel: 'This text is not available.',
+    geradoEm: 'Generated on {{data}}',
     recomendacao: 'Recommendation',
     resumoEmpresa: 'Summary of {{empresa}}',
     taxaConclusao: 'Completion Rate',
