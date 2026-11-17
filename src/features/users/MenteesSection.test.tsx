@@ -175,7 +175,7 @@ describe('MenteesSection', () => {
       screen.getByRole('heading', { name: 'Questionário de Enner Valência' }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByText(i18n.t('painelControle:periodo.agendado')),
+      await screen.findByText(i18n.t('painelControle:periodo.somenteLeitura')),
     ).toBeInTheDocument();
     expect(screen.getByText('17/01/2099')).toBeInTheDocument();
     expect(screen.getByText('20/01/2099')).toBeInTheDocument();

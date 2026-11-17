@@ -209,7 +209,9 @@ describe('MembersSection', () => {
     await screen.findByRole('table');
 
     await userEvent.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar membros por email' }),
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar membros por nome ou email',
+      }),
       'felicia.reid',
     );
 
@@ -236,17 +238,17 @@ describe('MembersSection', () => {
 
     await userEvent.click(
       within(tabela()).getByRole('button', {
-        name: 'Marketing: alterar a tag de Enner Valência',
+        name: 'Marketing: alterar o setor de Enner Valência',
       }),
     );
     await userEvent.click(screen.getByRole('menuitemradio', { name: 'TI' }));
 
     expect(
       await within(tabela()).findByRole('button', {
-        name: 'TI: alterar a tag de Enner Valência',
+        name: 'TI: alterar o setor de Enner Valência',
       }),
     ).toBeInTheDocument();
-    expect(await screen.findByText('Tag atualizada')).toBeInTheDocument();
+    expect(await screen.findByText('Setor atualizado')).toBeInTheDocument();
     expect(
       screen.getByText('Enner Valência agora está em TI.'),
     ).toBeInTheDocument();
@@ -261,17 +263,17 @@ describe('MembersSection', () => {
 
     await userEvent.click(
       within(tabela()).getByRole('button', {
-        name: 'Marketing: alterar a tag de Enner Valência',
+        name: 'Marketing: alterar o setor de Enner Valência',
       }),
     );
     await userEvent.click(screen.getByRole('menuitemradio', { name: 'TI' }));
 
     expect(
-      await screen.findByText('Não foi possível alterar a tag'),
+      await screen.findByText('Não foi possível alterar o setor'),
     ).toBeInTheDocument();
     expect(
       within(tabela()).getByRole('button', {
-        name: 'Marketing: alterar a tag de Enner Valência',
+        name: 'Marketing: alterar o setor de Enner Valência',
       }),
     ).toBeInTheDocument();
   });
@@ -334,11 +336,13 @@ describe('MembersSection', () => {
       screen.getByRole('heading', { level: 3, name: 'Miembros' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('searchbox', { name: 'Buscar miembros por correo' }),
+      screen.getByRole('searchbox', {
+        name: 'Buscar miembros por nombre o correo',
+      }),
     ).toBeInTheDocument();
     expect(screen.getByText('Página 1 de 2')).toBeInTheDocument();
     expect(screen.getAllByText('Respondió').length).toBeGreaterThan(0);
-    expect(within(tabela()).getByText('18/10/26')).toBeInTheDocument();
+    expect(within(tabela()).getAllByText('Miembro').length).toBeGreaterThan(0);
     expect(
       screen.getByRole('table', { name: 'Miembros de la empresa' }),
     ).toBeInTheDocument();

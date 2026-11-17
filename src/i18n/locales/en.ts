@@ -455,11 +455,8 @@ export const en: typeof ptBR = {
     title: 'Mentees',
     loadError: 'Could not load the mentees.',
     search: {
-      name: { label: 'Search mentees by name', placeholder: 'Search by name' },
-      email: {
-        label: 'Search mentees by email',
-        placeholder: 'Search by email',
-      },
+      label: 'Search mentees by name or email',
+      placeholder: 'Search by name or email',
     },
     columnsMenu: 'Columns',
     select: { all: 'Select all', row: 'Select {{name}}' },
@@ -532,9 +529,12 @@ export const en: typeof ptBR = {
     escalaMaxima: 'Strongly agree',
     dissertativa:
       'Answer briefly and objectively, with a maximum of 200 words.',
+    dissertativaOpcional:
+      'Optional question: you can skip it if you prefer. Keep it brief and objective, with a maximum of 200 words.',
     objetiva: 'Choose the alternative that best describes your experience.',
     textbox: 'Type your answer here...',
     avancar: 'Next',
+    pular: 'Skip',
     voltar: 'Back',
     responderTudoAviso:
       'Answer the required questions in the section to move on.',
@@ -563,11 +563,8 @@ export const en: typeof ptBR = {
     titulo: 'Form',
     start: 'Shall we get started?',
     subtitulo: 'you have a questionnaire available',
-    // TODO: mesmo aviso do pt-BR.ts: o progresso não fica salvo (P-034).
     mensagem:
-      "Your answers help us map your organization's landscape.\n It's quick and you can pause whenever you want, your progress will be saved",
-    tempo: '~15 minutes',
-    secao: '4 sections',
+      "Your answers help map not only your organization's landscape, but yours as well.",
     iniciar: 'Start',
   },
   onboardQuestionarioInfo: {
@@ -653,10 +650,10 @@ export const en: typeof ptBR = {
   },
   organizations: {
     toasts: {
-      tagAtualizada: 'Tag updated',
+      tagAtualizada: 'Department updated',
       tagAtualizadaDescricao: '{{nome}} is now in {{tag}}.',
-      tagRemovidaDescricao: '{{nome}} no longer has a tag.',
-      erroTag: 'Could not change the tag',
+      tagRemovidaDescricao: '{{nome}} no longer has a department.',
+      erroTag: 'Could not change the department',
       membroExcluido: 'Member deleted',
       membroExcluidoDescricao: '{{nome}} no longer has access to the platform.',
     },
@@ -672,24 +669,18 @@ export const en: typeof ptBR = {
       submit: 'Add',
       role: {
         label: 'Role',
-        options: { respondente: 'Respondent', gestor: 'Manager' },
+        options: { respondente: 'Member', gestor: 'Manager' },
       },
     },
     members: {
       title: 'Members',
       tags: {
-        none: 'No tag',
-        change: '{{tag}}: change the tag of {{name}}',
+        none: 'No department',
+        change: '{{tag}}: change the department of {{name}}',
       },
       search: {
-        name: {
-          label: 'Search members by name',
-          placeholder: 'Search by name',
-        },
-        email: {
-          label: 'Search members by email',
-          placeholder: 'Search by email',
-        },
+        label: 'Search members by name or email',
+        placeholder: 'Search by name or email',
       },
       columns: 'Columns',
       columnsMenu: 'Toggle columns',
@@ -711,14 +702,15 @@ export const en: typeof ptBR = {
       confirmDeleteDescription:
         'Remove {{name}} from the company member list? This action cannot be undone.',
       delete: 'Delete',
-      sortByDate: 'Sort by recent date',
-      sortByTag: 'Sort by tag',
+      sortByRole: 'Sort by role',
+      roles: { admin: 'Admin', gestor: 'Manager', respondente: 'Member' },
+      sortByTag: 'Sort by department',
       columnNames: {
         name: 'Name',
         email: 'Email',
         status: 'Status',
-        tag: 'Tag',
-        updatedAt: 'Updated',
+        tag: 'Department',
+        role: 'Role',
         delete: 'Delete',
       },
       status: {
@@ -763,13 +755,9 @@ export const en: typeof ptBR = {
     },
     titulo: 'Companies',
     erroAoCarregar: 'Could not load the companies.',
-    pesquisarNome: {
-      label: 'Search companies by name',
-      placeholder: 'Search by name',
-    },
-    pesquisarEmail: {
-      label: 'Search companies by email',
-      placeholder: 'Search by email',
+    pesquisar: {
+      label: 'Search companies by name or email',
+      placeholder: 'Search by name or email',
     },
     colunas: {
       titulo: 'Columns',
@@ -837,8 +825,6 @@ export const en: typeof ptBR = {
       carregarPeriodo: 'The current period could not be loaded.',
     },
     periodo: {
-      aberto: 'Open period',
-      agendado: 'Scheduled period',
       somenteLeitura: 'A new period can only be set after this one ends.',
     },
   },

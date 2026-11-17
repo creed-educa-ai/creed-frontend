@@ -25,6 +25,13 @@ export function ProtectedRoute({ enabled = true }: ProtectedRouteProps) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
+  // A admin não responde questionário: só administra e vê os dashboards. O
+  // termo e o perfil demográfico existem para quem responde, então ela entra
+  // direto.
+  if (user?.role === 'admin') {
+    return <Outlet />;
+  }
+
   // Termo de consentimento no primeiro acesso. Fica aqui, na porta da área
   // logada, e não na tela de login: assim também vale para quem volta com a
   // sessão salva. A tela protegida só é montada depois do aceite — antes

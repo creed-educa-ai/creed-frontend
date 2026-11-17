@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -16,7 +16,7 @@ import { ApiError } from '@/lib/apiClient';
 import { userDashboardFixture } from './__fixtures__/userDashboard';
 
 // O menu do topo lê o papel na sessão e marca o item da rota atual.
-async function renderizar(role = 'respondente') {
+async function renderizar(role = 'respondente', memberId?: string) {
   const store = configureStore({
     reducer: {
       authentication: authenticationReducer,
@@ -27,6 +27,7 @@ async function renderizar(role = 'respondente') {
         user: {
           id: 'usuario-1',
           email: 'dev@creed.example.com',
+          name: 'Maria Respondente',
           role,
           link_id: null,
           organization_id: null,
@@ -42,7 +43,7 @@ async function renderizar(role = 'respondente') {
   const view = render(
     <Provider store={store}>
       <MemoryRouter initialEntries={['/dashboard']}>
-        <UserDashboardView />
+        <UserDashboardView memberId={memberId} />
       </MemoryRouter>
     </Provider>,
   );
@@ -73,6 +74,31 @@ describe('UserDashboardView', () => {
       screen.getByRole('heading', { level: 1, name: 'Dashboard' }),
     ).toBeInTheDocument();
     expect(screen.getByAltText('CREED.ai')).toBeInTheDocument();
+  });
+
+  it('mostra no cabeçalho o nome da pessoa, não o da empresa', async () => {
+    await renderizar();
+
+    const banner = screen.getByRole('banner');
+    expect(within(banner).getByText('Maria Respondente')).toBeInTheDocument();
+    expect(within(banner).queryByText('Acme Inc.')).not.toBeInTheDocument();
+  });
+
+  it('vendo um mentorando, mostra o nome dele, não o de quem está logada', async () => {
+    vi.mocked(dashboardsApi.getUserDashboard).mockImplementation(
+      (filters = {}) =>
+        Promise.resolve({
+          ...userDashboardFixture(filters.period),
+          member_name: 'Enner Valência',
+        }),
+    );
+    await renderizar('admin', 'mentorando-1');
+
+    const banner = screen.getByRole('banner');
+    expect(within(banner).getByText('Enner Valência')).toBeInTheDocument();
+    expect(
+      within(banner).queryByText('Maria Respondente'),
+    ).not.toBeInTheDocument();
   });
 
   it('should render the header menu items by accessible name', async () => {

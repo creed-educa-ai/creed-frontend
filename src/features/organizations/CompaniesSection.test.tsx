@@ -8,6 +8,11 @@ import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import organizationsReducer from '@/features/organizations/organizationsSlice';
 import { Toaster } from '@/components/ui/sonner';
+import {
+  dashboardsApi,
+  type OverviewDashboard,
+} from '@/features/dashboards/dashboardsApi';
+import { ApiError } from '@/lib/apiClient';
 import { lastCall, stubFetch } from '@/test/stubFetch';
 import type { ListaPaginada, OrganizationResponse } from '@/types/api';
 import { CompaniesSection } from './CompaniesSection';
@@ -47,6 +52,13 @@ const LISTA: ListaPaginada<OrganizationResponse> = {
   pagina: 1,
   tamanho_pagina: 200,
 };
+
+// O retrato atual só com o que a seção lê: quais empresas têm resultado.
+function retratoCom(...ids: string[]) {
+  return {
+    groups: ids.map((id) => ({ id })),
+  } as unknown as OverviewDashboard;
+}
 
 // Uma resposta só para a próxima chamada; as outras recebem a lista.
 function responder(status: number, body?: unknown) {
@@ -137,11 +149,61 @@ describe('CompaniesSection', () => {
   beforeEach(async () => {
     window.localStorage.clear();
     fetchMock = stubFetch(200, LISTA);
+    // Só a Tech Solutions tem resposta. Fora do `fetch`, para não mexer na
+    // contagem de chamadas da lista.
+    vi.spyOn(dashboardsApi, 'getOverview').mockResolvedValue(
+      retratoCom('tech'),
+    );
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  function botaoResultadosDe(nome: string) {
+    const linha = tabela().getByText(nome).closest('tr');
+    if (!linha) throw new Error(`linha de ${nome} não encontrada`);
+    return within(linha).getByRole('button', { name: 'Ver Resultados' });
+  }
+
+  it('Ver Resultados só fica ligado na empresa que tem resposta', async () => {
+    await renderizar();
+
+    await waitFor(() => {
+      expect(botaoResultadosDe('Antiga Ltda.')).toBeDisabled();
+    });
+    expect(botaoResultadosDe('Tech Solutions')).toBeEnabled();
+    expect(dashboardsApi.getOverview).toHaveBeenCalledWith(
+      'companies',
+      expect.any(AbortSignal),
+    );
+  });
+
+  it('sem resposta em nenhuma empresa (404), nenhum Ver Resultados liga', async () => {
+    vi.mocked(dashboardsApi.getOverview).mockRejectedValue(
+      new ApiError('Ainda não há resultados', 404),
+    );
+    await renderizar();
+
+    await waitFor(() => {
+      expect(botaoResultadosDe('Tech Solutions')).toBeDisabled();
+    });
+    expect(botaoResultadosDe('Antiga Ltda.')).toBeDisabled();
+  });
+
+  it('se o retrato falha, Ver Resultados fica como antes', async () => {
+    vi.mocked(dashboardsApi.getOverview).mockRejectedValue(
+      new ApiError('Serviço indisponível', 503),
+    );
+    await renderizar();
+    await waitFor(() => {
+      expect(dashboardsApi.getOverview).toHaveBeenCalled();
+    });
+
+    expect(botaoResultadosDe('Tech Solutions')).toBeEnabled();
+    expect(botaoResultadosDe('Antiga Ltda.')).toBeEnabled();
   });
 
   it('Ver resultados abre o dashboard da administradora com a empresa', async () => {
@@ -149,11 +211,10 @@ describe('CompaniesSection', () => {
     await renderizar();
 
     // Tabela e cartões do celular estão os dois no DOM: o primeiro basta.
-    const linha = tabela().getByText('Tech Solutions').closest('tr');
-    if (!linha) throw new Error('linha da Tech Solutions não encontrada');
-    await user.click(
-      within(linha).getByRole('button', { name: 'Ver Resultados' }),
-    );
+    await waitFor(() => {
+      expect(botaoResultadosDe('Antiga Ltda.')).toBeDisabled();
+    });
+    await user.click(botaoResultadosDe('Tech Solutions'));
 
     expect(
       screen.getByText('/dashboard/company?organization_id=tech'),
@@ -206,9 +267,10 @@ describe('CompaniesSection', () => {
     ).toBeInTheDocument();
     const linhaAcme = screen.getByRole('row', { name: /Acme Inc\./ });
     expect(within(linhaAcme).getByText('Ativo')).toBeInTheDocument();
+    // Aprovada agora, ainda sem resposta: não há resultado para ver.
     expect(
       within(linhaAcme).getByRole('button', { name: 'Ver Resultados' }),
-    ).toBeEnabled();
+    ).toBeDisabled();
   });
 
   it('aprovação com 409 explica as duas causas e recarrega a lista', async () => {

@@ -23,7 +23,7 @@ import type { DemographicResponse, UserSessionResponse } from '@/types/api';
 const usuario: UserSessionResponse = {
   id: 'usuario-1',
   email: 'dev@creed.example.com',
-  role: 'admin',
+  role: 'respondente',
   link_id: null,
   organization_id: null,
   organization_name: null,
@@ -61,7 +61,7 @@ function Dashboard() {
 // Store isolada, já com o usuário logado — ver
 // creed-ai-context/conventions/camadas-do-front.md § "Testando View
 // conectada ao Redux".
-function renderSignedIn({ enabled = true } = {}) {
+function renderSignedIn({ enabled = true, user = usuario } = {}) {
   const store = configureStore({
     reducer: {
       authentication: authenticationReducer,
@@ -69,7 +69,7 @@ function renderSignedIn({ enabled = true } = {}) {
     },
     preloadedState: {
       authentication: {
-        user: usuario,
+        user,
         status: 'authenticated' as const,
         error: null,
         passwordReset: { status: 'idle' as const, error: null },
@@ -110,6 +110,14 @@ describe('ProtectedRoute — termo de consentimento', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('lets the admin straight in, without consent or onboarding', () => {
+    renderSignedIn({ user: { ...usuario, role: 'admin' } });
+
+    expect(screen.getByText(/área logada/)).toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(demographicsApi.getMyDemographics).not.toHaveBeenCalled();
   });
 
   it('waits for consent before fetching the profile or opening the dashboard', () => {

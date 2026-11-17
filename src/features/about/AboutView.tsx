@@ -25,7 +25,7 @@ export function AboutView() {
       {/* Conteúdo centralizado (card e, sem sessão, o Voltar) */}
       <div
         className={cn(
-          'mx-auto my-auto flex w-full max-w-xl flex-col items-center justify-center gap-6 px-6 pb-10',
+          'mx-auto my-auto flex w-full max-w-4xl flex-col items-center justify-center gap-6 px-6 pb-10',
           screenEnterClassName,
         )}
       >
@@ -39,13 +39,13 @@ export function AboutView() {
 
           {/* Área do texto dentro do card */}
           <div className="flex flex-col gap-4 p-4 pt-6">
-            <h2 className="text-lg font-semibold text-card-foreground">
+            <h2 className="text-lg font-semibold text-card-foreground sm:text-xl">
               {t('sobre:tituloTexto')}
             </h2>
             {paragrafos.map((paragrafo) => (
               <p
                 key={paragrafo}
-                className="text-sm leading-relaxed text-card-foreground"
+                className="text-sm leading-relaxed text-pretty text-card-foreground sm:text-base"
               >
                 {paragrafo}
               </p>

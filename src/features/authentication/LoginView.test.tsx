@@ -7,6 +7,12 @@ import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { LoginView } from '@/features/authentication/LoginView';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import { authenticationApi } from '@/features/authentication/authenticationApi';
+import { HomeRedirect } from '@/app/HomeRedirect';
+import {
+  dashboardsApi,
+  type UserDashboard,
+} from '@/features/dashboards/dashboardsApi';
+import { ApiError } from '@/lib/apiClient';
 import type { SessionResponse } from '@/types/api';
 
 // Store isolada por teste, só com o reducer que esta tela usa. Ver
@@ -93,14 +99,19 @@ describe('LoginView', () => {
           <MemoryRouter initialEntries={[entrada]}>
             <Routes>
               <Route path="/login" element={<LoginView />} />
+              <Route path="/home" element={<HomeRedirect />} />
               <Route path="/dashboard" element={<p>dashboard individual</p>} />
-              <Route
-                path="/dashboard/company"
-                element={<p>dashboard da organização</p>}
-              />
               <Route
                 path="/control-panel"
                 element={<p>painel de controle</p>}
+              />
+              <Route
+                path="/control-panel/admin"
+                element={<p>painel da administradora</p>}
+              />
+              <Route
+                path="/questionnaire"
+                element={<p>entrada do questionário</p>}
               />
             </Routes>
           </MemoryRouter>
@@ -117,22 +128,71 @@ describe('LoginView', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
     }
 
-    it('leva o admin ao dashboard da organização', async () => {
+    it('leva a admin ao painel de controle dela', async () => {
       vi.spyOn(authenticationApi, 'login').mockResolvedValue(
         sessaoCom('admin'),
+      );
+      const resultado = vi.spyOn(dashboardsApi, 'getUserDashboard');
+      renderizarComDestinos();
+
+      await entrar();
+
+      expect(
+        await screen.findByText('painel da administradora'),
+      ).toBeInTheDocument();
+      // Quem não responde não tem resultado para buscar.
+      expect(resultado).not.toHaveBeenCalled();
+    });
+
+    it('leva a gestora ao painel de controle da empresa', async () => {
+      vi.spyOn(authenticationApi, 'login').mockResolvedValue(
+        sessaoCom('gestor'),
+      );
+      renderizarComDestinos();
+
+      await entrar();
+
+      expect(await screen.findByText('painel de controle')).toBeInTheDocument();
+    });
+
+    it('leva o respondente com resultado ao dashboard individual', async () => {
+      vi.spyOn(authenticationApi, 'login').mockResolvedValue(
+        sessaoCom('respondente'),
+      );
+      vi.spyOn(dashboardsApi, 'getUserDashboard').mockResolvedValue(
+        {} as UserDashboard,
       );
       renderizarComDestinos();
 
       await entrar();
 
       expect(
-        await screen.findByText('dashboard da organização'),
+        await screen.findByText('dashboard individual'),
       ).toBeInTheDocument();
     });
 
-    it('leva o respondente ao dashboard individual', async () => {
+    it('leva o respondente ainda sem resultado ao questionário', async () => {
       vi.spyOn(authenticationApi, 'login').mockResolvedValue(
         sessaoCom('respondente'),
+      );
+      vi.spyOn(dashboardsApi, 'getUserDashboard').mockRejectedValue(
+        new ApiError('Você ainda não tem resultado', 404),
+      );
+      renderizarComDestinos();
+
+      await entrar();
+
+      expect(
+        await screen.findByText('entrada do questionário'),
+      ).toBeInTheDocument();
+    });
+
+    it('na dúvida (falha que não é 404), leva o respondente ao dashboard', async () => {
+      vi.spyOn(authenticationApi, 'login').mockResolvedValue(
+        sessaoCom('respondente'),
+      );
+      vi.spyOn(dashboardsApi, 'getUserDashboard').mockRejectedValue(
+        new ApiError('Serviço indisponível', 503),
       );
       renderizarComDestinos();
 

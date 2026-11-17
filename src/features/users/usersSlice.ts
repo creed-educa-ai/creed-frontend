@@ -44,8 +44,11 @@ const initialState: UsersState = {
   mentees: { items: [], status: 'idle', error: null },
 };
 
+// Só o período aberto conta. O back manda o agendado ou o último encerrado
+// quando não há aberto, mas a tabela mostra só o período atual: fora dele,
+// ninguém está devendo resposta.
 function statusDoMembro(item: MemberListItem): MemberStatus {
-  if (item.period === null) return 'semPeriodo';
+  if (item.period?.period_status !== 'open') return 'semPeriodo';
   return item.period.has_answered ? 'respondeu' : 'pendente';
 }
 
@@ -57,7 +60,7 @@ export function paraMember(item: MemberListItem): Member {
     email: item.email ?? '',
     status: statusDoMembro(item),
     tag: item.department,
-    updated_at: item.updated_at,
+    role: item.role,
   };
 }
 

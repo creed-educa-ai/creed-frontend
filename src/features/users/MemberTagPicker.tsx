@@ -27,8 +27,8 @@ interface MemberTagPickerProps {
 }
 
 // A tag do membro é o próprio botão: o clique abre os setores para escolher.
-// Sem tag, mostra "Sem tag" no mesmo formato, com borda tracejada.
-// > 🟡 Premissa — "Sem tag" também é uma opção do menu, para desfazer uma
+// Sem tag, mostra "Sem setor" no mesmo formato, com borda tracejada.
+// > 🟡 Premissa — "Sem setor" também é uma opção do menu, para desfazer uma
 // > escolha errada. O pedido só falava em escolher entre os cinco setores.
 export function MemberTagPicker({
   name,

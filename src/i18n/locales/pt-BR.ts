@@ -458,14 +458,8 @@ export const ptBR = {
     title: 'Mentorandos',
     loadError: 'Não foi possível carregar os mentorandos.',
     search: {
-      name: {
-        label: 'Pesquisar mentorandos por nome',
-        placeholder: 'Pesquise por nome',
-      },
-      email: {
-        label: 'Pesquisar mentorandos por email',
-        placeholder: 'Pesquise por email',
-      },
+      label: 'Pesquisar mentorandos por nome ou email',
+      placeholder: 'Pesquise por nome ou email',
     },
     columnsMenu: 'Colunas',
     select: { all: 'Selecionar todos', row: 'Selecionar {{name}}' },
@@ -540,9 +534,12 @@ export const ptBR = {
     escalaMaxima: 'Concordo totalmente',
     dissertativa:
       'Responda de forma breve e objetiva, com no máximo 200 palavras.',
+    dissertativaOpcional:
+      'Pergunta opcional: se preferir, você pode pular. Seja breve e objetivo, com no máximo 200 palavras.',
     objetiva: 'Escolha a alternativa que melhor descreve a sua experiência.',
     textbox: 'Digite sua resposta aqui...',
     avancar: 'Avançar',
+    pular: 'Pular',
     voltar: 'Voltar',
     responderTudoAviso:
       'Responda as perguntas obrigatórias da seção para avançar.',
@@ -571,13 +568,8 @@ export const ptBR = {
     titulo: 'Formulário',
     start: 'Vamos começar?',
     subtitulo: 'Você tem um questionário disponível',
-    // TODO: "seu progresso ficará salvo" não é verdade hoje. As respostas só
-    // vão para o back no envio, e recarregar a página perde o que foi digitado
-    // (🟡 Premissa P-034, CREED-48). Trocar o texto ou salvar o progresso.
     mensagem:
-      'Suas respostas ajudam a mapear o panorama da sua organização.\n É rápido e você pode pausar quando quiser, seu progresso ficará salvo',
-    tempo: '~15 minutos',
-    secao: '4 seções',
+      'Suas respostas ajudam a mapear não apenas o panorama da sua organização, mas também o seu.',
     iniciar: 'Iniciar',
   },
   onboardQuestionarioInfo: {
@@ -668,10 +660,10 @@ export const ptBR = {
   },
   organizations: {
     toasts: {
-      tagAtualizada: 'Tag atualizada',
+      tagAtualizada: 'Setor atualizado',
       tagAtualizadaDescricao: '{{nome}} agora está em {{tag}}.',
-      tagRemovidaDescricao: '{{nome}} ficou sem tag.',
-      erroTag: 'Não foi possível alterar a tag',
+      tagRemovidaDescricao: '{{nome}} ficou sem setor.',
+      erroTag: 'Não foi possível alterar o setor',
       membroExcluido: 'Membro excluído',
       membroExcluidoDescricao: '{{nome}} não tem mais acesso à plataforma.',
     },
@@ -687,25 +679,19 @@ export const ptBR = {
       submit: 'Adicionar',
       role: {
         label: 'Função',
-        options: { respondente: 'Respondente', gestor: 'Gestor' },
+        options: { respondente: 'Membro', gestor: 'Gestor' },
       },
     },
     members: {
       title: 'Membros',
       tags: {
-        none: 'Sem tag',
+        none: 'Sem setor',
         // Começa pelo texto visível, para quem aciona o botão pela voz.
-        change: '{{tag}}: alterar a tag de {{name}}',
+        change: '{{tag}}: alterar o setor de {{name}}',
       },
       search: {
-        name: {
-          label: 'Pesquisar membros por nome',
-          placeholder: 'Pesquise por nome',
-        },
-        email: {
-          label: 'Pesquisar membros por email',
-          placeholder: 'Pesquise por email',
-        },
+        label: 'Pesquisar membros por nome ou email',
+        placeholder: 'Pesquise por nome ou email',
       },
       columns: 'Colunas',
       columnsMenu: 'Exibir colunas',
@@ -727,14 +713,15 @@ export const ptBR = {
       confirmDeleteDescription:
         'Remover {{name}} da lista de membros da empresa? Esta ação não pode ser desfeita.',
       delete: 'Excluir',
-      sortByDate: 'Ordenar por data recente',
-      sortByTag: 'Ordenar por tag',
+      sortByRole: 'Ordenar por função',
+      roles: { admin: 'Admin', gestor: 'Gestor', respondente: 'Membro' },
+      sortByTag: 'Ordenar por setor',
       columnNames: {
         name: 'Nome',
         email: 'Email',
         status: 'Status',
-        tag: 'Tag',
-        updatedAt: 'Data recente',
+        tag: 'Setor',
+        role: 'Função',
         delete: 'Excluir',
       },
       // A resposta do período atual do membro, não o status do convite.
@@ -782,13 +769,9 @@ export const ptBR = {
     },
     titulo: 'Empresas',
     erroAoCarregar: 'Não foi possível carregar as empresas.',
-    pesquisarNome: {
-      label: 'Pesquisar empresas por nome',
-      placeholder: 'Pesquise por nome',
-    },
-    pesquisarEmail: {
-      label: 'Pesquisar empresas por email',
-      placeholder: 'Pesquise por email',
+    pesquisar: {
+      label: 'Pesquisar empresas por nome ou email',
+      placeholder: 'Pesquise por nome ou email',
     },
     colunas: {
       titulo: 'Colunas',
@@ -858,8 +841,6 @@ export const ptBR = {
       carregarPeriodo: 'Não foi possível carregar o período atual.',
     },
     periodo: {
-      aberto: 'Período aberto',
-      agendado: 'Período agendado',
       somenteLeitura:
         'Um período novo só pode ser marcado depois que este terminar.',
     },

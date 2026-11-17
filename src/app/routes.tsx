@@ -15,6 +15,7 @@ import { AwaitingConfirmationView } from '@/features/organizations/AwaitingConfi
 import { ErrorView } from '@/features/error/ErrorView';
 import { RouteErrorBoundary } from '@/features/error/RouteErrorBoundary';
 import { LoginView } from '@/features/authentication/LoginView';
+import { HomeRedirect } from '@/app/HomeRedirect';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 import { QuestionnaireOnboardingView } from '@/features/responses/QuestionnaireOnboardingView';
 import { FormView } from '@/features/responses/FormView';
@@ -46,9 +47,11 @@ const appRoutes: RouteObject[] = [
     element: <ProtectedRoute enabled={loginHabilitado} />,
     // Os dados demográficos ficam atrás da mesma guarda da área logada: só
     // quem entrou e aceitou o termo chega neles (fluxo em demographicsFlow).
-    // Os dashboards e os painéis também: o login leva ao dashboard, e é a
+    // Os dashboards e os painéis também: o login leva ao `/home`, e é a
     // guarda que mostra o termo no primeiro acesso.
     children: [
+      // Onde o login deixa quem entrou: decide o destino pelo papel.
+      { path: '/home', element: <HomeRedirect /> },
       { path: '/dashboard', element: <UserDashboardView /> },
       // A administradora tem o próprio dashboard, com o seletor de empresa e de
       // mentorando; a gestora, o da organização dela.

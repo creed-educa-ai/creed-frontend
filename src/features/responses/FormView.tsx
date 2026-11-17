@@ -28,6 +28,9 @@ export function FormView() {
   const status = useAppSelector((state) => state.responses.status);
   const error = useAppSelector((state) => state.responses.error);
   const formResponse = useAppSelector((state) => state.responses.formResponse);
+  const userName = useAppSelector(
+    (state) => state.authentication.user?.name ?? null,
+  );
   const secoes = useAppSelector(selectQuestionnaireSections);
   // O idioma da tela é o das perguntas. Trocar no menu recarrega o texto.
   const lang: QuestionLang =
@@ -95,7 +98,7 @@ export function FormView() {
           ocupa a tela toda e a pergunta fica no centro dela. No celular o
           header empilha e fica alto, então continua no fluxo. */}
       <PageHeader
-        eyebrow="João Silva"
+        eyebrow={userName}
         title={t('formulario:titulo')}
         className="sm:absolute sm:inset-x-0 sm:top-0 sm:z-10"
       />
@@ -172,8 +175,12 @@ function FormQuestions({ secoes }: FormQuestionsProps) {
   // mostra o fim do formulário.
   const perguntaAtualData = perguntasDaSecaoAtual[perguntaAtual - 1];
 
-  // A instrução que aparece acima de cada pergunta, conforme o tipo.
+  // A instrução que aparece acima de cada pergunta, conforme o tipo. A
+  // dissertativa opcional avisa antes que dá para pular.
   function subtituloDa(pergunta: PerguntaDaTela) {
+    if (pergunta.tipo === 'dissertativa' && !pergunta.obrigatoria) {
+      return t('formulario:dissertativaOpcional');
+    }
     return {
       dissertativa: t('formulario:dissertativa'),
       quantitativa: t('formulario:quantitativa'),
@@ -316,6 +323,7 @@ function FormQuestions({ secoes }: FormQuestionsProps) {
       titulo={perguntaAtualData.texto}
       subtitulo={subtituloDa(perguntaAtualData)}
       tipo={perguntaAtualData.tipo}
+      opcional={!perguntaAtualData.obrigatoria}
       respostas={perguntaAtualData.opcoes}
       valor={valorAtual}
       onMudar={handleRespostaChange}

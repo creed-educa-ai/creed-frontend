@@ -62,8 +62,7 @@ export function MenteesTable({
   selectable = false,
 }: MenteesTableProps) {
   const { t, i18n } = useTranslation(['mentees', 'comum']);
-  const [nameQuery, setNameQuery] = useState('');
-  const [emailQuery, setEmailQuery] = useState('');
+  const [query, setQuery] = useState('');
   const [menteeToDelete, setMenteeToDelete] = useState<MemberListItem | null>(
     null,
   );
@@ -76,14 +75,13 @@ export function MenteesTable({
 
   const { sorting, toggle: toggleSort, directionOf } = useTableSort<'name'>();
 
-  // As duas buscas valem juntas: a linha precisa bater com as duas. Vínculo
-  // sem login não tem e-mail: conta como texto vazio.
+  // Um campo só, que procura no nome e no e-mail: basta bater com um deles.
+  // Vínculo sem login não tem e-mail: conta como texto vazio.
+  const term = normalizeForSearch(query);
   const visible = mentees.filter(
     (mentee) =>
-      normalizeForSearch(mentee.name).includes(normalizeForSearch(nameQuery)) &&
-      normalizeForSearch(mentee.email ?? '').includes(
-        normalizeForSearch(emailQuery),
-      ),
+      normalizeForSearch(mentee.name).includes(term) ||
+      normalizeForSearch(mentee.email ?? '').includes(term),
   );
   if (sorting) {
     visible.sort((a, b) => {
@@ -155,24 +153,14 @@ export function MenteesTable({
           <TableToolbar
             searches={[
               {
-                key: 'name',
-                value: nameQuery,
+                key: 'search',
+                value: query,
                 onChange: (value) => {
-                  setNameQuery(value);
+                  setQuery(value);
                   pagination.reset();
                 },
-                label: t('mentees:search.name.label'),
-                placeholder: t('mentees:search.name.placeholder'),
-              },
-              {
-                key: 'email',
-                value: emailQuery,
-                onChange: (value) => {
-                  setEmailQuery(value);
-                  pagination.reset();
-                },
-                label: t('mentees:search.email.label'),
-                placeholder: t('mentees:search.email.placeholder'),
+                label: t('mentees:search.label'),
+                placeholder: t('mentees:search.placeholder'),
               },
             ]}
           />
@@ -181,9 +169,7 @@ export function MenteesTable({
             <EmptyState>{t('mentees:noResults')}</EmptyState>
           ) : (
             <>
-              {/* No desktop cheio (2xl) o painel do admin põe esta tabela ao lado
-                  da outra: as células apertam para as colunas caberem na metade. */}
-              <div className="hidden overflow-x-auto md:block 2xl:[&_td]:px-2 2xl:[&_th]:px-2">
+              <div className="hidden overflow-x-auto md:block">
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
@@ -245,7 +231,7 @@ export function MenteesTable({
                         </TableCell>
                         <TableCell
                           title={mentee.email ?? undefined}
-                          className="max-w-[220px] truncate text-muted-foreground 2xl:max-w-[160px]"
+                          className="max-w-[220px] truncate text-muted-foreground"
                         >
                           {mentee.email}
                         </TableCell>

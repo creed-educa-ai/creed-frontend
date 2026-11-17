@@ -268,11 +268,6 @@ function PeriodoAtivo({
 
   return (
     <div className="flex w-full flex-col gap-3">
-      <p className="text-sm font-bold text-foreground">
-        {periodo.period_status === 'open'
-          ? t('painelControle:periodo.aberto')
-          : t('painelControle:periodo.agendado')}
-      </p>
       <dl className="flex flex-col gap-3">
         {linhas.map(({ rotulo, quando }) => (
           <div key={rotulo} className="flex items-center gap-3">
@@ -341,10 +336,16 @@ function TimePickerPopover({
   const hours = Array.from({ length: 24 }, (_, i) =>
     String(i).padStart(2, '0'),
   );
-  const minutes = ['00', '15', '30', '45'];
+  // De 5 em 5. O back aceita qualquer horário; o passo é só da lista.
+  const minutes = Array.from({ length: 12 }, (_, i) =>
+    String(i * 5).padStart(2, '0'),
+  );
 
+  // `modal`: no modal do mentorando, a lista abre num portal fora dele, e a
+  // trava de rolagem do modal engolia a roda do mouse (só arrastando a barra
+  // dava para descer). Modal, o próprio popover passa a ser a camada que rola.
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover modal open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <PickerTrigger {...ariaErro} icon={<Clock />} filled={Boolean(value)}>
           {value

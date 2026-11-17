@@ -141,7 +141,7 @@ describe('ManageQuestionnaireDialog', () => {
     });
 
     expect(
-      screen.getByText(i18n.t('painelControle:periodo.agendado')),
+      screen.getByText(i18n.t('painelControle:periodo.somenteLeitura')),
     ).toBeInTheDocument();
     expect(screen.getByText('17/01/2026')).toBeInTheDocument();
     expect(screen.getByText('15h45')).toBeInTheDocument();

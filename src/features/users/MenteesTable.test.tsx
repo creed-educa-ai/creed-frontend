@@ -73,14 +73,10 @@ describe('MenteesTable', () => {
 
     expect(
       screen.getByRole('searchbox', {
-        name: 'Pesquisar mentorandos por nome',
+        name: 'Pesquisar mentorandos por nome ou email',
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('searchbox', {
-        name: 'Pesquisar mentorandos por email',
-      }),
-    ).toBeInTheDocument();
+    expect(screen.getAllByRole('searchbox')).toHaveLength(1);
     for (const coluna of [
       'Nome',
       'Email',
@@ -163,7 +159,7 @@ describe('MenteesTable', () => {
 
     await user.type(
       screen.getByRole('searchbox', {
-        name: 'Pesquisar mentorandos por email',
+        name: 'Pesquisar mentorandos por nome ou email',
       }),
       'enner',
     );
@@ -199,7 +195,7 @@ describe('MenteesTable', () => {
 
     await user.click(
       screen.getByRole('searchbox', {
-        name: 'Pesquisar mentorandos por nome',
+        name: 'Pesquisar mentorandos por nome ou email',
       }),
     );
     await user.paste('JOSE');
@@ -217,7 +213,7 @@ describe('MenteesTable', () => {
 
     await user.click(
       screen.getByRole('searchbox', {
-        name: 'Pesquisar mentorandos por nome',
+        name: 'Pesquisar mentorandos por nome ou email',
       }),
     );
     await user.paste('zzz');
@@ -237,40 +233,21 @@ describe('MenteesTable', () => {
     expect(screen.queryAllByRole('searchbox')).toHaveLength(0);
   });
 
-  it('filtra pelo email e combina com a busca por nome', async () => {
+  it('o mesmo campo acha pelo email ou pelo nome', async () => {
     const user = userEvent.setup();
     renderTable();
     const table = screen.getByRole('table');
+    const busca = screen.getByRole('searchbox', {
+      name: 'Pesquisar mentorandos por nome ou email',
+    });
 
-    await user.type(
-      screen.getByRole('searchbox', {
-        name: 'Pesquisar mentorandos por email',
-      }),
-      'example.com',
-    );
+    await user.type(busca, 'example.com');
     expect(within(table).getAllByRole('row')).toHaveLength(4);
 
-    await user.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar mentorandos por nome' }),
-      'enner',
-    );
+    await user.clear(busca);
+    await user.type(busca, 'enner');
     expect(within(table).getByText('Enner Valência')).toBeInTheDocument();
     expect(within(table).queryByText('José Maurides')).not.toBeInTheDocument();
-
-    await user.clear(
-      screen.getByRole('searchbox', {
-        name: 'Pesquisar mentorandos por email',
-      }),
-    );
-    await user.type(
-      screen.getByRole('searchbox', {
-        name: 'Pesquisar mentorandos por email',
-      }),
-      'volante',
-    );
-    expect(
-      screen.getByText('Nenhum mentorando encontrado para essa pesquisa.'),
-    ).toBeInTheDocument();
   });
 
   it('ordena pelo nome, e não por status', async () => {
@@ -427,7 +404,7 @@ describe('MenteesTable', () => {
     const user = userEvent.setup();
     renderTable({ selectable: true });
     const busca = screen.getByRole('searchbox', {
-      name: 'Pesquisar mentorandos por nome',
+      name: 'Pesquisar mentorandos por nome ou email',
     });
 
     await user.type(busca, 'jose');

@@ -32,7 +32,7 @@ describe('AddMemberForm', () => {
     expect(screen.getByLabelText('E-mail')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Insira um e-mail')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Função' })).toHaveTextContent(
-      'Respondente',
+      'Membro',
     );
     expect(
       screen.getByRole('button', { name: 'Adicionar' }),
@@ -185,7 +185,7 @@ describe('AddMemberForm', () => {
     expect(screen.getByLabelText('Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Role' })).toHaveTextContent(
-      'Respondent',
+      'Member',
     );
     expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument();
   });

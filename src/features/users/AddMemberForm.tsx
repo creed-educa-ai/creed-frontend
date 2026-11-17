@@ -128,7 +128,7 @@ export function AddMemberForm({
       </Field>
 
       {/* Função e Adicionar meio a meio. No celular estreito, um embaixo do
-          outro: "Função: Respondente" não cabe na metade. Sem a função, só o
+          outro: o seletor da função não cabe na metade. Sem a função, só o
           Adicionar, que é a última coluna da linha. */}
       <div
         className={cn(

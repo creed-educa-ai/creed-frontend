@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldLabel, FieldError } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { AuthLayout } from '@/components/layout/authLayout';
-import { dashboardPath } from '@/lib/dashboardPath';
 import { loginSchema, type LoginForm } from '@/lib/validators';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { login } from '@/features/authentication/authenticationSlice';
@@ -42,7 +41,7 @@ export function LoginView() {
     try {
       // O formulário fala português (`senha`), o contrato da API fala inglês
       // (`password`). A tradução acontece aqui, na borda, e em nenhum outro lugar.
-      const user = await dispatch(
+      await dispatch(
         login({
           email: dados.email,
           password: dados.senha,
@@ -51,8 +50,9 @@ export function LoginView() {
       ).unwrap();
       const origem = (location.state as { from?: { pathname?: string } } | null)
         ?.from?.pathname;
-      // Sem rota de origem, a casa de quem entra é o dashboard do seu papel.
-      navigate(origem ?? dashboardPath(user.role), { replace: true });
+      // Sem rota de origem, vai para a casa, que decide pelo papel (e, de quem
+      // responde, pelo resultado): ver `HomeRedirect`.
+      navigate(origem ?? '/home', { replace: true });
     } catch {
       // O erro permanece no estado Redux para a mensagem traduzida da tela.
     }

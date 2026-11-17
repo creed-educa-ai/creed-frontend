@@ -7,6 +7,10 @@ const tones = {
   success: 'bg-success',
   warning: 'bg-warning',
   destructive: 'bg-destructive',
+  // Função do membro, que não é bom nem ruim: a cor da marca, cheia no
+  // gestor e só no contorno no membro, para não parecer um status.
+  primary: 'bg-primary',
+  outline: 'border border-primary bg-transparent text-primary',
   // Nem bom nem ruim (ex.: membro sem período): fundo apagado, texto escuro.
   neutral: 'bg-muted text-muted-foreground',
 };

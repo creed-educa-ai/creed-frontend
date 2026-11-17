@@ -77,6 +77,12 @@ describe('NavMenu', () => {
       'href',
       '/control-panel/admin',
     );
+    // A admin não responde questionário: o item nem aparece.
+    expect(
+      screen.queryByRole('link', {
+        name: i18n.t('formulario:menuFormulario'),
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it('should point the manager to the company dashboard and control panel', () => {
@@ -87,6 +93,8 @@ describe('NavMenu', () => {
       'href',
       '/control-panel',
     );
+    // A gestora também responde: o questionário continua no menu.
+    expect(link('menuFormulario')).toHaveAttribute('href', '/questionnaire');
   });
 
   it('should fall back to the respondent menu when there is no session', () => {

@@ -24,6 +24,9 @@ export function QuestionnaireOnboardingView() {
   const error = useAppSelector((state) => state.responses.error);
   const formResponse = useAppSelector((state) => state.responses.formResponse);
   const fetching = useAppSelector((state) => state.responses.fetching);
+  const userName = useAppSelector(
+    (state) => state.authentication.user?.name ?? null,
+  );
   const [infoOpen, setInfoOpen] = useState(false);
   // Até esta tela pedir a sua carga e ela voltar, o que está no slice pode ser
   // de uma visita anterior (ex.: "disponível" antes de enviar).
@@ -65,6 +68,10 @@ export function QuestionnaireOnboardingView() {
     statusMessage = t('onboardQuestionario:subtitulo');
   }
 
+  // Sem nada para começar (já respondeu, ou nenhum aberto), o "Vamos começar?"
+  // não faz sentido: o aviso vira o título, e o subtítulo some.
+  const statusAsTitle = !checking && (isSubmitted || noOpenQuestionnaire);
+
   return (
     // isolate: a camada do fundo (-z-10) fica atrás do conteúdo, mas dentro
     // desta tela, sem cair para trás do body.
@@ -77,7 +84,7 @@ export function QuestionnaireOnboardingView() {
         className="bg-brand absolute inset-0 -z-10 animate-in duration-700 ease-out fade-in motion-reduce:animate-none"
       />
       <PageHeader
-        eyebrow="João Silva"
+        eyebrow={userName}
         title={t('onboardQuestionario:titulo')}
         tone="brand"
       />
@@ -89,18 +96,24 @@ export function QuestionnaireOnboardingView() {
           )}
         >
           <div className="w-full rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <div className="flex flex-col items-start justify-start gap-1 rounded-xl bg-primary p-8 text-primary-foreground">
+            {/* O aviso de status fica no bloco todo: ele passa do subtítulo
+                para o título quando não há o que começar. */}
+            <div
+              role="status"
+              aria-live="polite"
+              className="flex flex-col items-start justify-start gap-1 rounded-xl bg-primary p-8 text-primary-foreground"
+            >
               <h2
                 className={cn(
                   sectionTitleClassName,
                   'text-balance text-inherit',
                 )}
               >
-                {t('onboardQuestionario:start')}
+                {statusAsTitle ? statusMessage : t('onboardQuestionario:start')}
               </h2>
-              <p role="status" aria-live="polite" className="text-balance">
-                {statusMessage}
-              </p>
+              {!statusAsTitle && (
+                <p className="text-balance">{statusMessage}</p>
+              )}
             </div>
             {isAvailable && (
               <div className="p-4 pt-6">
@@ -130,16 +143,9 @@ export function QuestionnaireOnboardingView() {
             <div
               className={cn(
                 'flex w-full flex-wrap items-center justify-end gap-2 p-2',
-                isAvailable &&
-                  'justify-between rounded-2xl border border-border bg-background pl-4',
+                isAvailable && 'rounded-2xl border border-border bg-background',
               )}
             >
-              {isAvailable && (
-                <div className="flex gap-4 text-sm text-foreground">
-                  <p>{t('onboardQuestionario:tempo')}</p>
-                  <p>{t('onboardQuestionario:secao')}</p>
-                </div>
-              )}
               <Button
                 disabled={!isAvailable}
                 onClick={() => {

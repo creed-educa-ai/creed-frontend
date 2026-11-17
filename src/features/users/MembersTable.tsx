@@ -24,10 +24,10 @@ import { useTablePage } from '@/hooks/useTablePage';
 import { useTableSort } from '@/hooks/useTableSort';
 import { normalizeForSearch } from '@/lib/utils';
 import { MemberTagPicker } from '@/features/users/MemberTagPicker';
-import type { DepartmentType, Member } from '@/types/api';
+import type { DepartmentType, Member, Role } from '@/types/api';
 import { EmptyState } from '@/components/states/EmptyState';
 
-type SortableColumn = 'name' | 'status' | 'tag' | 'updatedAt';
+type SortableColumn = 'name' | 'status' | 'tag' | 'role';
 
 // Ordem do status no crescente: quem ainda não respondeu primeiro, que é
 // quem a gestora precisa acompanhar. Não é a ordem alfabética do rótulo, que
@@ -44,6 +44,19 @@ const STATUS_TONE = {
   semPeriodo: 'neutral',
 } as const satisfies Record<Member['status'], string>;
 
+// Ordem da função no crescente: gestores primeiro, como no status.
+const ROLE_ORDER: Record<Role, number> = {
+  admin: 0,
+  gestor: 1,
+  respondente: 2,
+};
+
+const ROLE_TONE = {
+  admin: 'primary',
+  gestor: 'primary',
+  respondente: 'outline',
+} as const satisfies Record<Role, string>;
+
 interface MembersTableProps {
   members: Member[];
   onDelete: (id: string) => Promise<void>;
@@ -55,19 +68,6 @@ interface MembersTableProps {
   selectable?: boolean;
 }
 
-// Sem data (vínculo nunca alterado), um traço.
-function formatDate(iso: string | null, language: string) {
-  if (iso === null) return '—';
-  return new Intl.DateTimeFormat(language, { dateStyle: 'short' }).format(
-    new Date(iso),
-  );
-}
-
-// Sem data, fica no começo do crescente: é o mais antigo.
-function timeOf(iso: string | null) {
-  return iso === null ? 0 : Date.parse(iso);
-}
-
 export function MembersTable({
   members,
   onDelete,
@@ -75,8 +75,7 @@ export function MembersTable({
   selectable = false,
 }: MembersTableProps) {
   const { t, i18n } = useTranslation(['comum', 'organizations']);
-  const [nameSearch, setNameSearch] = useState('');
-  const [emailSearch, setEmailSearch] = useState('');
+  const [search, setSearch] = useState('');
   const {
     sorting,
     toggle: toggleSort,
@@ -86,13 +85,12 @@ export function MembersTable({
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null);
 
   const filtered = useMemo(() => {
-    const nameTerm = normalizeForSearch(nameSearch);
-    const emailTerm = normalizeForSearch(emailSearch);
-    // As duas buscas valem juntas: o membro precisa bater com as duas.
+    const term = normalizeForSearch(search);
+    // Um campo só, que procura no nome e no e-mail: basta bater com um deles.
     const list = members.filter(
       (member) =>
-        normalizeForSearch(member.name).includes(nameTerm) &&
-        normalizeForSearch(member.email).includes(emailTerm),
+        normalizeForSearch(member.name).includes(term) ||
+        normalizeForSearch(member.email).includes(term),
     );
 
     if (!sorting) return list;
@@ -114,14 +112,14 @@ export function MembersTable({
         return sorting.direction === 'asc' ? cmp : -cmp;
       }
       const cmp =
-        sorting.column === 'updatedAt'
-          ? timeOf(a.updated_at) - timeOf(b.updated_at)
+        sorting.column === 'role'
+          ? ROLE_ORDER[a.role] - ROLE_ORDER[b.role]
           : sorting.column === 'status'
             ? STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
             : byText(a.name, b.name);
       return sorting.direction === 'asc' ? cmp : -cmp;
     });
-  }, [nameSearch, emailSearch, members, sorting, i18n.resolvedLanguage, t]);
+  }, [search, members, sorting, i18n.resolvedLanguage, t]);
 
   const pagination = useTablePage(filtered);
   const pageMembers = pagination.pageItems;
@@ -131,7 +129,7 @@ export function MembersTable({
   const allSelected =
     pageIds.length > 0 && selectedOnPage.length === pageIds.length;
   const someSelected = selectedOnPage.length > 0 && !allSelected;
-  const searching = Boolean(nameSearch.trim() || emailSearch.trim());
+  const searching = Boolean(search.trim());
 
   // O mesmo selo e a mesma lixeira aparecem na tabela e nos cartões do
   // celular. No celular a lixeira tem 40px (alvo de toque); da tabela em
@@ -140,6 +138,14 @@ export function MembersTable({
     return (
       <StatusPill tone={STATUS_TONE[member.status]}>
         {t(`organizations:members.status.${member.status}`)}
+      </StatusPill>
+    );
+  }
+
+  function rolePill(member: Member) {
+    return (
+      <StatusPill tone={ROLE_TONE[member.role]}>
+        {t(`organizations:members.roles.${member.role}`)}
       </StatusPill>
     );
   }
@@ -175,24 +181,14 @@ export function MembersTable({
       <TableToolbar
         searches={[
           {
-            key: 'name',
-            value: nameSearch,
+            key: 'search',
+            value: search,
             onChange: (value) => {
-              setNameSearch(value);
+              setSearch(value);
               pagination.reset();
             },
-            label: t('organizations:members.search.name.label'),
-            placeholder: t('organizations:members.search.name.placeholder'),
-          },
-          {
-            key: 'email',
-            value: emailSearch,
-            onChange: (value) => {
-              setEmailSearch(value);
-              pagination.reset();
-            },
-            label: t('organizations:members.search.email.label'),
-            placeholder: t('organizations:members.search.email.placeholder'),
+            label: t('organizations:members.search.label'),
+            placeholder: t('organizations:members.search.placeholder'),
           },
         ]}
       />
@@ -254,12 +250,12 @@ export function MembersTable({
                   />
                   <SortableHead
                     className="text-center"
-                    label={t('organizations:members.columnNames.updatedAt')}
-                    ariaLabel={t('organizations:members.sortByDate')}
-                    direction={directionOf('updatedAt')}
+                    label={t('organizations:members.columnNames.role')}
+                    ariaLabel={t('organizations:members.sortByRole')}
+                    direction={directionOf('role')}
                     onToggle={() => {
                       pagination.reset();
-                      toggleSort('updatedAt');
+                      toggleSort('role');
                     }}
                   />
                   <TableHead className={tableHeadDangerClass}>
@@ -298,9 +294,7 @@ export function MembersTable({
                       </TableCell>
                       <CenterCell>{statusPill(member)}</CenterCell>
                       <CenterCell>{tagPicker(member)}</CenterCell>
-                      <CenterCell className="text-sm text-muted-foreground">
-                        {formatDate(member.updated_at, i18n.language)}
-                      </CenterCell>
+                      <CenterCell>{rolePill(member)}</CenterCell>
                       <CenterCell>{deleteButton(member)}</CenterCell>
                     </TableRow>
                   );
@@ -329,7 +323,7 @@ export function MembersTable({
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                   {tagPicker(member)}
-                  <span>{formatDate(member.updated_at, i18n.language)}</span>
+                  {rolePill(member)}
                   <span className="ml-auto">{deleteButton(member)}</span>
                 </div>
               </li>

@@ -458,14 +458,8 @@ export const es: typeof ptBR = {
     title: 'Mentorados',
     loadError: 'No se pudieron cargar los mentorados.',
     search: {
-      name: {
-        label: 'Buscar mentorados por nombre',
-        placeholder: 'Buscar por nombre',
-      },
-      email: {
-        label: 'Buscar mentorados por correo',
-        placeholder: 'Buscar por correo',
-      },
+      label: 'Buscar mentorados por nombre o correo',
+      placeholder: 'Buscar por nombre o correo',
     },
     columnsMenu: 'Columnas',
     select: { all: 'Seleccionar todos', row: 'Seleccionar {{name}}' },
@@ -539,9 +533,12 @@ export const es: typeof ptBR = {
     escalaMaxima: 'Totalmente de acuerdo',
     dissertativa:
       'Responde de forma breve y objetiva, con un máximo de 200 palabras.',
+    dissertativaOpcional:
+      'Pregunta opcional: si prefieres, puedes saltarla. Sé breve y objetivo, con un máximo de 200 palabras.',
     objetiva: 'Elige la alternativa que mejor describa tu experiencia.',
     textbox: 'Escribe tu respuesta aquí...',
     avancar: 'Siguiente',
+    pular: 'Omitir',
     voltar: 'Volver',
     responderTudoAviso:
       'Responde las preguntas obligatorias de la sección para continuar.',
@@ -572,9 +569,7 @@ export const es: typeof ptBR = {
     start: '¿Comenzamos?',
     subtitulo: 'Tienes un cuestionario disponible',
     mensagem:
-      'Tus respuestas nos ayudan a mapear el panorama de tu organización.\n Es rápido y puedes pausar cuando quieras, tu progreso quedará guardado',
-    tempo: '~15 minutos',
-    secao: '4 secciones',
+      'Tus respuestas ayudan a mapear no solo el panorama de tu organización, sino también el tuyo.',
     iniciar: 'Comenzar',
   },
   onboardQuestionarioInfo: {
@@ -661,10 +656,10 @@ export const es: typeof ptBR = {
   },
   organizations: {
     toasts: {
-      tagAtualizada: 'Etiqueta actualizada',
+      tagAtualizada: 'Sector actualizado',
       tagAtualizadaDescricao: '{{nome}} ahora está en {{tag}}.',
-      tagRemovidaDescricao: '{{nome}} se quedó sin etiqueta.',
-      erroTag: 'No se pudo cambiar la etiqueta',
+      tagRemovidaDescricao: '{{nome}} se quedó sin sector.',
+      erroTag: 'No se pudo cambiar el sector',
       membroExcluido: 'Miembro eliminado',
       membroExcluidoDescricao: '{{nome}} ya no tiene acceso a la plataforma.',
     },
@@ -680,24 +675,18 @@ export const es: typeof ptBR = {
       submit: 'Agregar',
       role: {
         label: 'Función',
-        options: { respondente: 'Encuestado', gestor: 'Gestor' },
+        options: { respondente: 'Miembro', gestor: 'Gestor' },
       },
     },
     members: {
       title: 'Miembros',
       tags: {
-        none: 'Sin etiqueta',
-        change: '{{tag}}: cambiar la etiqueta de {{name}}',
+        none: 'Sin sector',
+        change: '{{tag}}: cambiar el sector de {{name}}',
       },
       search: {
-        name: {
-          label: 'Buscar miembros por nombre',
-          placeholder: 'Buscar por nombre',
-        },
-        email: {
-          label: 'Buscar miembros por correo',
-          placeholder: 'Buscar por correo',
-        },
+        label: 'Buscar miembros por nombre o correo',
+        placeholder: 'Buscar por nombre o correo',
       },
       columns: 'Columnas',
       columnsMenu: 'Mostrar columnas',
@@ -719,14 +708,15 @@ export const es: typeof ptBR = {
       confirmDeleteDescription:
         '¿Quieres eliminar a {{name}} de la lista de miembros de la empresa? Esta acción no se puede deshacer.',
       delete: 'Eliminar',
-      sortByDate: 'Ordenar por fecha reciente',
-      sortByTag: 'Ordenar por etiqueta',
+      sortByRole: 'Ordenar por función',
+      roles: { admin: 'Admin', gestor: 'Gestor', respondente: 'Miembro' },
+      sortByTag: 'Ordenar por sector',
       columnNames: {
         name: 'Nombre',
         email: 'Correo electrónico',
         status: 'Estado',
-        tag: 'Etiqueta',
-        updatedAt: 'Fecha reciente',
+        tag: 'Sector',
+        role: 'Función',
         delete: 'Eliminar',
       },
       status: {
@@ -771,13 +761,9 @@ export const es: typeof ptBR = {
     },
     titulo: 'Empresas',
     erroAoCarregar: 'No se pudieron cargar las empresas.',
-    pesquisarNome: {
-      label: 'Buscar empresas por nombre',
-      placeholder: 'Buscar por nombre',
-    },
-    pesquisarEmail: {
-      label: 'Buscar empresas por correo',
-      placeholder: 'Buscar por correo',
+    pesquisar: {
+      label: 'Buscar empresas por nombre o correo',
+      placeholder: 'Buscar por nombre o correo',
     },
     colunas: {
       titulo: 'Columnas',
@@ -848,8 +834,6 @@ export const es: typeof ptBR = {
       carregarPeriodo: 'No se pudo cargar el período actual.',
     },
     periodo: {
-      aberto: 'Período abierto',
-      agendado: 'Período programado',
       somenteLeitura:
         'Solo se puede programar un período nuevo cuando este termine.',
     },
