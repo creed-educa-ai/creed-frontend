@@ -26,6 +26,7 @@ export type DemographicsState = DemographicsDraft & {
   profile: {
     status: RequestStatus;
     exists: boolean;
+    requestId: string | null;
     /** Chave de i18n, não mensagem pronta: a tela é que traduz. */
     error: string | null;
   };
@@ -33,6 +34,7 @@ export type DemographicsState = DemographicsDraft & {
   // sabe do perfil nem o que a pessoa preencheu.
   saving: {
     status: RequestStatus;
+    requestId: string | null;
     /** Chave de i18n, não mensagem pronta: a tela é que traduz. */
     error: string | null;
   };
@@ -48,8 +50,8 @@ interface DemographicsRootState {
 const initialState: DemographicsState = {
   ...emptyDemographics,
   perspective: '',
-  profile: { status: 'idle', exists: false, error: null },
-  saving: { status: 'idle', error: null },
+  profile: { status: 'idle', exists: false, error: null, requestId: null },
+  saving: { status: 'idle', error: null, requestId: null },
 };
 
 // Só os campos da etapa de perfil. O que entra no formulário e o que volta
@@ -189,11 +191,14 @@ const demographicsSlice = createSlice({
     builder
       .addCase(logout, () => initialState)
       .addCase(login.pending, () => initialState)
-      .addCase(loadMyDemographics.pending, (state) => {
+      .addCase(login.fulfilled, () => initialState)
+      .addCase(loadMyDemographics.pending, (state, action) => {
         state.profile.status = 'loading';
         state.profile.error = null;
+        state.profile.requestId = action.meta.requestId;
       })
       .addCase(loadMyDemographics.fulfilled, (state, action) => {
+        if (action.meta.requestId !== state.profile.requestId) return;
         // Sem perfil no back, o rascunho fica como está: pode ser alguém no
         // meio do primeiro preenchimento.
         if (action.payload) {
@@ -203,25 +208,40 @@ const demographicsSlice = createSlice({
           status: 'ready',
           exists: action.payload !== null,
           error: null,
+          requestId: null,
         };
       })
-      .addCase(loadMyDemographics.rejected, (state) => {
+      .addCase(loadMyDemographics.rejected, (state, action) => {
+        if (action.meta.requestId !== state.profile.requestId) return;
         state.profile.status = 'error';
         state.profile.error = 'respondentes:demograficos.erroCarregar';
+        state.profile.requestId = null;
       })
-      .addCase(saveMyDemographics.pending, (state) => {
-        state.saving = { status: 'loading', error: null };
+      .addCase(saveMyDemographics.pending, (state, action) => {
+        state.saving = {
+          status: 'loading',
+          error: null,
+          requestId: action.meta.requestId,
+        };
       })
       .addCase(saveMyDemographics.fulfilled, (state, action) => {
+        if (action.meta.requestId !== state.saving.requestId) return;
         // O rascunho passa a ser o que o back gravou, já normalizado por ele.
         Object.assign(state, draftFromResponse(action.payload));
-        state.profile = { status: 'ready', exists: true, error: null };
-        state.saving = { status: 'ready', error: null };
+        state.profile = {
+          status: 'ready',
+          exists: true,
+          error: null,
+          requestId: null,
+        };
+        state.saving.status = 'ready';
       })
-      .addCase(saveMyDemographics.rejected, (state) => {
+      .addCase(saveMyDemographics.rejected, (state, action) => {
+        if (action.meta.requestId !== state.saving.requestId) return;
         state.saving = {
           status: 'error',
           error: 'respondentes:demograficos.erroSalvar',
+          requestId: null,
         };
       });
   },

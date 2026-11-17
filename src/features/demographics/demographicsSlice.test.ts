@@ -14,6 +14,7 @@ import reducer, {
   type DemographicsState,
 } from '@/features/demographics/demographicsSlice';
 import { ApiError } from '@/lib/apiClient';
+import { deferred } from '@/test/deferred';
 import type { DemographicResponse } from '@/types/api';
 
 const estadoInicial: DemographicsState = {
@@ -26,8 +27,8 @@ const estadoInicial: DemographicsState = {
   portugal_region: null,
   other_nationality: '',
   perspective: '',
-  profile: { status: 'idle', exists: false, error: null },
-  saving: { status: 'idle', error: null },
+  profile: { status: 'idle', exists: false, error: null, requestId: null },
+  saving: { status: 'idle', error: null, requestId: null },
 };
 
 const perfilGravado: DemographicResponse = {
@@ -82,7 +83,7 @@ describe('demographicsSlice', () => {
   it('ignores anything in the payload that is not a profile field', () => {
     const carregado: DemographicsState = {
       ...estadoInicial,
-      profile: { status: 'ready', exists: true, error: null },
+      profile: { ...estadoInicial.profile, status: 'ready', exists: true },
     };
     const payloadComSobra = {
       ...emptyDemographics,
@@ -96,7 +97,7 @@ describe('demographicsSlice', () => {
     expect(saved.profile).toEqual(carregado.profile);
   });
 
-  it.each([logout.type, login.pending.type])(
+  it.each([logout.type, login.pending.type, login.fulfilled.type])(
     'clears the draft on %s',
     (type) => {
       const saved = reducer(estadoInicial, setGender('feminino'));
@@ -109,7 +110,7 @@ describe('demographicsSlice', () => {
   it('forgets what it knew about the profile on logout', () => {
     const comPerfil: DemographicsState = {
       ...estadoInicial,
-      profile: { status: 'ready', exists: true, error: null },
+      profile: { ...estadoInicial.profile, status: 'ready', exists: true },
     };
     expect(reducer(comPerfil, { type: logout.type }).profile).toEqual(
       estadoInicial.profile,
@@ -199,6 +200,7 @@ describe('demographicsSlice — perfil no back', () => {
       status: 'ready',
       exists: true,
       error: null,
+      requestId: null,
     });
     expect(estado).toMatchObject({
       gender: 'feminino',
@@ -223,6 +225,7 @@ describe('demographicsSlice — perfil no back', () => {
       status: 'ready',
       exists: false,
       error: null,
+      requestId: null,
     });
   });
 
@@ -250,6 +253,7 @@ describe('demographicsSlice — perfil no back', () => {
       status: 'error',
       exists: false,
       error: 'respondentes:demograficos.erroCarregar',
+      requestId: null,
     });
   });
 
@@ -267,6 +271,59 @@ describe('demographicsSlice — perfil no back', () => {
     expect(getSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('ignores a previous session GET while the current profile is loading', async () => {
+    const previous = deferred<DemographicResponse>();
+    const current = deferred<DemographicResponse>();
+    vi.spyOn(demographicsApi, 'getMyDemographics')
+      .mockReturnValueOnce(previous.promise)
+      .mockReturnValueOnce(current.promise);
+    const store = criarStore();
+
+    const previousRequest = store.dispatch(loadMyDemographics());
+    store.dispatch(logout());
+    const currentRequest = store.dispatch(loadMyDemographics());
+
+    previous.resolve(perfilGravado);
+    await previousRequest;
+    expect(store.getState().demographics).toMatchObject({
+      perspective: '',
+      profile: { status: 'loading', exists: false },
+    });
+
+    current.reject(new ApiError('Perfil demográfico não encontrado', 404));
+    await currentRequest;
+    expect(store.getState().demographics).toMatchObject({
+      perspective: '',
+      profile: { status: 'ready', exists: false },
+    });
+  });
+
+  it.each(['fulfilled', 'rejected'])(
+    'ignores a %s PUT from before a new login',
+    async (outcome) => {
+      const previous = deferred<DemographicResponse>();
+      vi.spyOn(demographicsApi, 'saveMyDemographics').mockReturnValueOnce(
+        previous.promise,
+      );
+      const store = criarStore();
+      const previousRequest = store.dispatch(saveMyDemographics());
+
+      store.dispatch(
+        login.pending('new-login', {
+          email: 'test@creed.example.com',
+          password: 'test',
+        }),
+      );
+      store.dispatch(setPerspective('Rascunho da sessão atual'));
+      const currentDraft = store.getState().demographics;
+
+      if (outcome === 'fulfilled') previous.resolve(perfilGravado);
+      else previous.reject(new ApiError('Erro interno', 500));
+      await previousRequest;
+      expect(store.getState().demographics).toEqual(currentDraft);
+    },
+  );
+
   it('saveMyDemographics manda o rascunho e marca que o perfil existe', async () => {
     const saveSpy = vi
       .spyOn(demographicsApi, 'saveMyDemographics')
@@ -279,7 +336,7 @@ describe('demographicsSlice — perfil no back', () => {
       perspective: '  Meus pais tinham um pequeno comércio.  ',
     });
 
-    await store.dispatch(saveMyDemographics());
+    const result = await store.dispatch(saveMyDemographics());
 
     expect(saveSpy).toHaveBeenCalledWith({
       gender: 'feminino',
@@ -293,7 +350,11 @@ describe('demographicsSlice — perfil no back', () => {
       perspective: 'Meus pais tinham um pequeno comércio.',
     });
     const estado = store.getState().demographics;
-    expect(estado.saving).toEqual({ status: 'ready', error: null });
+    expect(estado.saving).toEqual({
+      status: 'ready',
+      error: null,
+      requestId: result.meta.requestId,
+    });
     expect(estado.profile.exists).toBe(true);
   });
 
@@ -360,7 +421,7 @@ describe('demographicsSlice — perfil no back', () => {
     const store = criarStore({
       ...estadoInicial,
       gender: 'feminino',
-      profile: { status: 'ready', exists: false, error: null },
+      profile: { ...estadoInicial.profile, status: 'ready' },
     });
 
     await store.dispatch(saveMyDemographics());
@@ -369,6 +430,7 @@ describe('demographicsSlice — perfil no back', () => {
     expect(estado.saving).toEqual({
       status: 'error',
       error: 'respondentes:demograficos.erroSalvar',
+      requestId: null,
     });
     expect(estado.gender).toBe('feminino');
     expect(estado.profile.exists).toBe(false);

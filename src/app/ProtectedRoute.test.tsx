@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   Link,
   MemoryRouter,
@@ -13,7 +14,11 @@ import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import { recordTermsAcceptance } from '@/features/authentication/termsAcceptance';
-import type { UserSessionResponse } from '@/types/api';
+import { demographicsApi } from '@/features/demographics/demographicsApi';
+import { DemographicsStep2Route } from '@/features/demographics/demographicsFlow';
+import demographicsReducer from '@/features/demographics/demographicsSlice';
+import { ApiError } from '@/lib/apiClient';
+import type { DemographicResponse, UserSessionResponse } from '@/types/api';
 
 const usuario: UserSessionResponse = {
   id: 'usuario-1',
@@ -24,15 +29,31 @@ const usuario: UserSessionResponse = {
   organization_name: null,
 };
 
-// Marcador da primeira etapa do onboarding. Mostra a origem que a guarda
-// manda no `state`: é com ela que o fluxo devolve à rota certa quem já tem
-// perfil no back.
-function PrimeiraEtapa() {
-  const { from } = useLocation().state as { from: string };
+const skippedProfile: DemographicResponse = {
+  id: 'perfil-1',
+  participant_id: 'participante-1',
+  gender: null,
+  age_range: null,
+  ethnicities: [],
+  religions: [],
+  nationality: null,
+  brazil_state: null,
+  portugal_region: null,
+  other_nationality: null,
+  perspective: null,
+  created_at: '2026-11-12T14:30:00Z',
+  updated_at: null,
+};
+
+function Dashboard() {
+  const { search, hash } = useLocation();
   return (
     <>
-      <Link to="/respondentes">primeira etapa</Link>
-      <p>veio de {from}</p>
+      <p>
+        área logada{search}
+        {hash}
+      </p>
+      <Link to="/questionnaire">Questionário</Link>
     </>
   );
 }
@@ -40,9 +61,12 @@ function PrimeiraEtapa() {
 // Store isolada, já com o usuário logado — ver
 // creed-ai-context/conventions/camadas-do-front.md § "Testando View
 // conectada ao Redux".
-function renderizarLogado() {
+function renderSignedIn({ enabled = true } = {}) {
   const store = configureStore({
-    reducer: { authentication: authenticationReducer },
+    reducer: {
+      authentication: authenticationReducer,
+      demographics: demographicsReducer,
+    },
     preloadedState: {
       authentication: {
         user: usuario,
@@ -52,15 +76,21 @@ function renderizarLogado() {
       },
     },
   });
-  // As telas filhas viram marcadores: o que se testa aqui é a guarda.
   return render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={['/respondentes']}>
+      <MemoryRouter initialEntries={['/dashboard?periodo=atual#resumo']}>
         <Routes>
           <Route path="/login" element={<p>tela de login</p>} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/demographics/step-2" element={<PrimeiraEtapa />} />
-            <Route path="/respondentes" element={<p>área logada</p>} />
+          <Route element={<ProtectedRoute enabled={enabled} />}>
+            <Route
+              path="/demographics/step-2"
+              element={<DemographicsStep2Route />}
+            />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route
+              path="/questionnaire"
+              element={<p>entrada do questionário</p>}
+            />
           </Route>
         </Routes>
       </MemoryRouter>
@@ -72,75 +102,109 @@ describe('ProtectedRoute — termo de consentimento', () => {
   beforeEach(async () => {
     window.localStorage.clear();
     window.sessionStorage.clear();
+    vi.spyOn(demographicsApi, 'getMyDemographics').mockRejectedValue(
+      new ApiError('Perfil demográfico não encontrado', 404),
+    );
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
-  it('mostra o termo, e não a área logada, no primeiro acesso', () => {
-    renderizarLogado();
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('waits for consent before fetching the profile or opening the dashboard', () => {
+    renderSignedIn();
 
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
-    expect(screen.queryByText('área logada')).toBeNull();
+    expect(screen.queryByText(/área logada/)).toBeNull();
+    expect(demographicsApi.getMyDemographics).not.toHaveBeenCalled();
   });
 
-  it('leva aos dados demográficos ao aceitar', async () => {
-    renderizarLogado();
-
-    await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
-
-    expect(await screen.findByText('primeira etapa')).toBeInTheDocument();
-    expect(screen.queryByRole('alertdialog')).toBeNull();
-  });
-
-  it('avisa ao onboarding de onde a pessoa veio', async () => {
-    renderizarLogado();
+  it('opens the onboarding after consent when the profile is missing', async () => {
+    renderSignedIn();
 
     await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
 
     expect(
-      await screen.findByText('veio de /respondentes'),
+      await screen.findByRole('combobox', { name: /Gênero/ }),
     ).toBeInTheDocument();
-  });
-
-  it('não pergunta de novo ao navegar entre as telas logadas', async () => {
-    renderizarLogado();
-
-    await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
-    await userEvent.click(await screen.findByText('primeira etapa'));
-
-    expect(await screen.findByText('área logada')).toBeInTheDocument();
     expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 
-  it('lembra o aceite no próximo acesso, sem repetir o onboarding', async () => {
-    const { unmount } = renderizarLogado();
+  it('resumes onboarding on the next access when consent was saved but the profile was not', async () => {
+    const { unmount } = renderSignedIn();
 
     await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
-    expect(await screen.findByText('primeira etapa')).toBeInTheDocument();
+    await screen.findByRole('combobox', { name: /Gênero/ });
 
-    // Próximo acesso do mesmo usuário: vai direto para a área logada, sem
-    // termo e sem passar pelos demográficos de novo.
     unmount();
-    renderizarLogado();
+    renderSignedIn();
 
-    expect(screen.getByText('área logada')).toBeInTheDocument();
+    expect(
+      await screen.findByRole('combobox', { name: /Gênero/ }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(screen.queryByText(/área logada/)).toBeNull();
+    expect(demographicsApi.getMyDemographics).toHaveBeenCalledTimes(2);
   });
 
-  it('desloga e volta ao login ao recusar', async () => {
-    renderizarLogado();
+  it.each([true, false])(
+    'keeps the requested URL for an empty saved profile (existing consent: %s)',
+    async (hasConsent) => {
+      vi.mocked(demographicsApi.getMyDemographics).mockResolvedValue(
+        skippedProfile,
+      );
+      if (hasConsent) recordTermsAcceptance(usuario.id);
+      renderSignedIn();
+      if (!hasConsent) {
+        await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
+      }
+
+      expect(
+        await screen.findByText('área logada?periodo=atual#resumo'),
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('alertdialog')).toBeNull();
+      expect(screen.queryByRole('combobox', { name: /Gênero/ })).toBeNull();
+      await userEvent.click(screen.getByRole('link', { name: 'Questionário' }));
+      expect(screen.getByText('entrada do questionário')).toBeInTheDocument();
+      expect(demographicsApi.getMyDemographics).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('returns to login without fetching the profile when consent is declined', async () => {
+    renderSignedIn();
 
     await userEvent.click(screen.getByRole('button', { name: 'Recusar' }));
 
     expect(await screen.findByText('tela de login')).toBeInTheDocument();
-    expect(screen.queryByText('área logada')).toBeNull();
+    expect(screen.queryByText(/área logada/)).toBeNull();
+    expect(demographicsApi.getMyDemographics).not.toHaveBeenCalled();
   });
 
-  it('não mostra o termo para quem já aceitou', () => {
+  it('retries a failed profile check before opening the requested page', async () => {
     recordTermsAcceptance(usuario.id);
+    vi.mocked(demographicsApi.getMyDemographics)
+      .mockRejectedValueOnce(new ApiError('Erro interno', 500))
+      .mockResolvedValueOnce(skippedProfile);
+    renderSignedIn();
 
-    renderizarLogado();
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Não foi possível carregar seus dados.',
+    );
+    expect(screen.queryByText(/área logada/)).toBeNull();
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Tentar novamente' }),
+    );
+    expect(
+      await screen.findByText('área logada?periodo=atual#resumo'),
+    ).toBeInTheDocument();
+  });
 
-    expect(screen.getByText('área logada')).toBeInTheDocument();
+  it('opens the protected page directly when login is disabled', () => {
+    renderSignedIn({ enabled: false });
+
+    expect(screen.getByText(/área logada/)).toBeInTheDocument();
     expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(demographicsApi.getMyDemographics).not.toHaveBeenCalled();
   });
 });

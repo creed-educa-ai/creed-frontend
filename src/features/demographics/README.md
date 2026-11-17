@@ -22,9 +22,10 @@ navegam nem chamam a API: recebem `onContinue` e `onSkip` por prop.
 
 Três regras, todas no `demographicsFlow.tsx`:
 
-1. **Quem já tem perfil não passa pelo onboarding de novo.** Ao abrir o perfil,
-   o fluxo chama `GET /demographics/me`. Com 200, a pessoa volta para onde
-   estava (ou vai para o questionário). Com 404, vê o onboarding.
+1. **Quem já tem perfil não passa pelo onboarding de novo.** Depois do aceite
+   do termo, a entrada da área logada consulta `GET /demographics/me` uma vez
+   por sessão. Com 200, abre a rota solicitada, inclusive se o perfil gravado
+   estiver vazio. Com 404, inicia ou retoma o onboarding.
 2. **O perfil é salvo no fim da perspectiva**, com `PUT /demographics/me`.
    **Pular também salva**: os campos vão vazios, e é assim que o back registra
    que a pessoa pulou. Se o `PUT` falhar, a pessoa fica na tela, com a mensagem
@@ -45,7 +46,8 @@ Três regras, todas no `demographicsFlow.tsx`:
 | `demographicsOptions.ts` | as opções de cada campo, iguais às do back |
 
 O rascunho vive no Redux só enquanto a sessão dura: logout e novo login o
-apagam, junto com o que se sabia do perfil.
+apagam, junto com o que se sabia do perfil. Respostas de requisições pendentes
+da sessão anterior são descartadas.
 
 ## Premissas desta entrega (CREED-68)
 

@@ -1,5 +1,11 @@
-import { useEffect } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import {
+  Navigate,
+  Outlet,
+  useLocation,
+  useMatch,
+  useNavigate,
+} from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { FormLayout } from '@/components/layout/formLayout';
@@ -9,6 +15,7 @@ import { DemographicsStep3View } from '@/features/demographics/DemographicsStep3
 import {
   loadMyDemographics,
   saveMyDemographics,
+  type DemographicsState,
 } from '@/features/demographics/demographicsSlice';
 
 // Ligação das telas de dados demográficos com as rotas e com o back:
@@ -34,7 +41,7 @@ const DEPOIS_DO_ONBOARDING = '/questionnaire';
 interface DemographicsRouteState {
   // Veio do modal "revisar dados": mostra as telas mesmo para quem tem perfil.
   review?: boolean;
-  // Onde a pessoa estava quando o termo apareceu (ProtectedRoute).
+  // A rota pedida na entrada da área logada.
   from?: string;
 }
 
@@ -50,33 +57,28 @@ function destinoDeQuemJaTemPerfil(from: string | undefined): string {
   return DEPOIS_DO_ONBOARDING;
 }
 
-export function DemographicsStep2Route() {
-  const { t } = useTranslation(['respondentes', 'comum']);
-  const navigate = useNavigate();
+function useDemographicsProfile(check = true) {
   const dispatch = useAppDispatch();
-  const routeState = useDemographicsRouteState();
   const profile = useAppSelector((state) => state.demographics.profile);
 
-  // Primeira passagem pela etapa nesta sessão: confere no back se já existe
-  // perfil. Quem volta da etapa 3 não busca de novo, para não perder o que
-  // acabou de preencher.
   useEffect(() => {
-    if (profile.status === 'idle') void dispatch(loadMyDemographics());
-  }, [dispatch, profile.status]);
+    if (check && profile.status === 'idle') void dispatch(loadMyDemographics());
+  }, [check, dispatch, profile.status]);
 
-  if (profile.status === 'idle' || profile.status === 'loading') {
-    return (
-      <FormLayout>
-        <p role="status" className="text-sm text-muted-foreground">
-          {t('respondentes:demograficos.carregando')}
-        </p>
-      </FormLayout>
-    );
-  }
+  return profile;
+}
 
-  if (profile.status === 'error') {
-    return (
-      <FormLayout>
+function DemographicsProfileStatus({
+  profile,
+}: {
+  profile: DemographicsState['profile'];
+}) {
+  const { t } = useTranslation(['respondentes', 'comum']);
+  const dispatch = useAppDispatch();
+
+  return (
+    <FormLayout>
+      {profile.status === 'error' ? (
         <div role="alert" className="flex flex-col items-start gap-4">
           <p className="text-foreground">
             {/* O slice guarda a chave como string; mesma saída do FormView. */}
@@ -95,8 +97,43 @@ export function DemographicsStep2Route() {
             {t('comum:acoes.tentarNovamente')}
           </Button>
         </div>
-      </FormLayout>
-    );
+      ) : (
+        <p role="status" className="text-sm text-muted-foreground">
+          {t('respondentes:demograficos.carregando')}
+        </p>
+      )}
+    </FormLayout>
+  );
+}
+
+export function DemographicsGate() {
+  const { pathname, search, hash } = useLocation();
+  const inDemographics = useMatch('/demographics/:step') !== null;
+  const profile = useDemographicsProfile(!inDemographics);
+
+  // As etapas cuidam da própria entrada. Quem já tem perfil fica no destino,
+  // inclusive se o GET disparado para revisar os dados ainda estiver em curso.
+  if (inDemographics || profile.exists) return <Outlet />;
+  if (profile.status !== 'ready') {
+    return <DemographicsProfileStatus profile={profile} />;
+  }
+
+  return (
+    <Navigate
+      to="/demographics/step-2"
+      replace
+      state={{ from: pathname + search + hash }}
+    />
+  );
+}
+
+export function DemographicsStep2Route() {
+  const navigate = useNavigate();
+  const routeState = useDemographicsRouteState();
+  const profile = useDemographicsProfile();
+
+  if (profile.status !== 'ready') {
+    return <DemographicsProfileStatus profile={profile} />;
   }
 
   if (profile.exists && !routeState.review) {
@@ -116,41 +153,42 @@ export function DemographicsStep2Route() {
 
 export function DemographicsStep3Route() {
   const { t } = useTranslation('respondentes');
-  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const routeState = useDemographicsRouteState();
-  const profileStatus = useAppSelector(
-    (state) => state.demographics.profile.status,
-  );
+  const profile = useAppSelector((state) => state.demographics.profile);
   const saving = useAppSelector((state) => state.demographics.saving);
+  const [submittedRequestId, setSubmittedRequestId] = useState<string | null>(
+    null,
+  );
+
+  if (saving.status === 'ready' && saving.requestId === submittedRequestId) {
+    return <Navigate to={DEPOIS_DO_ONBOARDING} />;
+  }
 
   // Quem chega aqui sem ter passado pela etapa 2 nesta sessão (recarregou a
   // página, abriu o endereço direto) tem o rascunho vazio. Salvar agora
   // apagaria o perfil gravado, porque o PUT substitui tudo: volta à etapa 2,
   // que busca o perfil antes.
-  if (profileStatus !== 'ready') {
+  if (profile.status !== 'ready') {
     return <Navigate to="/demographics/step-2" replace state={routeState} />;
+  }
+  if (profile.exists && !routeState.review) {
+    return <Navigate to={destinoDeQuemJaTemPerfil(routeState.from)} replace />;
   }
 
   // Avançar e pular terminam igual: salvam o rascunho como estiver e seguem
   // para o questionário — o destino do primeiro acesso e também de quem veio
   // revisar. Se o PUT falhar, a pessoa fica nesta tela, com a mensagem de
   // erro (que o slice guarda) e o que preencheu.
-  const concluir = async () => {
-    const resultado = await dispatch(saveMyDemographics());
-    if (saveMyDemographics.fulfilled.match(resultado)) {
-      navigate(DEPOIS_DO_ONBOARDING);
-    }
+  const submit = () => {
+    const request = dispatch(saveMyDemographics());
+    setSubmittedRequestId(request.requestId);
   };
 
   return (
     <DemographicsStep3View
-      onContinue={() => {
-        void concluir();
-      }}
-      onSkip={() => {
-        void concluir();
-      }}
+      onContinue={submit}
+      onSkip={submit}
       saving={saving.status === 'loading'}
       errorMessage={saving.error ? t(saving.error as never) : null}
     />
