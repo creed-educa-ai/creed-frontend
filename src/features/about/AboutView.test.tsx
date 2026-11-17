@@ -93,5 +93,17 @@ describe('AboutView', () => {
       screen.getByRole('heading', { level: 1, name: 'About' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'How CREED Came to Be' }),
+    ).toBeInTheDocument();
+  });
+
+  it('mostra o texto em espanhol ao trocar de idioma', async () => {
+    await i18n.changeLanguage('es');
+    renderizar();
+
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Cómo surgió CREED' }),
+    ).toBeInTheDocument();
   });
 });

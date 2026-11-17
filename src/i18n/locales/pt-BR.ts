@@ -355,7 +355,7 @@ export const ptBR = {
       'O segundo E, de Empreendedora, indica uma orientação ao protagonismo, à experimentação, à criatividade e à geração de valor.',
       'O D de Desenvolvimento corresponde à ampliação contínua das capacidades cognitivas, comportamentais, socioemocionais e relacionais que sustentam o potencial inovador humano.',
       'Em resumo, o CREED é uma arquitetura que junta o que estava separado: educação empreendedora, neurociência, multiculturalismo para compreender e favorecer o desenvolvimento do potencial inovador humano.',
-      'O próximo passo é compreender onde você está e para onde pode ir. Descubra como os cinco Prismas CREED aparecem hoje na sua forma de inovar, mudar e agir. Faça seu Mapa de Potenciais, gratuito, pelo link na bio. CREED: seu ponto de partida para o próximo passo.',
+      'O próximo passo é compreender onde você está e para onde pode ir. Descubra como os cinco Prismas CREED aparecem hoje na sua forma de inovar, mudar e agir. Faça seu Mapa de Potenciais, gratuito. CREED: seu ponto de partida para o próximo passo.',
     ],
     voltar: 'Voltar',
   },
