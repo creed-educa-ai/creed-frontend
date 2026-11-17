@@ -1,4 +1,8 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  Navigate,
+  type RouteObject,
+} from 'react-router-dom';
 import {
   DemographicsStep2Route,
   DemographicsStep3Route,
@@ -8,6 +12,8 @@ import { PasswordResetView } from '@/features/authentication/PasswordResetView';
 import { AboutView } from '@/features/about/AboutView';
 import { WelcomeView } from '@/features/welcome/WelcomeView';
 import { AwaitingConfirmationView } from '@/features/organizations/AwaitingConfirmationView';
+import { ErrorView } from '@/features/error/ErrorView';
+import { RouteErrorBoundary } from '@/features/error/RouteErrorBoundary';
 import { LoginView } from '@/features/authentication/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 import { QuestionnaireOnboardingView } from '@/features/responses/QuestionnaireOnboardingView';
@@ -21,7 +27,7 @@ import { AdminControlPanelView } from '@/features/controlPanel/AdminControlPanel
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
-export const router = createBrowserRouter([
+const appRoutes: RouteObject[] = [
   // A plataforma abre na tela de boas-vindas, inclusive para quem já tem
   // sessão: `/` não lê o estado de autenticação.
   { path: '/', element: <WelcomeView /> },
@@ -64,9 +70,17 @@ export const router = createBrowserRouter([
     ],
   },
   { path: '/about', element: <AboutView /> },
+  { path: '/error', element: <ErrorView /> },
   { path: '/sign-up', element: <SignUpView /> },
   { path: '/awaiting-confirmation', element: <AwaitingConfirmationView /> },
   // Sem rota de primeiro acesso: a senha é definida na página do Keycloak,
   // pelo link do convite (P-012). Aqui só se pede o link de nova senha.
   { path: '/reset-password', element: <PasswordResetView /> },
-]);
+];
+
+// A rota pai sem caminho centraliza o fallback para erros e URLs sem rota (P-096).
+export const routes: RouteObject[] = [
+  { errorElement: <RouteErrorBoundary />, children: appRoutes },
+];
+
+export const router = createBrowserRouter(routes);

@@ -355,6 +355,9 @@ export const en: typeof ptBR = {
     ],
     voltar: 'Back',
   },
+  error: {
+    message: 'Something went wrong. Please try again.',
+  },
   cadastro: {
     titulo: 'Create your account',
     subtitulo: 'Enter your details to continue',

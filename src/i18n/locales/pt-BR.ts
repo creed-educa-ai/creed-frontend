@@ -359,6 +359,9 @@ export const ptBR = {
     ],
     voltar: 'Voltar',
   },
+  error: {
+    message: 'Algo deu errado. Tente de novo.',
+  },
   cadastro: {
     titulo: 'Crie sua conta',
     subtitulo: 'Informe seus dados para continuar',

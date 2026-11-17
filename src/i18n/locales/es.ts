@@ -358,6 +358,9 @@ export const es: typeof ptBR = {
     ],
     voltar: 'Volver',
   },
+  error: {
+    message: 'Algo salió mal. Inténtalo de nuevo.',
+  },
   cadastro: {
     titulo: 'Crea tu cuenta',
     subtitulo: 'Ingresa tus datos para continuar',
