@@ -1,4 +1,8 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  Navigate,
+  type RouteObject,
+} from 'react-router-dom';
 import {
   DemographicsStep1Route,
   DemographicsStep2Route,
@@ -10,6 +14,7 @@ import { AboutView } from '@/features/about/AboutView';
 import { WelcomeView } from '@/features/welcome/WelcomeView';
 import { AwaitingConfirmationView } from '@/features/organizations/AwaitingConfirmationView';
 import { ErrorView } from '@/features/error/ErrorView';
+import { RouteErrorBoundary } from '@/features/error/RouteErrorBoundary';
 import { LoginView } from '@/features/authentication/LoginView';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
 import { QuestionnaireOnboardingView } from '@/features/responses/QuestionnaireOnboardingView';
@@ -23,52 +28,61 @@ import { AdminControlPanelView } from '@/features/controlPanel/AdminControlPanel
 
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
-export const router = createBrowserRouter([
-  // A plataforma abre na tela de boas-vindas, inclusive para quem já tem
-  // sessão: `/` não lê o estado de autenticação.
-  { path: '/', element: <WelcomeView /> },
+// A rota pai sem caminho existe só para carregar o `errorElement`: erro ao
+// desenhar qualquer tela abaixo dela cai na tela de erro genérico (P-023).
+export const routes: RouteObject[] = [
   {
-    path: '/login',
-    // Com o login desligado, o botão "Entrar" das boas-vindas pula direto para
-    // a área logada em vez de cair numa rota inexistente. Sem sessão não há
-    // papel: vai para o dashboard individual (P-054).
-    element: loginHabilitado ? (
-      <LoginView />
-    ) : (
-      <Navigate to="/dashboard" replace />
-    ),
-  },
-  {
-    element: <ProtectedRoute enabled={loginHabilitado} />,
-    // Os dados demográficos ficam atrás da mesma guarda da área logada: só
-    // quem entrou e aceitou o termo chega neles (fluxo em demographicsFlow).
-    // Os dashboards e os painéis também: o login leva ao dashboard, e é a
-    // guarda que mostra o termo no primeiro acesso.
+    errorElement: <RouteErrorBoundary />,
     children: [
-      { path: '/dashboard', element: <UserDashboardView /> },
-      { path: '/dashboard/company', element: <CompanyDashboardView /> },
-      { path: '/control-panel', element: <CompanyControlPanelView /> },
-      { path: '/control-panel/admin', element: <AdminControlPanelView /> },
-      { path: '/demographics/step-1', element: <DemographicsStep1Route /> },
-      { path: '/demographics/step-2', element: <DemographicsStep2Route /> },
-      { path: '/demographics/step-3', element: <DemographicsStep3Route /> },
-      { path: '/questionnaire', element: <QuestionnaireOnboardingView /> },
-      { path: '/questionnaire/questions', element: <FormView /> },
+      // A plataforma abre na tela de boas-vindas, inclusive para quem já tem
+      // sessão: `/` não lê o estado de autenticação.
+      { path: '/', element: <WelcomeView /> },
       {
-        path: '/questionnaire/review',
-        element: <AnswersReviewRoute />,
+        path: '/login',
+        // Com o login desligado, o botão "Entrar" das boas-vindas pula direto para
+        // a área logada em vez de cair numa rota inexistente. Sem sessão não há
+        // papel: vai para o dashboard individual (P-054).
+        element: loginHabilitado ? (
+          <LoginView />
+        ) : (
+          <Navigate to="/dashboard" replace />
+        ),
       },
       {
-        path: '/questionnaire/submitted',
-        element: <SubmissionConfirmationView />,
+        element: <ProtectedRoute enabled={loginHabilitado} />,
+        // Os dados demográficos ficam atrás da mesma guarda da área logada: só
+        // quem entrou e aceitou o termo chega neles (fluxo em demographicsFlow).
+        // Os dashboards e os painéis também: o login leva ao dashboard, e é a
+        // guarda que mostra o termo no primeiro acesso.
+        children: [
+          { path: '/dashboard', element: <UserDashboardView /> },
+          { path: '/dashboard/company', element: <CompanyDashboardView /> },
+          { path: '/control-panel', element: <CompanyControlPanelView /> },
+          { path: '/control-panel/admin', element: <AdminControlPanelView /> },
+          { path: '/demographics/step-1', element: <DemographicsStep1Route /> },
+          { path: '/demographics/step-2', element: <DemographicsStep2Route /> },
+          { path: '/demographics/step-3', element: <DemographicsStep3Route /> },
+          { path: '/questionnaire', element: <QuestionnaireOnboardingView /> },
+          { path: '/questionnaire/questions', element: <FormView /> },
+          {
+            path: '/questionnaire/review',
+            element: <AnswersReviewRoute />,
+          },
+          {
+            path: '/questionnaire/submitted',
+            element: <SubmissionConfirmationView />,
+          },
+        ],
       },
+      { path: '/about', element: <AboutView /> },
+      { path: '/error', element: <ErrorView /> },
+      { path: '/sign-up', element: <SignUpView /> },
+      { path: '/awaiting-confirmation', element: <AwaitingConfirmationView /> },
+      // Sem rota de primeiro acesso: a senha é definida na página do Keycloak,
+      // pelo link do convite (P-012). Aqui só se pede o link de nova senha.
+      { path: '/reset-password', element: <PasswordResetView /> },
     ],
   },
-  { path: '/about', element: <AboutView /> },
-  { path: '/error', element: <ErrorView /> },
-  { path: '/sign-up', element: <SignUpView /> },
-  { path: '/awaiting-confirmation', element: <AwaitingConfirmationView /> },
-  // Sem rota de primeiro acesso: a senha é definida na página do Keycloak,
-  // pelo link do convite (P-012). Aqui só se pede o link de nova senha.
-  { path: '/reset-password', element: <PasswordResetView /> },
-]);
+];
+
+export const router = createBrowserRouter(routes);
