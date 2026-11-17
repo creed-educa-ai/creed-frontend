@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { screenEnterClassName } from '@/lib/animations';
 import { cn } from '@/lib/utils';
@@ -7,11 +7,19 @@ import { cn } from '@/lib/utils';
 export function ErrorView() {
   const { t } = useTranslation(['error', 'comum']);
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // `default` é a chave da primeira entrada do histórico: quem abriu /error
-  // direto não tem tela anterior na plataforma, e voltar sairia dela (P-098).
-  const hasNoPreviousScreen = location.key === 'default';
+  function goBack() {
+    // O React Router mantém o índice do histórico. Um redirect com replace
+    // troca a chave da entrada inicial, mas o índice continua em zero (P-098).
+    const historyState = window.history.state as { idx?: unknown } | null;
+    const index = historyState?.idx;
+    if (typeof index === 'number' && index > 0) {
+      navigate(-1);
+      return;
+    }
+
+    navigate('/', { replace: true });
+  }
 
   return (
     <div className="flex min-h-svh flex-col bg-background p-6 lg:p-12">
@@ -32,15 +40,10 @@ export function ErrorView() {
 
         <div className="w-full">
           <Button
+            type="button"
             variant="outline"
             className="w-full"
-            onClick={() => {
-              if (hasNoPreviousScreen) {
-                navigate('/');
-                return;
-              }
-              navigate(-1);
-            }}
+            onClick={goBack}
           >
             {t('comum:navegacao.voltar')}
           </Button>
