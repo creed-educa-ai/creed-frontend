@@ -6,6 +6,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { AboutView } from '@/features/about/AboutView';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+import { ptBR } from '@/i18n/locales/pt-BR';
 import type { UserSessionResponse } from '@/types/api';
 
 const usuario: UserSessionResponse = {
@@ -52,8 +53,11 @@ describe('AboutView', () => {
       screen.getByRole('heading', { level: 1, name: 'Sobre' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText((content) => content.includes('Lorem ipsum')),
+      screen.getByRole('heading', { level: 2, name: 'Como surgiu o CREED' }),
     ).toBeInTheDocument();
+    for (const paragrafo of ptBR.sobre.paragrafos) {
+      expect(screen.getByText(paragrafo)).toBeInTheDocument();
+    }
   });
 
   it('não mostra o menu de navegação para quem não entrou', () => {
