@@ -29,7 +29,7 @@ import { AdminControlPanelView } from '@/features/controlPanel/AdminControlPanel
 const loginHabilitado = import.meta.env.VITE_LOGIN_ENABLED !== 'false';
 
 // A rota pai sem caminho existe só para carregar o `errorElement`: erro ao
-// desenhar qualquer tela abaixo dela cai na tela de erro genérico (P-023).
+// desenhar qualquer tela abaixo dela cai na tela de erro genérico (P-096).
 export const routes: RouteObject[] = [
   {
     errorElement: <RouteErrorBoundary />,

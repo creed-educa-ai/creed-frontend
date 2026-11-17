@@ -10,7 +10,7 @@ export function ErrorView() {
   const location = useLocation();
 
   // `default` é a chave da primeira entrada do histórico: quem abriu /error
-  // direto não tem tela anterior na plataforma, e voltar sairia dela (P-025).
+  // direto não tem tela anterior na plataforma, e voltar sairia dela (P-098).
   const hasNoPreviousScreen = location.key === 'default';
 
   return (

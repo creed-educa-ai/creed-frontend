@@ -47,7 +47,7 @@ describe('routes', () => {
     );
   });
 
-  it('mostra a tela de erro também para uma rota inexistente (P-023)', () => {
+  it('mostra a tela de erro também para uma rota inexistente (P-096)', () => {
     renderizar('/essa-rota-nao-existe');
 
     expect(screen.getByRole('alert')).toHaveTextContent(
