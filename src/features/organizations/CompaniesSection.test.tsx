@@ -1,6 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
@@ -83,11 +84,22 @@ function criarStore() {
   });
 }
 
+// Onde o "Ver resultados" levou: a rota e os parâmetros.
+function Destino() {
+  const { pathname, search } = useLocation();
+  return <p>{`${pathname}${search}`}</p>;
+}
+
 // Renderiza e espera a lista chegar: a seção carrega pelo slice.
 async function renderizar() {
   render(
     <Provider store={criarStore()}>
-      <CompaniesSection />
+      <MemoryRouter initialEntries={['/control-panel/admin']}>
+        <Routes>
+          <Route path="/control-panel/admin" element={<CompaniesSection />} />
+          <Route path="/dashboard/company" element={<Destino />} />
+        </Routes>
+      </MemoryRouter>
       <Toaster />
     </Provider>,
   );
@@ -130,6 +142,22 @@ describe('CompaniesSection', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('Ver resultados abre o dashboard da administradora com a empresa', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    // Tabela e cartões do celular estão os dois no DOM: o primeiro basta.
+    const linha = tabela().getByText('Tech Solutions').closest('tr');
+    if (!linha) throw new Error('linha da Tech Solutions não encontrada');
+    await user.click(
+      within(linha).getByRole('button', { name: 'Ver Resultados' }),
+    );
+
+    expect(
+      screen.getByText('/dashboard/company?organization_id=tech'),
+    ).toBeInTheDocument();
   });
 
   it('lista as organizações do back, menos a da sessão', async () => {
@@ -303,7 +331,9 @@ describe('CompaniesSection', () => {
     stubFetch(503, { detail: 'Falha técnica' });
     render(
       <Provider store={criarStore()}>
-        <CompaniesSection />
+        <MemoryRouter>
+          <CompaniesSection />
+        </MemoryRouter>
       </Provider>,
     );
 

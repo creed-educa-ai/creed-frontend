@@ -56,6 +56,30 @@ describe('linksApi', () => {
     });
   });
 
+  it('updateMemberDepartment manda só o setor, no campo department', async () => {
+    const fetchMock = stubFetch(200);
+
+    await linksApi.updateMemberDepartment(
+      ORGANIZATION_ID,
+      LINK_ID,
+      'Marketing',
+    );
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: `/api/v1/organizations/${ORGANIZATION_ID}/members/${LINK_ID}`,
+      method: 'PATCH',
+      body: { department: 'Marketing' },
+    });
+  });
+
+  it('updateMemberDepartment com null tira o setor', async () => {
+    const fetchMock = stubFetch(200);
+
+    await linksApi.updateMemberDepartment(ORGANIZATION_ID, LINK_ID, null);
+
+    expect(lastCall(fetchMock).body).toEqual({ department: null });
+  });
+
   it('listMembers sem tipo traz todos os vínculos', async () => {
     const fetchMock = stubFetch(200, []);
 

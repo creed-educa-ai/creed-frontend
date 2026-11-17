@@ -1,6 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
@@ -60,9 +61,20 @@ function renderizar(organizationId: string | null = ORGANIZATION_ID) {
   });
   return render(
     <Provider store={store}>
-      <MenteesSection />
+      <MemoryRouter initialEntries={['/control-panel/admin']}>
+        <Routes>
+          <Route path="/control-panel/admin" element={<MenteesSection />} />
+          <Route path="/dashboard/company" element={<Destino />} />
+        </Routes>
+      </MemoryRouter>
     </Provider>,
   );
+}
+
+// Onde o "Ver resultados" levou: a rota e os parâmetros.
+function Destino() {
+  const { pathname, search } = useLocation();
+  return <p>{`${pathname}${search}`}</p>;
 }
 
 describe('MenteesSection', () => {
@@ -72,6 +84,26 @@ describe('MenteesSection', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it('Ver resultados abre o dashboard da administradora com o mentorando', async () => {
+    const user = userEvent.setup();
+    // O botão só fica ativo para quem já respondeu.
+    vi.spyOn(linksApi, 'listMembers').mockResolvedValue([
+      { ...comPeriodo, period: { ...comPeriodo.period!, has_answered: true } },
+    ]);
+    renderizar();
+
+    await screen.findByRole('table', { hidden: true });
+    const [ver] = screen.getAllByRole('button', {
+      name: 'Ver resultados de Enner Valência',
+    });
+    if (!ver) throw new Error('botão Ver resultados não encontrado');
+    await user.click(ver);
+
+    expect(
+      screen.getByText(`/dashboard/company?member_id=${comPeriodo.link_id}`),
+    ).toBeInTheDocument();
   });
 
   it('lista os mentorandos da organização da sessão', async () => {

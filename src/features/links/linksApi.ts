@@ -2,10 +2,13 @@
 // router_members.py). A organização vem do caminho, não do corpo.
 import { apiClient } from '@/lib/apiClient';
 import type {
+  DepartmentType,
   LinkCreate,
   LinkResponse,
   LinkType,
+  MemberDepartmentUpdate,
   MemberListItem,
+  MemberResponse,
 } from '@/types/api';
 
 export const linksApi = {
@@ -28,4 +31,16 @@ export const linksApi = {
   // (P-071). 204 sem corpo.
   deleteMember: (organizationId: string, linkId: string) =>
     apiClient.delete(`/organizations/${organizationId}/members/${linkId}`),
+
+  // Troca o setor do membro; `null` tira o setor. O corpo só aceita
+  // `department`: campo a mais é 422.
+  updateMemberDepartment: (
+    organizationId: string,
+    linkId: string,
+    department: DepartmentType | null,
+  ) =>
+    apiClient.patch<MemberResponse>(
+      `/organizations/${organizationId}/members/${linkId}`,
+      { department } satisfies MemberDepartmentUpdate,
+    ),
 };

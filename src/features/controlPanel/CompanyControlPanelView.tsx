@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAppSelector } from '@/app/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { PageHeader } from '@/components/layout/pageHeader';
 import { pageGutterClassName } from '@/lib/layout';
 import { SectionHeader } from '@/components/layout/sectionHeader';
@@ -9,6 +9,7 @@ import { toast } from '@/components/ui/sonner';
 import { AddMemberForm } from '@/features/users/AddMemberForm';
 import type { AddMemberValues } from '@/features/users/addMemberSchema';
 import { MembersSection } from '@/features/users/MembersSection';
+import { inviteMember, loadMembers } from '@/features/users/usersSlice';
 import { screenEnterClassName } from '@/lib/animations';
 import { cardTitleClassName } from '@/lib/typography';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 // questionário e acompanhar os membros.
 export function CompanyControlPanelView() {
   const { t } = useTranslation(['painelControle', 'organizations']);
+  const dispatch = useAppDispatch();
   // O nome chega junto com a lista de membros, que o MembersSection carrega.
   const organization = useAppSelector((state) => state.users.organization);
   // O período é da organização do vínculo de quem está logado (o gestor).
@@ -64,12 +66,12 @@ export function CompanyControlPanelView() {
     });
   };
 
-  function handleAddMember(values: AddMemberValues) {
-    console.log('Membro adicionado:', values);
-    // TODO: integração — `usersApi.inviteMember(organization_id da sessão,
-    // values)`, por um thunk no usersSlice. A rota está na branch
-    // feat/86e35vhxm-convite-de-membro do back, ainda fora da dev.
-    // Integrado, o toast vem depois do `await` do convite.
+  // Se o convite falhar, o `unwrap` rejeita com a chave do erro, e o
+  // formulário a mostra no campo ou embaixo dele. O toast e a recarga da
+  // tabela só vêm depois que o back respondeu 201.
+  async function handleAddMember(values: AddMemberValues) {
+    await dispatch(inviteMember({ organizationId, invite: values })).unwrap();
+    if (organizationId) void dispatch(loadMembers(organizationId));
     toast.success(t('painelControle:toasts.conviteEnviado'), {
       description: t('painelControle:toasts.conviteEnviadoDescricao', {
         email: values.email,

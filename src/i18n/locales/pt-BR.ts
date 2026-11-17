@@ -286,6 +286,41 @@ export const ptBR = {
       diminuiu: 'diminuiu {{valor}}',
       estavel: 'sem variação',
     },
+    // Rótulos da planilha baixada em "Baixar > CSV".
+    csv: {
+      relatorio: 'Relatório',
+      tituloIndividual: 'Dashboard Individual - CREED.ai',
+      tituloOrganizacao: 'Dashboard da Organização - CREED.ai',
+      organizacao: 'Organização',
+      mentorando: 'Mentorando',
+      periodo: 'Período',
+      recorte: 'Recorte / Visão',
+      resumoCreed: 'Resumo CREED.ai',
+      prismaDestaque: 'Prisma de Destaque',
+      prismaOportunidade: 'Prisma de Oportunidade',
+      pontuacao: 'Pontuação',
+      pontuacaoEscala: 'Pontuação (0-100)',
+      codigo: 'Código',
+      dimensao: 'Dimensão',
+      variacao: 'Variação',
+      comparacoesAnteriores: 'Comparações com Períodos Anteriores',
+      comparacoes: 'Comparações',
+      recorteSetor: 'Recorte / Setor',
+      resumoOrganizacao: 'Resumo da Organização',
+      valor: 'Valor',
+      convidados: 'Convidados',
+      concluidos: 'Concluídos',
+      taxaConclusao: 'Taxa de Conclusão',
+      destaque: 'Destaque',
+      oportunidade: 'Oportunidade',
+      maisComum: 'Mais Comum',
+      alinhamento: 'Alinhamento da Equipe',
+      respondentesTotal: 'Respondentes: {{total}}',
+      nivel: 'Nível',
+      mapa: 'Mapa de Setores × Prismas',
+      setor: 'Setor',
+      respondentes: 'Respondentes',
+    },
   },
   boasVindas: {
     titulo: 'Bem vindo!',
@@ -307,9 +342,21 @@ export const ptBR = {
   },
   sobre: {
     titulo: 'Sobre',
-    // TODO placeholder: texto institucional definitivo ainda não definido com a cliente.
-    texto:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+    tituloTexto: 'Como surgiu o CREED',
+    paragrafos: [
+      'O CREED nasceu da trajetória de pesquisa acadêmica da Dra. Naira Libermann, a partir de estudos aprofundados e desenvolvidos em sua jornada científica, que hoje inclui o pós-doutoramento na Universidade Aberta de Portugal.',
+      'A metodologia surgiu da necessidade de compreender por que algumas pessoas conseguem inovar, adaptar-se e transformar ideias em ações, enquanto outras encontram barreiras nesse processo. Combinando conhecimentos de neurociência, educação, empreendedorismo e comportamento humano, Naira desenvolveu uma abordagem fundamentada em cinco pilares: segurança psicológica, liderança adaptativa, cultura empreendedora, adaptabilidade cognitiva e neuroplasticidade.',
+      'Assim nasceu o CREED: uma metodologia que transforma conhecimento científico em desenvolvimento humano, ajudando pessoas e organizações a reconhecer suas capacidades, superar barreiras e desenvolver seu potencial de inovação.',
+      'As respostas existiam, mas estavam separadas. A effectuation propõe agir a partir de quem sou, do que sei e de quem conheço. A educação envolve desenvolver competências pela experiência, reflexão e ação. A neurociência trata de aprender, desaprender e criar novos padrões. O comportamento evidencia que confiança, liderança e cultura condicionam a ação. A integração desses conhecimentos deu origem ao CREED.',
+      'CREED é uma sigla que corresponde a Competências Responsivas para a Educação Empreendedora e o Desenvolvimento do Potencial Inovador Humano na Era da Inteligência Artificial. A sigla articula cinco elementos conceituais: Competências, Responsivas, Educação, Empreendedora e Desenvolvimento.',
+      'O C de Competências representa a mobilização integrada de conhecimentos, habilidades e atitudes, reunindo saber, fazer e ser.',
+      'O R de Responsivas expressa a capacidade de se adaptar e responder a contextos complexos, dinâmicos e culturalmente diversos, considerando a complexidade, a mudança e a diversidade cultural.',
+      'O primeiro E, de Educação, representa um processo contínuo de aprendizagem e transformação humana. Não um evento, mas um caminho de aprender, desaprender e transformar.',
+      'O segundo E, de Empreendedora, indica uma orientação ao protagonismo, à experimentação, à criatividade e à geração de valor.',
+      'O D de Desenvolvimento corresponde à ampliação contínua das capacidades cognitivas, comportamentais, socioemocionais e relacionais que sustentam o potencial inovador humano.',
+      'Em resumo, o CREED é uma arquitetura que junta o que estava separado: educação empreendedora, neurociência, multiculturalismo para compreender e favorecer o desenvolvimento do potencial inovador humano.',
+      'O próximo passo é compreender onde você está e para onde pode ir. Descubra como os cinco Prismas CREED aparecem hoje na sua forma de inovar, mudar e agir. Faça seu Mapa de Potenciais, gratuito. CREED: seu ponto de partida para o próximo passo.',
+    ],
     voltar: 'Voltar',
   },
   cadastro: {
@@ -471,6 +518,14 @@ export const ptBR = {
     titulo: 'Obrigado por responder',
     mensagem: 'Suas respostas foram enviadas.',
     voltar: 'Voltar',
+    // O insight do Creed.ai da resposta enviada (CREED-80).
+    insightEmPreparo: 'O Creed.ai está preparando o seu insight.',
+    insightPronto: 'O seu insight do Creed.ai está pronto.',
+    verInsight: 'Ver meu insight',
+    insightNoDashboard:
+      'O seu insight aparece no dashboard quando ficar pronto.',
+    insightIndisponivel:
+      'O insight desta resposta não ficou disponível. O seu resultado já está no dashboard.',
   },
   formulario: {
     titulo: 'Formulário',
@@ -489,6 +544,7 @@ export const ptBR = {
     responderTudoAviso:
       'Responda as perguntas obrigatórias da seção para avançar.',
     semPerguntas: 'Este questionário ainda não tem perguntas.',
+    jaRespondido: 'Você já respondeu este questionário.',
     concluido: 'Concluído',
     perguntasRespondidas: '{{respondidas}} de {{total}} respondidas',
     concluidoTitulo: 'Todas as perguntas respondidas',
@@ -502,7 +558,7 @@ export const ptBR = {
     menuInformacoes: 'Sobre',
     menuSair: 'Sair',
     erros: {
-      naoEncontrado: 'Questionário não encontrado.',
+      semQuestionarioAberto: 'Nenhum questionário aberto para você no momento.',
       semAcesso: 'Você não tem acesso a este questionário.',
       servicoIndisponivel:
         'Não foi possível falar com o servidor. Tente de novo.',
@@ -533,6 +589,13 @@ export const ptBR = {
     destaque: 'Destaque',
     oportunidade: 'Oportunidade',
     analise: 'Análise do Creed.ai',
+    // Sem insight para esta tela: resposta de antes da esteira, ou um recorte
+    // sem texto.
+    analiseIndisponivel: 'Análise ainda não disponível.',
+    // Os estados do insight (CREED-80), no lugar de cada texto.
+    insightEmPreparo: 'O Creed.ai está preparando este texto.',
+    insightIndisponivel: 'Este texto não ficou disponível.',
+    geradoEm: 'Gerado em {{data}}',
     recomendacao: 'Recomendação',
     resumoEmpresa: 'Resumo de {{empresa}}',
     taxaConclusao: 'Taxa de Conclusão',
@@ -542,6 +605,35 @@ export const ptBR = {
   dashboard: {
     titulo: 'Dashboard',
     erroAoCarregar: 'Não foi possível carregar o dashboard.',
+    semResultado:
+      'Você ainda não tem resultado. Ele aparece aqui depois que você enviar um questionário.',
+    irParaQuestionario: 'Ir para o questionário',
+    semResultadoMentorando:
+      'Este mentorando ainda não tem resultado. Ele aparece aqui depois que o mentorando enviar um questionário.',
+    voltarParaEmpresa: 'Voltar ao dashboard da empresa',
+    // O seletor e o retrato atual da administradora.
+    todasEmpresas: 'Todas as empresas',
+    todosMentorandos: 'Todos os mentorandos',
+    Empresa: 'Empresa',
+    Mentorando: 'Mentorando',
+    respostasEntre: 'Respostas de {{inicio}} a {{fim}}',
+    mapaEmpresas: 'Empresas × prismas',
+    mapaMentorandos: 'Mentorandos × prismas',
+    semResultadoEmpresa:
+      'Ainda não há resultados. Eles aparecem aqui depois que alguém responder um questionário.',
+    // A descrição de cada prisma nos cards do resumo executivo.
+    descricaoPrisma: {
+      seguranca_psicologica:
+        'A equipe demonstra abertura e confiança para compartilhar opiniões e experimentar.',
+      lideranca_adaptativa:
+        'Capacidade dos líderes e equipes de se adaptarem a mudanças rápidas de contexto.',
+      cultura_empreendedora:
+        'Estímulo à proatividade, senso de dono e busca contínua por inovação.',
+      adaptabilidade_cognitiva:
+        'Flexibilidade cognitiva para solucionar problemas e aprender com novas situações.',
+      neuroinovacao_prisma:
+        'Potencial de inteligência coletiva e geração de impacto relevante no mercado.',
+    },
     Funcionario: 'Funcionário',
     Baixar: 'Baixar',
     erroAoExportarPdf: 'Não foi possível gerar o PDF do dashboard.',
@@ -555,7 +647,8 @@ export const ptBR = {
       destaque: 'O prisma com a maior nota.',
       oportunidade:
         'O prisma com a menor nota: onde há mais espaço para crescer.',
-      maisComum: 'O prisma com a nota mais próxima da média.',
+      maisComum:
+        'O prisma que mais vezes é o ponto forte de cada pessoa do recorte.',
       variacao:
         'Quanto cada prisma subiu (▲) ou caiu (▼) em relação ao que está escolhido em "Comparar com".',
       prisma:
@@ -641,9 +734,11 @@ export const ptBR = {
         updatedAt: 'Data recente',
         delete: 'Excluir',
       },
+      // A resposta do período atual do membro, não o status do convite.
       status: {
-        ativo: 'Ativo',
+        respondeu: 'Respondeu',
         pendente: 'Pendente',
+        semPeriodo: 'Sem período',
       },
     },
     errors: {

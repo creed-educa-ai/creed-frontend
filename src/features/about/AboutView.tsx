@@ -13,6 +13,8 @@ export function AboutView() {
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.authentication.user);
   const hasSession = user !== null;
+  // `returnObjects` faz o i18next devolver a lista inteira, não um texto.
+  const paragrafos = t('sobre:paragrafos', { returnObjects: true });
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
@@ -36,10 +38,18 @@ export function AboutView() {
           </div>
 
           {/* Área do texto dentro do card */}
-          <div className="p-4 pt-6">
-            <p className="text-sm leading-relaxed text-card-foreground">
-              {t('sobre:texto')}
-            </p>
+          <div className="flex flex-col gap-4 p-4 pt-6">
+            <h2 className="text-lg font-semibold text-card-foreground">
+              {t('sobre:tituloTexto')}
+            </h2>
+            {paragrafos.map((paragrafo) => (
+              <p
+                key={paragrafo}
+                className="text-sm leading-relaxed text-card-foreground"
+              >
+                {paragrafo}
+              </p>
+            ))}
           </div>
         </div>
 

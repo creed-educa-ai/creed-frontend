@@ -155,8 +155,10 @@ function SectionTabs({
             onClick={() => {
               onSelecionar(numero);
             }}
+            // As abas dividem a largura do card (flex-1): com as oito seções do
+            // instrumento, largura fixa por aba passava da borda do card.
             className={cn(
-              'relative rounded-t-lg border border-b-0 border-border px-4 py-2 text-sm font-bold whitespace-nowrap',
+              'relative min-w-0 flex-1 rounded-t-lg border border-b-0 border-border px-1 py-2 text-sm font-bold whitespace-nowrap',
               atual && 'bg-primary text-primary-foreground',
               // Já visitada mas não é a atual: lavanda, com check se foi
               // concluída.
@@ -176,7 +178,12 @@ function SectionTabs({
                 <Check className="size-3" strokeWidth={3} />
               </span>
             )}
-            {t('formulario:secao')} {numero}
+            {/* Em tela estreita, só o número: "Seção N" não cabe em oito abas.
+                O nome continua no leitor de tela. */}
+            <span className="sr-only sm:not-sr-only">
+              {t('formulario:secao')}{' '}
+            </span>
+            {numero}
           </button>
         );
       })}

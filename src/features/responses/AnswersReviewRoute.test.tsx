@@ -8,7 +8,6 @@ import { AnswersReviewRoute } from '@/features/responses/AnswersReviewRoute';
 import type { ReviewQuestion } from '@/features/responses/AnswersReviewView';
 import { responsesApi } from '@/features/responses/responsesApi';
 import responsesReducer, {
-  DEMO_FORM_ID,
   loadQuestionnaire,
 } from '@/features/responses/responsesSlice';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
@@ -19,8 +18,10 @@ import type {
   QuestionResponse,
 } from '@/types/api';
 
+const FORM_ID = 'd40b7a55-b9cc-4b78-ae5d-ab325fd655e2';
+
 const formRead: FormRead = {
-  id: DEMO_FORM_ID,
+  id: FORM_ID,
   name: 'Formulário',
   organization_id: '00000000-0000-0000-0000-000000000001',
   status: 'draft',
@@ -34,7 +35,7 @@ const FORM_RESPONSE_ID = '3b1bb89a-471f-48b0-9025-cfda3b20d240';
 
 const formResponse: FormResponseResponse = {
   id: FORM_RESPONSE_ID,
-  form_id: DEMO_FORM_ID,
+  form_id: FORM_ID,
   vinculo_id: 'e541e500-8b88-45e7-9195-b6079023922b',
   status: 'in_progress',
   started_at: '2026-09-30T18:39:04Z',
@@ -61,7 +62,7 @@ const questions: ReviewQuestion[] = [
     required: false,
     answer: null,
   },
-  // Escala respondida: o back ainda recusa objetiva, então não vai.
+  // Escala respondida: vai em `option_id`, achado pelo rótulo (P-039).
   {
     id: 'q-escala',
     section: 2,
@@ -82,11 +83,11 @@ function doBack(
 ): QuestionResponse {
   return {
     id,
-    form_id: DEMO_FORM_ID,
+    instrument_id: 'instrumento-creed',
     text: id,
     order_index: 0,
     type,
-    section: 'profile',
+    section: 'S2',
     required: false,
     dimensao: null,
     prisma: null,
@@ -112,9 +113,9 @@ function renderizar() {
   const store = configureStore({ reducer: { responses: responsesReducer } });
   store.dispatch(
     loadQuestionnaire.fulfilled(
-      { form: formRead, questions: carregadas },
+      { form: formRead, formResponse: null, questions: carregadas },
       'teste',
-      DEMO_FORM_ID,
+      'pt-BR',
     ),
   );
   render(
@@ -156,9 +157,6 @@ describe('AnswersReviewRoute', () => {
   });
 
   it('grava as respostas e só depois vai para a tela de enviado', async () => {
-    vi.spyOn(responsesApi, 'createFormResponse').mockResolvedValue(
-      formResponse,
-    );
     const record = vi.spyOn(responsesApi, 'recordAnswer').mockResolvedValue({
       id: 'a1',
       form_response_id: FORM_RESPONSE_ID,
@@ -167,6 +165,9 @@ describe('AnswersReviewRoute', () => {
       value: 'Resposta de perfil',
       created_at: '2026-09-30T18:39:04Z',
     });
+    const create = vi
+      .spyOn(responsesApi, 'createFormResponse')
+      .mockResolvedValue(formResponse);
     const submit = vi
       .spyOn(responsesApi, 'submitFormResponse')
       .mockResolvedValue({ ...formResponse, status: 'submitted' });
@@ -177,14 +178,20 @@ describe('AnswersReviewRoute', () => {
     expect(
       await screen.findByRole('heading', { name: 'Enviado' }),
     ).toBeInTheDocument();
-    // Só a descritiva preenchida foi gravada: a opcional em branco e a
-    // escala (objetiva, que o back ainda recusa) ficaram de fora.
-    expect(record).toHaveBeenCalledOnce();
-    expect(record).toHaveBeenCalledWith(FORM_RESPONSE_ID, {
+    // A descritiva e a escala preenchidas foram gravadas; a opcional em
+    // branco ficou de fora (P-038).
+    expect(record).toHaveBeenCalledTimes(2);
+    expect(record).toHaveBeenNthCalledWith(1, FORM_RESPONSE_ID, {
       question_id: 'q-perfil',
       value: 'Resposta de perfil',
     });
+    expect(record).toHaveBeenNthCalledWith(2, FORM_RESPONSE_ID, {
+      question_id: 'q-escala',
+      option_id: 'q-escala-4',
+    });
     expect(submit).toHaveBeenCalledWith(FORM_RESPONSE_ID);
+    // A resposta é aberta no formulário que o carregamento trouxe.
+    expect(create).toHaveBeenCalledWith(FORM_ID);
   });
 
   it('fica na revisão e avisa quando a pessoa já respondeu', async () => {

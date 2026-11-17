@@ -9,25 +9,32 @@ import {
 } from '@reduxjs/toolkit';
 import type { RootState } from '@/app/store';
 import type { QuestionType as TipoDaTela } from '@/features/responses/Question';
-import { demoQuestions } from '@/features/responses/demoQuestions';
-import { formsApi } from '@/features/forms/formsApi';
 import { questionsApi } from '@/features/questions/questionsApi';
 import { responsesApi } from '@/features/responses/responsesApi';
 import { ApiError } from '@/lib/apiClient';
 import type {
   AnswerCreate,
   FormRead,
+  FormResponseResponse,
+  InsightStatus,
+  InsightStatusRead,
+  QuestionLang,
   QuestionResponse,
   QuestionSection,
 } from '@/types/api';
 
-// 🟡 Premissa P-035: sem rota que liste formulários, o questionário abre sempre
-// o formulário de demonstração do seed local do back.
-export const DEMO_FORM_ID = '00000000-0000-0000-0000-000000000003';
-
 // 🟡 Premissa P-036: a ordem das abas. Seção que o back criar e não estiver
 // aqui não aparece: acrescente o valor novo nesta lista.
-const SECTION_ORDER: QuestionSection[] = ['profile', 'assessment', 'closing'];
+const SECTION_ORDER: QuestionSection[] = [
+  'S2',
+  'S4',
+  'S5A',
+  'S5B',
+  'S6',
+  'S7',
+  'S8',
+  'S9',
+];
 
 // O envio tem estado próprio: carregar e enviar acontecem em momentos
 // diferentes, e um erro de envio não pode apagar as perguntas da tela.
@@ -40,14 +47,26 @@ interface SubmissionState {
   // grava de novo a mesma pergunta (P-032).
   formResponseId: string | null;
   savedQuestionIds: string[];
+  // O estado do insight da resposta enviada, que a tela de confirmação
+  // acompanha. Nulo até a primeira consulta voltar.
+  insightStatus: InsightStatus | null;
 }
 
 interface ResponsesState {
   form: FormRead | null;
+  // A resposta da pessoa neste formulário, como estava ao carregar. Nula: ainda
+  // não começou.
+  formResponse: FormResponseResponse | null;
   questions: QuestionResponse[];
   status: 'idle' | 'loading' | 'ready' | 'error';
   /** Chave de i18n, não mensagem pronta: a tela é que traduz. */
   error: string | null;
+  // A carga mais recente pedida. Trocar de idioma no meio de uma carga dispara
+  // outra: a resposta que chegar atrasada, de um pedido antigo, é descartada.
+  requestId: string | null;
+  // Se essa carga ainda não voltou. O `status` não diz: recarregar mantém
+  // 'ready' (veja o `pending`), e a tela precisa saber que o dado é velho.
+  fetching: boolean;
   submission: SubmissionState;
 }
 
@@ -56,21 +75,26 @@ const initialSubmission: SubmissionState = {
   error: null,
   formResponseId: null,
   savedQuestionIds: [],
+  insightStatus: null,
 };
 
 const initialState: ResponsesState = {
   form: null,
+  formResponse: null,
   questions: [],
   status: 'idle',
   error: null,
+  requestId: null,
+  fetching: false,
   submission: initialSubmission,
 };
 
 // O que atravessa daqui para a tela é chave de tradução, nunca o texto do
 // back, que vem só em português e não passa pelo i18n.
 function chaveDeErro(erro: unknown): string {
+  // 404 do `/forms/current`: não há período aberto para esta pessoa agora.
   if (erro instanceof ApiError && erro.status === 404) {
-    return 'formulario:erros.naoEncontrado';
+    return 'formulario:erros.semQuestionarioAberto';
   }
   if (erro instanceof ApiError && erro.status === 403) {
     return 'formulario:erros.semAcesso';
@@ -78,24 +102,27 @@ function chaveDeErro(erro: unknown): string {
   return 'formulario:erros.servicoIndisponivel';
 }
 
+// Quem decide qual questionário a pessoa responde é o back: o período aberto
+// agora para a organização dela ou só para ela (o do mentorando). O front só
+// pergunta. As perguntas vêm no idioma da tela.
 export const loadQuestionnaire = createAsyncThunk<
-  { form: FormRead; questions: QuestionResponse[] },
-  string,
+  {
+    form: FormRead;
+    formResponse: FormResponseResponse | null;
+    questions: QuestionResponse[];
+  },
+  QuestionLang,
   { rejectValue: string }
->('responses/loadQuestionnaire', async (formId, { rejectWithValue }) => {
+>('responses/loadQuestionnaire', async (lang, { rejectWithValue }) => {
   try {
-    const form = await formsApi.getForm(formId);
-    const questions = await questionsApi.listQuestions(formId);
-    // DEMONSTRAÇÃO: escala e objetiva no formato do back, até a CREED-37.
-    // Só num formulário que tem pergunta: o vazio continua vazio. Apagar este
-    // `if`, e o arquivo demoQuestions.ts, quando a CREED-37 chegar.
-    if (questions.length > 0) {
-      return {
-        form,
-        questions: [...questions, ...demoQuestions(formId)],
-      };
-    }
-    return { form, questions };
+    const { form, form_response: formResponse } =
+      await responsesApi.getCurrentForm();
+    // Já enviado, a tela não desenha as perguntas: não precisa buscá-las.
+    const questions =
+      formResponse?.status === 'submitted'
+        ? []
+        : await questionsApi.listQuestions(form.id, { lang });
+    return { form, formResponse, questions };
   } catch (erro) {
     return rejectWithValue(chaveDeErro(erro));
   }
@@ -130,13 +157,19 @@ export function paraAnswerCreate(
 // 🟡 Premissa P-034: é aqui, e só aqui, que o questionário grava no back. Três
 // passos em ordem: abrir a resposta de formulário, gravar cada resposta
 // preenchida, enviar. Uma por vez, para a retomada saber exatamente onde parou.
+// O formulário é o que o `loadQuestionnaire` carregou. Devolve o id da
+// resposta enviada: a confirmação acompanha o insight dela.
 export const submitResponses = createAsyncThunk<
-  undefined,
-  { formId: string; answers: AnswerToSubmit[] },
+  string,
+  { answers: AnswerToSubmit[] },
   { state: { responses: ResponsesState }; rejectValue: string }
 >(
   'responses/submitResponses',
-  async ({ formId, answers }, { getState, dispatch, rejectWithValue }) => {
+  async ({ answers }, { getState, dispatch, rejectWithValue }) => {
+    const formId = getState().responses.form?.id;
+    if (!formId)
+      return rejectWithValue('questionarioRevisao:erros.envioFalhou');
+
     try {
       let formResponseId = getState().responses.submission.formResponseId;
       if (formResponseId === null) {
@@ -157,12 +190,6 @@ export const submitResponses = createAsyncThunk<
       for (const { question_id, answer } of answers) {
         const question = questions.find(({ id }) => id === question_id);
         if (!question) continue;
-        // O back já aceita `option_id` (creed-backend 590be26), mas o
-        // `GET /forms/{id}/questions` ainda não devolve as alternativas: as
-        // objetivas que a tela tem são as de demonstração, com ids que o back
-        // não conhece. Quando a listagem trouxer `options`, apagar esta
-        // linha: o corpo com `option_id` já sai pronto de `paraAnswerCreate`.
-        if (question.type === 'objective') continue;
 
         const corpo = paraAnswerCreate(question, answer);
         if (!corpo) continue;
@@ -184,11 +211,25 @@ export const submitResponses = createAsyncThunk<
         // Mesmo caso: o envio anterior chegou, a confirmação é que não voltou.
         if (!ehConflito(erro)) throw erro;
       }
+      return formResponseId;
     } catch {
       return rejectWithValue('questionarioRevisao:erros.envioFalhou');
     }
   },
 );
+
+// O insight nasce no envio, em preparo. A tela de confirmação chama de novo
+// de tempos em tempos e, ao sair, cancela (`abort()`). Uma consulta que falha
+// não muda nada: a próxima tenta de novo, e o teto da tela diz o resto.
+export const loadSubmittedInsight = createAsyncThunk<InsightStatusRead, string>(
+  'responses/loadSubmittedInsight',
+  (formResponseId, { signal }) =>
+    responsesApi.getInsightStatus(formResponseId, signal),
+);
+
+function isLatestLoad(state: ResponsesState, requestId: string) {
+  return state.requestId === null || state.requestId === requestId;
+}
 
 const responsesSlice = createSlice({
   name: 'responses',
@@ -222,16 +263,40 @@ const responsesSlice = createSlice({
         state.submission.error =
           action.payload ?? 'questionarioRevisao:erros.envioFalhou';
       })
-      .addCase(loadQuestionnaire.pending, (state) => {
-        state.status = 'loading';
+      .addCase(loadSubmittedInsight.fulfilled, (state, action) => {
+        state.submission.insightStatus = action.payload.status;
+      })
+      .addCase(loadQuestionnaire.pending, (state, action) => {
+        // Já carregado, a troca de idioma recarrega sem voltar a "carregando":
+        // assim a tela não desmonta e não perde o que a pessoa já respondeu.
+        if (state.status !== 'ready') state.status = 'loading';
         state.error = null;
+        state.requestId = action.meta.requestId;
+        state.fetching = true;
       })
       .addCase(loadQuestionnaire.fulfilled, (state, action) => {
+        if (!isLatestLoad(state, action.meta.requestId)) return;
+        state.fetching = false;
+        const { form, formResponse, questions } = action.payload;
         state.status = 'ready';
-        state.form = action.payload.form;
-        state.questions = action.payload.questions;
+        state.form = form;
+        state.formResponse = formResponse;
+        state.questions = questions;
+        // Uma tentativa anterior abriu a resposta e não terminou: o envio
+        // continua nela, em vez de tentar abrir outra (daria 409).
+        if (
+          formResponse?.status === 'in_progress' &&
+          state.submission.formResponseId !== formResponse.id
+        ) {
+          state.submission = {
+            ...initialSubmission,
+            formResponseId: formResponse.id,
+          };
+        }
       })
       .addCase(loadQuestionnaire.rejected, (state, action) => {
+        if (!isLatestLoad(state, action.meta.requestId)) return;
+        state.fetching = false;
         state.status = 'error';
         state.error = action.payload ?? 'formulario:erros.servicoIndisponivel';
       });

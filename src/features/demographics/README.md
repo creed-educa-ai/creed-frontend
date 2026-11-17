@@ -66,3 +66,10 @@ revisão:
 - **Os campos de texto param nos limites do back** (100 caracteres na
   nacionalidade por extenso, 2000 na perspectiva), sem mensagem própria.
   Custo de mudar: baixo.
+
+## Opções ainda sujeitas à validação do produto
+
+- A referência da task mostra etnia e religião como seleções múltiplas. Confirmar
+  a lista completa com o formulário oficial da cliente no Discord.
+- As faixas `56_65` e `65_mais` foram preservadas até esclarecer o limite de 65 anos.
+- O contrato aceita “Prefiro não responder” junto de outras opções.

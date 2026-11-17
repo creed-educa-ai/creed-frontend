@@ -1,12 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { formsApi } from '@/features/forms/formsApi';
 import { questionsApi } from '@/features/questions/questionsApi';
 import { responsesApi } from '@/features/responses/responsesApi';
 import reducer, {
   clearSubmissionError,
-  DEMO_FORM_ID,
   loadQuestionnaire,
+  loadSubmittedInsight,
   paraAnswerCreate,
   selectQuestionnaireSections,
   submitResponses,
@@ -19,11 +18,13 @@ import type {
   QuestionResponse,
 } from '@/types/api';
 
+// O período aberto para a pessoa: quem escolhe é o back (`/forms/current`).
+const FORM_ID = 'd40b7a55-b9cc-4b78-ae5d-ab325fd655e2';
 const FORM_RESPONSE_ID = '3b1bb89a-471f-48b0-9025-cfda3b20d240';
 
 const formResponse: FormResponseResponse = {
   id: FORM_RESPONSE_ID,
-  form_id: DEMO_FORM_ID,
+  form_id: FORM_ID,
   vinculo_id: 'e541e500-8b88-45e7-9195-b6079023922b',
   status: 'in_progress',
   started_at: '2026-09-30T18:39:04Z',
@@ -42,12 +43,12 @@ function answerResponse(questionId: string): AnswerResponse {
 }
 
 const form: FormRead = {
-  id: DEMO_FORM_ID,
-  name: '[Demonstração] Formulário de teste',
+  id: FORM_ID,
+  name: 'Período 2026/2',
   organization_id: '00000000-0000-0000-0000-000000000001',
   status: 'draft',
-  opens_at: null,
-  closes_at: null,
+  opens_at: '2026-11-01T12:00:00Z',
+  closes_at: '2026-12-01T12:00:00Z',
   link_id: null,
   created_at: '2026-09-30T18:38:18Z',
 };
@@ -56,11 +57,11 @@ function question(
   overrides: Partial<QuestionResponse> & Pick<QuestionResponse, 'id'>,
 ): QuestionResponse {
   return {
-    form_id: DEMO_FORM_ID,
+    instrument_id: 'instrumento-creed',
     text: `Pergunta ${overrides.id}`,
     order_index: 0,
     type: 'descriptive',
-    section: 'profile',
+    section: 'S2',
     required: true,
     dimensao: null,
     prisma: null,
@@ -76,11 +77,15 @@ function criarStore() {
 }
 
 // Store com as perguntas já no estado, como se o carregamento tivesse
-// terminado, mas sem passar pelo thunk (que soma as de demonstração).
+// terminado, mas sem passar pelo thunk.
 function criarStoreCom(questions: QuestionResponse[]) {
   const store = criarStore();
   store.dispatch(
-    loadQuestionnaire.fulfilled({ form, questions }, 'teste', DEMO_FORM_ID),
+    loadQuestionnaire.fulfilled(
+      { form, formResponse: null, questions },
+      'teste',
+      'pt-BR',
+    ),
   );
   return store;
 }
@@ -123,70 +128,178 @@ describe('responsesSlice', () => {
 
     expect(state).toEqual({
       form: null,
+      formResponse: null,
       questions: [],
       status: 'idle',
       error: null,
+      requestId: null,
+      fetching: false,
       submission: {
         status: 'idle',
         error: null,
         formResponseId: null,
         savedQuestionIds: [],
+        insightStatus: null,
       },
     });
   });
 
   it('fica em loading enquanto carrega', () => {
-    const state = reducer(undefined, {
-      type: loadQuestionnaire.pending.type,
-    });
+    const state = reducer(
+      undefined,
+      loadQuestionnaire.pending('teste', 'pt-BR'),
+    );
 
     expect(state.status).toBe('loading');
   });
 
-  it('carrega o formulário e as perguntas pelo id pedido', async () => {
-    const getForm = vi.spyOn(formsApi, 'getForm').mockResolvedValue(form);
+  it('já carregado, recarregar não volta a loading', () => {
+    const carregado = reducer(
+      undefined,
+      loadQuestionnaire.fulfilled(
+        { form, formResponse: null, questions: [] },
+        'teste',
+        'pt-BR',
+      ),
+    );
+
+    const state = reducer(carregado, loadQuestionnaire.pending('outra', 'en'));
+
+    // A troca de idioma recarrega sem desmontar o questionário da tela.
+    expect(state.status).toBe('ready');
+    // Mas avisa que o que está ali ainda é da carga anterior.
+    expect(state.fetching).toBe(true);
+  });
+
+  it('descarta a resposta atrasada de uma carga mais antiga', () => {
+    const emPortugues = question({ id: 'q1', text: 'Pergunta em português' });
+    const emIngles = question({ id: 'q1', text: 'Question in English' });
+
+    // Troca de idioma no meio da carga: a de inglês volta primeiro.
+    let state = reducer(undefined, loadQuestionnaire.pending('pt', 'pt-BR'));
+    state = reducer(state, loadQuestionnaire.pending('en', 'en'));
+    state = reducer(
+      state,
+      loadQuestionnaire.fulfilled(
+        { form, formResponse: null, questions: [emIngles] },
+        'en',
+        'en',
+      ),
+    );
+    state = reducer(
+      state,
+      loadQuestionnaire.fulfilled(
+        { form, formResponse: null, questions: [emPortugues] },
+        'pt',
+        'pt-BR',
+      ),
+    );
+
+    expect(state.questions).toEqual([emIngles]);
+    expect(state.fetching).toBe(false);
+  });
+
+  it('um erro de uma carga antiga não derruba a mais recente', () => {
+    let state = reducer(undefined, loadQuestionnaire.pending('pt', 'pt-BR'));
+    state = reducer(state, loadQuestionnaire.pending('en', 'en'));
+    state = reducer(
+      state,
+      loadQuestionnaire.rejected(
+        null,
+        'pt',
+        'pt-BR',
+        'formulario:erros.servicoIndisponivel',
+      ),
+    );
+
+    expect(state.status).toBe('loading');
+    expect(state.error).toBeNull();
+    expect(state.fetching).toBe(true);
+  });
+
+  it('carrega o questionário atual e as perguntas no idioma pedido', async () => {
+    const getCurrentForm = vi
+      .spyOn(responsesApi, 'getCurrentForm')
+      .mockResolvedValue({ form, form_response: null });
     const listQuestions = vi
       .spyOn(questionsApi, 'listQuestions')
       .mockResolvedValue([question({ id: 'q1' })]);
     const store = criarStore();
 
-    await store.dispatch(loadQuestionnaire(DEMO_FORM_ID));
+    await store.dispatch(loadQuestionnaire('en'));
 
-    expect(getForm).toHaveBeenCalledWith(DEMO_FORM_ID);
-    expect(listQuestions).toHaveBeenCalledWith(DEMO_FORM_ID);
+    expect(getCurrentForm).toHaveBeenCalledOnce();
+    expect(listQuestions).toHaveBeenCalledWith(FORM_ID, { lang: 'en' });
     const state = store.getState().responses;
     expect(state.status).toBe('ready');
     expect(state.form).toEqual(form);
-    // As do back e, depois delas, as duas de demonstração (até a CREED-37).
-    expect(state.questions.map(({ id }) => id)).toEqual([
-      'q1',
-      'demo-escala',
-      'demo-objetiva',
-    ]);
+    expect(state.formResponse).toBeNull();
+    expect(state.questions.map(({ id }) => id)).toEqual(['q1']);
   });
 
   it('formulário sem pergunta fica ready, com lista vazia', async () => {
-    vi.spyOn(formsApi, 'getForm').mockResolvedValue(form);
+    vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue({
+      form,
+      form_response: null,
+    });
     vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue([]);
     const store = criarStore();
 
-    await store.dispatch(loadQuestionnaire(DEMO_FORM_ID));
+    await store.dispatch(loadQuestionnaire('pt-BR'));
 
     expect(store.getState().responses.status).toBe('ready');
     expect(secoes(store)).toEqual([]);
   });
 
+  it('já enviado, guarda a resposta e não busca as perguntas', async () => {
+    const enviada: FormResponseResponse = {
+      ...formResponse,
+      status: 'submitted',
+      submitted_at: '2026-11-02T12:00:00Z',
+    };
+    vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue({
+      form,
+      form_response: enviada,
+    });
+    const listQuestions = vi.spyOn(questionsApi, 'listQuestions');
+    const store = criarStore();
+
+    await store.dispatch(loadQuestionnaire('pt-BR'));
+
+    expect(listQuestions).not.toHaveBeenCalled();
+    const state = store.getState().responses;
+    expect(state.status).toBe('ready');
+    expect(state.formResponse).toEqual(enviada);
+    // Já enviada, não é retomada.
+    expect(state.submission.formResponseId).toBeNull();
+  });
+
+  it('em andamento, o envio continua na resposta que já existe', async () => {
+    vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue({
+      form,
+      form_response: formResponse,
+    });
+    vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue([]);
+    const store = criarStore();
+
+    await store.dispatch(loadQuestionnaire('pt-BR'));
+
+    expect(store.getState().responses.submission.formResponseId).toBe(
+      FORM_RESPONSE_ID,
+    );
+  });
+
   it.each([
-    [404, 'formulario:erros.naoEncontrado'],
+    [404, 'formulario:erros.semQuestionarioAberto'],
     [403, 'formulario:erros.semAcesso'],
     [500, 'formulario:erros.servicoIndisponivel'],
   ])('erro %i vira a chave %s', async (status, chave) => {
-    vi.spyOn(formsApi, 'getForm').mockRejectedValue(
+    vi.spyOn(responsesApi, 'getCurrentForm').mockRejectedValue(
       new ApiError('erro do back', status),
     );
     const store = criarStore();
 
-    await store.dispatch(loadQuestionnaire(DEMO_FORM_ID));
+    await store.dispatch(loadQuestionnaire('pt-BR'));
 
     const state = store.getState().responses;
     expect(state.status).toBe('error');
@@ -194,12 +307,12 @@ describe('responsesSlice', () => {
   });
 
   it('erro de rede, sem ApiError, vira servicoIndisponivel', async () => {
-    vi.spyOn(formsApi, 'getForm').mockRejectedValue(
+    vi.spyOn(responsesApi, 'getCurrentForm').mockRejectedValue(
       new TypeError('Failed to fetch'),
     );
     const store = criarStore();
 
-    await store.dispatch(loadQuestionnaire(DEMO_FORM_ID));
+    await store.dispatch(loadQuestionnaire('pt-BR'));
 
     expect(store.getState().responses.error).toBe(
       'formulario:erros.servicoIndisponivel',
@@ -207,39 +320,39 @@ describe('responsesSlice', () => {
   });
 
   describe('selectQuestionnaireSections', () => {
-    // Põe as perguntas direto no estado, sem as de demonstração: aqui o que
+    // Põe as perguntas direto no estado: aqui o que
     // se testa é só a regra do seletor.
     function storeCom(questions: QuestionResponse[]) {
       return criarStoreCom(questions);
     }
 
-    it('ordena as seções por profile, assessment e closing, numeradas de 1', () => {
+    it('ordena as seções na ordem do formulário original, numeradas de 1', () => {
       const store = storeCom([
-        question({ id: 'c', section: 'closing', order_index: 2 }),
-        question({ id: 'p', section: 'profile', order_index: 0 }),
-        question({ id: 'a', section: 'assessment', order_index: 1 }),
+        question({ id: 'c', section: 'S9', order_index: 2 }),
+        question({ id: 'p', section: 'S2', order_index: 0 }),
+        question({ id: 'a', section: 'S4', order_index: 1 }),
       ]);
 
       expect(
         secoes(store).map(({ numero, section }) => [numero, section]),
       ).toEqual([
-        [1, 'profile'],
-        [2, 'assessment'],
-        [3, 'closing'],
+        [1, 'S2'],
+        [2, 'S4'],
+        [3, 'S9'],
       ]);
     });
 
     it('pula seção sem pergunta, sem deixar buraco na numeração', () => {
       const store = storeCom([
-        question({ id: 'p', section: 'profile' }),
-        question({ id: 'c', section: 'closing', order_index: 1 }),
+        question({ id: 'p', section: 'S2' }),
+        question({ id: 'c', section: 'S9', order_index: 1 }),
       ]);
 
       expect(
         secoes(store).map(({ numero, section }) => [numero, section]),
       ).toEqual([
-        [1, 'profile'],
-        [2, 'closing'],
+        [1, 'S2'],
+        [2, 'S9'],
       ]);
     });
 
@@ -261,7 +374,7 @@ describe('responsesSlice', () => {
         question({ id: 'objetiva', order_index: 1, type: 'objective' }),
         question({
           id: 'so-objetiva',
-          section: 'closing',
+          section: 'S9',
           order_index: 2,
           type: 'objective',
           options: [],
@@ -332,7 +445,7 @@ describe('responsesSlice', () => {
       // Opcional em branco e sem resposta: não vão para o back (P-038).
       { question_id: 'q3', answer: '   ' },
       { question_id: 'q4', answer: null },
-      // Objetiva respondida: o back ainda recusa, então não vai (CREED-37).
+      // Objetiva respondida: vai em `option_id`, achado pelo rótulo (P-039).
       { question_id: 'q5', answer: 'Rótulo 3' },
     ];
 
@@ -341,9 +454,7 @@ describe('responsesSlice', () => {
     }
 
     function enviar(store: ReturnType<typeof criarStore>) {
-      return store.dispatch(
-        submitResponses({ formId: DEMO_FORM_ID, answers: respostas }),
-      );
+      return store.dispatch(submitResponses({ answers: respostas }));
     }
 
     // Os três passos do envio, com o caminho feliz como padrão.
@@ -373,12 +484,13 @@ describe('responsesSlice', () => {
 
       await enviar(store);
 
-      expect(back.create).toHaveBeenCalledWith(DEMO_FORM_ID);
+      // O formulário é o que o carregamento trouxe.
+      expect(back.create).toHaveBeenCalledWith(FORM_ID);
       expect(back.record).toHaveBeenNthCalledWith(1, FORM_RESPONSE_ID, {
         question_id: 'q1',
         value: 'Primeira',
       });
-      expect(gravadas(back.record)).toEqual(['q1', 'q2']);
+      expect(gravadas(back.record)).toEqual(['q1', 'q2', 'q5']);
       expect(back.submit).toHaveBeenCalledWith(FORM_RESPONSE_ID);
       // Enviado: a retomada começa do zero.
       expect(store.getState().responses.submission).toEqual({
@@ -386,7 +498,17 @@ describe('responsesSlice', () => {
         error: null,
         formResponseId: null,
         savedQuestionIds: [],
+        insightStatus: null,
       });
+    });
+
+    it('devolve o id da resposta enviada, para a confirmação acompanhar o insight', async () => {
+      simularBack();
+      const store = criarStore();
+
+      const resultado = await enviar(store);
+
+      expect(resultado.payload).toBe(FORM_RESPONSE_ID);
     });
 
     it('409 ao abrir quer dizer que a pessoa já respondeu', async () => {
@@ -430,7 +552,7 @@ describe('responsesSlice', () => {
 
       // Não abriu outra resposta e não gravou a q1 de novo.
       expect(back.create).toHaveBeenCalledOnce();
-      expect(gravadas(back.record)).toEqual(['q2']);
+      expect(gravadas(back.record)).toEqual(['q2', 'q5']);
       expect(back.submit).toHaveBeenCalledOnce();
       expect(store.getState().responses.submission.status).toBe('ready');
     });
@@ -446,7 +568,7 @@ describe('responsesSlice', () => {
 
       await enviar(store);
 
-      expect(gravadas(back.record)).toEqual(['q1', 'q2']);
+      expect(gravadas(back.record)).toEqual(['q1', 'q2', 'q5']);
       expect(back.submit).toHaveBeenCalledOnce();
       expect(store.getState().responses.submission.status).toBe('ready');
     });
@@ -473,6 +595,19 @@ describe('responsesSlice', () => {
       );
     });
 
+    it('sem questionário carregado, não chama o back', async () => {
+      const back = simularBack();
+      // Store vazio: o carregamento nunca aconteceu.
+      const store = configureStore({ reducer: { responses: reducer } });
+
+      await store.dispatch(submitResponses({ answers: respostas }));
+
+      expect(back.create).not.toHaveBeenCalled();
+      expect(store.getState().responses.submission.error).toBe(
+        'questionarioRevisao:erros.envioFalhou',
+      );
+    });
+
     it('clearSubmissionError apaga só o erro, não o que já foi gravado', async () => {
       const back = simularBack();
       back.submit.mockRejectedValue(new ApiError('fora do ar', 503));
@@ -484,9 +619,68 @@ describe('responsesSlice', () => {
       const submission = store.getState().responses.submission;
       expect(submission.error).toBeNull();
       expect(submission.formResponseId).toBe(FORM_RESPONSE_ID);
-      expect(submission.savedQuestionIds).toEqual(['q1', 'q2']);
+      expect(submission.savedQuestionIds).toEqual(['q1', 'q2', 'q5']);
     });
   });
+  describe('loadSubmittedInsight', () => {
+    it('guarda o estado do insight da resposta enviada', async () => {
+      const consulta = vi
+        .spyOn(responsesApi, 'getInsightStatus')
+        .mockResolvedValue({
+          status: 'done',
+          content: null,
+          completed_at: '2026-11-15T13:30:00Z',
+        });
+      const store = criarStore();
+
+      await store.dispatch(loadSubmittedInsight(FORM_RESPONSE_ID));
+
+      expect(consulta).toHaveBeenCalledWith(
+        FORM_RESPONSE_ID,
+        expect.any(AbortSignal),
+      );
+      expect(store.getState().responses.submission.insightStatus).toBe('done');
+    });
+
+    it('uma consulta que falha não muda o que a tela já sabia', async () => {
+      const consulta = vi
+        .spyOn(responsesApi, 'getInsightStatus')
+        .mockResolvedValueOnce({
+          status: 'pending',
+          content: null,
+          completed_at: null,
+        })
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+      const store = criarStore();
+
+      await store.dispatch(loadSubmittedInsight(FORM_RESPONSE_ID));
+      await store.dispatch(loadSubmittedInsight(FORM_RESPONSE_ID));
+
+      expect(consulta).toHaveBeenCalledTimes(2);
+      expect(store.getState().responses.submission.insightStatus).toBe(
+        'pending',
+      );
+      expect(store.getState().responses.submission.error).toBeNull();
+    });
+
+    it('um envio novo esquece o insight da resposta anterior', () => {
+      const store = criarStore();
+      store.dispatch(
+        loadSubmittedInsight.fulfilled(
+          { status: 'done', content: null, completed_at: null },
+          'teste',
+          FORM_RESPONSE_ID,
+        ),
+      );
+
+      store.dispatch(
+        submitResponses.fulfilled('outra-resposta', 'teste', { answers: [] }),
+      );
+
+      expect(store.getState().responses.submission.insightStatus).toBeNull();
+    });
+  });
+
   describe('paraAnswerCreate', () => {
     it('descritiva vai em value', () => {
       expect(paraAnswerCreate(question({ id: 'q1' }), 'Meu texto')).toEqual({

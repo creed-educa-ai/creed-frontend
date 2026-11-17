@@ -161,9 +161,8 @@ export interface MemberPeriod {
   has_answered: boolean;
 }
 
-// `GET /organizations/{organization_id}/members` — a lista inteira, sem
-// paginação, em ordem de nome (P-070). `?type=` filtra pelo tipo do vínculo.
-export interface MemberListItem {
+// O membro como o `PATCH .../members/{link_id}` devolve.
+export interface MemberResponse {
   link_id: string;
   name: string;
   // Nulo quando o vínculo foi criado sem convite (sem login).
@@ -172,8 +171,19 @@ export interface MemberListItem {
   type: LinkType;
   department: DepartmentType | null;
   updated_at: string | null;
+}
+
+// `GET /organizations/{organization_id}/members` — a lista inteira, sem
+// paginação, em ordem de nome (P-070). `?type=` filtra pelo tipo do vínculo.
+export interface MemberListItem extends MemberResponse {
   // Nulo quando a pessoa não tem nenhum período.
   period: MemberPeriod | null;
+}
+
+// `PATCH /organizations/{organization_id}/members/{link_id}`: só o setor;
+// `null` tira o setor.
+export interface MemberDepartmentUpdate {
+  department: DepartmentType | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -284,6 +294,7 @@ export interface DemographicCreate {
   brazil_state?: BrazilState | null;
   portugal_region?: PortugalRegion | null;
   other_nationality?: string | null;
+  // A resposta aberta da etapa 3.
   perspective?: string | null;
 }
 
@@ -441,11 +452,19 @@ export interface PeriodRead extends FormRead {
 
 export type QuestionType = 'objective' | 'descriptive';
 
-// Valores provisórios no back (P-020).
-export type QuestionSection = 'profile' | 'assessment' | 'closing';
+// As seções do formulário original da cliente, uma aba por seção. S2 a S8 são
+// as dimensões da Matriz CREED; S9, as perguntas abertas.
+export type QuestionSection =
+  'S2' | 'S4' | 'S5A' | 'S5B' | 'S6' | 'S7' | 'S8' | 'S9';
 
+// `?lang=` da listagem. Sem tradução naquele idioma, o back devolve o texto
+// em português.
+export type QuestionLang = 'pt' | 'pt-BR' | 'en' | 'es';
+
+// A pergunta é do instrumento, e não do formulário: todo período aplica as
+// mesmas perguntas.
 export interface QuestionCreate {
-  form_id: string;
+  instrument_id: string;
   text: string;
   order_index: number;
   type: QuestionType;
@@ -474,7 +493,7 @@ export interface QuestionOptionResponse {
 
 export interface QuestionResponse {
   id: string;
-  form_id: string;
+  instrument_id: string;
   text: string;
   order_index: number;
   type: QuestionType;
@@ -508,6 +527,14 @@ export interface FormResponseResponse {
   status: FormResponseStatus;
   started_at: string;
   submitted_at: string | null;
+}
+
+// `GET /forms/current`: o questionário aberto agora para quem está logado (o
+// da organização inteira ou o só dela) e a resposta dela nele. Nulo: ainda
+// não começou. Sem questionário aberto, o back devolve 404.
+export interface CurrentFormRead {
+  form: FormRead;
+  form_response: FormResponseResponse | null;
 }
 
 // Descritiva em `value`, objetiva em `option_id`.
@@ -545,7 +572,7 @@ export interface DashboardResponse {
 }
 
 // ---------------------------------------------------------------------------
-// insights — schema e tabela existem, sem rota (ADR-0010).
+// insights (ADR-0010). A tela só lê o estado do insight de uma resposta.
 // ---------------------------------------------------------------------------
 
 export interface InsightResponse {
@@ -553,6 +580,27 @@ export interface InsightResponse {
   form_response_id: string;
   content: string;
   created_at: string;
+}
+
+// O texto do insight: de 2 a 4 parágrafos de análise, um texto curto por
+// prisma e de 1 a 3 parágrafos de recomendação (P-088).
+export interface InsightContent {
+  analise: string[];
+  prismas: Record<Prisma, string>;
+  recomendacao: string[];
+}
+
+// `GET /form-responses/{id}/insight`: em que ponto está o insight de uma
+// resposta enviada, para a tela perguntar de novo enquanto está em preparo. O
+// `dispatched` do back aparece como `pending`. 403: a resposta é de outro
+// vínculo; 404: a resposta não existe ou não tem insight.
+export type InsightStatus = 'pending' | 'done' | 'failed';
+
+export interface InsightStatusRead {
+  status: InsightStatus;
+  // Nulo enquanto não estiver `done`.
+  content: InsightContent | null;
+  completed_at: string | null;
 }
 
 // prismas, prognosticos e relatorios: stubs no back, sem schema.
@@ -563,24 +611,22 @@ export interface InsightResponse {
 // back tiver o contrato, o tipo daqui sai e a tela passa a usar o de cima.
 // ===========================================================================
 
-// Membro da organização, na tabela do painel da empresa.
-// Falta no back: `GET /organizations/{id}/members` (listar) e
-// `DELETE` de membro. Mais perto do back: `UserResponse` + departamento.
-export type MemberStatus = 'ativo' | 'pendente';
+// Membro da organização, na tabela do painel da empresa: o `MemberListItem`
+// do back, no formato que a tabela desenha. Quem converte é o `usersSlice`.
+//
+// O status é a resposta do período do membro (`period.has_answered`): o back
+// não sabe se o convite foi aceito, e o que a gestora acompanha é quem já
+// respondeu. Sem período, `semPeriodo`.
+export type MemberStatus = 'respondeu' | 'pendente' | 'semPeriodo';
 
 export interface Member {
+  // O `link_id`: é por ele que se exclui e se troca o setor.
   id: string;
   name: string;
+  // Vazio quando o vínculo não tem login.
   email: string;
-  // No back, `RecordStatus` (`active`/`inactive`); "pendente" (convite não
-  // aceito) não existe.
   status: MemberStatus;
-  // O setor do vínculo (`links.department_id` → `DepartmentType`). Nulo até
-  // a empresa escolher: o membro entra sem tag, como o `department_id`.
+  // O setor do vínculo. Nulo até a empresa escolher.
   tag: DepartmentType | null;
-  updated_at: string;
-}
-
-export interface MemberList extends ListaPaginada<Member> {
-  organization: string;
+  updated_at: string | null;
 }
