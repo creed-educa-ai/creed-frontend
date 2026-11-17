@@ -342,9 +342,21 @@ export const ptBR = {
   },
   sobre: {
     titulo: 'Sobre',
-    // TODO placeholder: texto institucional definitivo ainda não definido com a cliente.
-    texto:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+    tituloTexto: 'Como surgiu o CREED',
+    paragrafos: [
+      'O CREED nasceu da trajetória de pesquisa acadêmica da Dra. Naira Libermann, a partir de estudos aprofundados e desenvolvidos em sua jornada científica, que hoje inclui o pós-doutoramento na Universidade Aberta de Portugal.',
+      'A metodologia surgiu da necessidade de compreender por que algumas pessoas conseguem inovar, adaptar-se e transformar ideias em ações, enquanto outras encontram barreiras nesse processo. Combinando conhecimentos de neurociência, educação, empreendedorismo e comportamento humano, Naira desenvolveu uma abordagem fundamentada em cinco pilares: segurança psicológica, liderança adaptativa, cultura empreendedora, adaptabilidade cognitiva e neuroplasticidade.',
+      'Assim nasceu o CREED: uma metodologia que transforma conhecimento científico em desenvolvimento humano, ajudando pessoas e organizações a reconhecer suas capacidades, superar barreiras e desenvolver seu potencial de inovação.',
+      'As respostas existiam, mas estavam separadas. A effectuation propõe agir a partir de quem sou, do que sei e de quem conheço. A educação envolve desenvolver competências pela experiência, reflexão e ação. A neurociência trata de aprender, desaprender e criar novos padrões. O comportamento evidencia que confiança, liderança e cultura condicionam a ação. A integração desses conhecimentos deu origem ao CREED.',
+      'CREED é uma sigla que corresponde a Competências Responsivas para a Educação Empreendedora e o Desenvolvimento do Potencial Inovador Humano na Era da Inteligência Artificial. A sigla articula cinco elementos conceituais: Competências, Responsivas, Educação, Empreendedora e Desenvolvimento.',
+      'O C de Competências representa a mobilização integrada de conhecimentos, habilidades e atitudes, reunindo saber, fazer e ser.',
+      'O R de Responsivas expressa a capacidade de se adaptar e responder a contextos complexos, dinâmicos e culturalmente diversos, considerando a complexidade, a mudança e a diversidade cultural.',
+      'O primeiro E, de Educação, representa um processo contínuo de aprendizagem e transformação humana. Não um evento, mas um caminho de aprender, desaprender e transformar.',
+      'O segundo E, de Empreendedora, indica uma orientação ao protagonismo, à experimentação, à criatividade e à geração de valor.',
+      'O D de Desenvolvimento corresponde à ampliação contínua das capacidades cognitivas, comportamentais, socioemocionais e relacionais que sustentam o potencial inovador humano.',
+      'Em resumo, o CREED é uma arquitetura que junta o que estava separado: educação empreendedora, neurociência, multiculturalismo para compreender e favorecer o desenvolvimento do potencial inovador humano.',
+      'O próximo passo é compreender onde você está e para onde pode ir. Descubra como os cinco Prismas CREED aparecem hoje na sua forma de inovar, mudar e agir. Faça seu Mapa de Potenciais, gratuito. CREED: seu ponto de partida para o próximo passo.',
+    ],
     voltar: 'Voltar',
   },
   cadastro: {

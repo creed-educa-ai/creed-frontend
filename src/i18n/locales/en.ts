@@ -339,9 +339,21 @@ export const en: typeof ptBR = {
   },
   sobre: {
     titulo: 'About',
-    // TODO placeholder: texto institucional definitivo ainda não definido com a cliente.
-    texto:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+    tituloTexto: 'How CREED Came to Be',
+    paragrafos: [
+      'CREED was born out of Dr. Naira Libermann’s academic research journey, building on in-depth studies conducted throughout her scientific career, which now includes postdoctoral research at the Open University of Portugal.',
+      'The methodology emerged from the need to understand why some people are able to innovate, adapt, and turn ideas into action, while others encounter barriers along the way. By combining insights from neuroscience, education, entrepreneurship, and human behavior, Naira developed an approach grounded in five pillars: psychological safety, adaptive leadership, entrepreneurial culture, cognitive adaptability, and neuroplasticity.',
+      'Thus, CREED was born: a methodology that transforms scientific knowledge into human development, helping individuals and organizations recognize their capabilities, overcome barriers, and unlock their innovation potential.',
+      'The answers already existed, but they were scattered across different fields. Effectuation proposes taking action based on who I am, what I know, and whom I know. Education involves developing competencies through experience, reflection, and action. Neuroscience explores how we learn, unlearn, and create new patterns. Behavioral science shows how trust, leadership, and culture shape our actions. Bringing these areas of knowledge together gave rise to CREED.',
+      'CREED is an acronym for Responsive Competencies for Entrepreneurial Education and the Development of Human Innovative Potential in the Age of Artificial Intelligence. The acronym brings together five conceptual elements: Competencies, Responsive, Education, Entrepreneurial, and Development.',
+      'The C for Competencies represents the integrated mobilization of knowledge, skills, and attitudes, bringing together knowing, doing, and being.',
+      'The R for Responsive expresses the ability to adapt and respond to complex, dynamic, and culturally diverse contexts, taking into account complexity, change, and cultural diversity.',
+      'The first E, for Education, represents an ongoing process of learning and human transformation. Not an event, but a journey of learning, unlearning, and transformation.',
+      'The second E, for Entrepreneurial, indicates an orientation toward taking initiative, experimentation, creativity, and value creation.',
+      'The D for Development refers to the continuous expansion of the cognitive, behavioral, socio-emotional, and relational capabilities that underpin human innovative potential.',
+      'In short, CREED is an architecture that brings together what was once fragmented: entrepreneurial education, neuroscience, and multiculturalism, in order to understand and foster the development of human innovative potential.',
+      'The next step is to understand where you are today and where you can go. Discover how the five CREED Prisms are reflected in the way you innovate, adapt to change, and take action today. Create your free Potential Map. CREED: Your starting point for the next step.',
+    ],
     voltar: 'Back',
   },
   cadastro: {
