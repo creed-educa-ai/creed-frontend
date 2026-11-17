@@ -1,12 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import dashboardsReducer from '@/features/dashboards/dashboardsSlice';
-import { dashboardsApi } from '@/features/dashboards/dashboardsApi';
+import {
+  dashboardsApi,
+  type CompanyDashboard,
+} from '@/features/dashboards/dashboardsApi';
 import { CompanyDashboardView } from './CompanyDashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { ApiError } from '@/lib/apiClient';
@@ -55,7 +58,24 @@ async function renderizar(
   await waitFor(() => {
     expect(store.getState().dashboards.company.status).toBe('ready');
   });
-  return view;
+  return { ...view, store };
+}
+
+// O dashboard da empresa inteira com o texto do Creed.ai ainda sem estar
+// pronto: o back manda os textos vazios e sem data.
+function semTextoAinda(status: 'pending' | 'failed'): CompanyDashboard {
+  const resultado = companyDashboardFixture();
+  return {
+    ...resultado,
+    creed_summary: {
+      ...resultado.creed_summary,
+      analiseTexto: [],
+      recomendacaoTexto: [],
+      prismas: {} as never,
+      insight_status: status,
+      generated_at: null,
+    },
+  };
 }
 
 // O nome de um prisma aparece no resumo da empresa e no do Creed.ai: as
@@ -326,9 +346,8 @@ describe('CompanyDashboardView', () => {
       screen.getByRole('button', { name: 'Resumo de Marketing' }),
     ).toBeInTheDocument();
     expect(screen.getByText('12/14')).toBeInTheDocument();
-    expect(
-      screen.getByText('Análise de Marketing no período 30/06/2026.'),
-    ).toBeInTheDocument();
+    // Só o texto do Creed.ai não muda: ele é da empresa inteira (P-089).
+    expect(screen.queryByText(/^Análise de Marketing/)).not.toBeInTheDocument();
 
     // O setor exibido também pode ser escolhido na comparação: Marketing em
     // 30/06/2026 contra Marketing em 31/12/2025.
@@ -808,5 +827,141 @@ describe('CompanyDashboardView', () => {
       { member_id: '2' },
       expect.anything(),
     );
+  });
+
+  describe('the Creed.ai text of the company', () => {
+    it('should show the analysis with the recommendation beside it and the date', async () => {
+      await renderizar();
+      const creed = secao(i18n.t('resultado:creedAi'));
+
+      expect(
+        creed.getByText('Análise de a equipe no período 30/06/2026.'),
+      ).toBeInTheDocument();
+      expect(
+        creed.getByText(
+          'Recomendação para a equipe. Lorem ipsum dolor sit amet.',
+        ),
+      ).toBeInTheDocument();
+      expect(creed.getByText('Gerado em 02/07/2026')).toBeInTheDocument();
+    });
+
+    it('should say the text is not available, with no retry', async () => {
+      vi.spyOn(dashboardsApi, 'getCompanyDashboard').mockResolvedValue(
+        semTextoAinda('failed'),
+      );
+      await renderizar();
+
+      // Análise, recomendação e os cinco prismas.
+      expect(
+        screen.getAllByText('Este texto não ficou disponível.'),
+      ).toHaveLength(7);
+      expect(
+        screen.queryByRole('button', { name: /tentar/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('should leave the Creed.ai section without text in a department view, keeping the marks', async () => {
+      const user = userEvent.setup();
+      await renderizar();
+
+      await user.click(screen.getByRole('button', { name: 'Acme Inc.' }));
+      const marketing = await screen.findByRole('menuitemradio', {
+        name: 'Marketing',
+      });
+      marketing.focus();
+      await user.keyboard('{Enter}');
+
+      expect(
+        await screen.findByRole('button', { name: 'Resumo de Marketing' }),
+      ).toBeInTheDocument();
+      const creed = secao(i18n.t('resultado:creedAi'));
+      expect(creed.getAllByText('Análise ainda não disponível.')).toHaveLength(
+        7,
+      );
+      expect(creed.queryByText(/^Gerado em/)).not.toBeInTheDocument();
+      expect(creed.getByText(i18n.t('resultado:destaque'))).toBeInTheDocument();
+      expect(
+        creed.getByText(i18n.t('resultado:oportunidade')),
+      ).toBeInTheDocument();
+    });
+
+    describe('while it is being prepared', () => {
+      // O relógio falso também anda sozinho: o `waitFor` do `renderizar`
+      // continua funcionando.
+      beforeEach(() => {
+        vi.useFakeTimers({ shouldAdvanceTime: true });
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it('should ask again every 15 s and show the text once it is ready', async () => {
+        const busca = vi
+          .spyOn(dashboardsApi, 'getCompanyDashboard')
+          .mockResolvedValueOnce(semTextoAinda('pending'))
+          .mockResolvedValueOnce(semTextoAinda('pending'))
+          .mockImplementation((filters) =>
+            Promise.resolve(companyDashboardFixture(filters)),
+          );
+        await renderizar();
+
+        expect(
+          screen.getAllByText('O Creed.ai está preparando este texto.'),
+        ).toHaveLength(7);
+
+        await act(() => vi.advanceTimersByTimeAsync(15_000));
+        expect(busca).toHaveBeenCalledTimes(2);
+        // A busca repetida é a mesma da tela: a empresa inteira, no período
+        // exibido.
+        expect(busca).toHaveBeenLastCalledWith(
+          { period: undefined },
+          expect.any(AbortSignal),
+        );
+        await act(() => vi.advanceTimersByTimeAsync(15_000));
+        expect(busca).toHaveBeenCalledTimes(3);
+        expect(screen.getByText('Gerado em 02/07/2026')).toBeInTheDocument();
+
+        // Pronto: para de perguntar.
+        await act(() => vi.advanceTimersByTimeAsync(60_000));
+        expect(busca).toHaveBeenCalledTimes(3);
+      });
+
+      it('should stop asking after 2 minutes', async () => {
+        const busca = vi
+          .spyOn(dashboardsApi, 'getCompanyDashboard')
+          .mockImplementation(() => Promise.resolve(semTextoAinda('pending')));
+        await renderizar();
+
+        await act(() => vi.advanceTimersByTimeAsync(3 * 60 * 1000));
+
+        // A carga da tela e mais 8 (2 min / 15 s).
+        expect(busca).toHaveBeenCalledTimes(9);
+      });
+
+      it('should cancel the search when leaving the screen', async () => {
+        let sinal: AbortSignal | undefined;
+        const busca = vi
+          .spyOn(dashboardsApi, 'getCompanyDashboard')
+          .mockResolvedValueOnce(semTextoAinda('pending'))
+          // A busca repetida fica a caminho até a pessoa sair.
+          .mockImplementation((_filtros, signal) => {
+            sinal = signal;
+            return new Promise(() => undefined);
+          });
+        const { store, unmount } = await renderizar();
+
+        await act(() => vi.advanceTimersByTimeAsync(15_000));
+        expect(sinal?.aborted).toBe(false);
+
+        unmount();
+        await vi.advanceTimersByTimeAsync(60_000);
+
+        expect(sinal?.aborted).toBe(true);
+        expect(busca).toHaveBeenCalledTimes(2);
+        // Cancelada não é erro.
+        expect(store.getState().dashboards.company.status).not.toBe('error');
+      });
+    });
   });
 });
