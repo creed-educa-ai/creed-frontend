@@ -5,12 +5,8 @@ import { InfoTip } from './InfoTip';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { sectionTitleClassName } from '@/lib/typography';
-
-interface Metrica {
-  titulo: string;
-  valor: number;
-  descricao: string;
-}
+import type { DashboardHighlight as Metrica } from '../dashboardsApi';
+import { completionRate } from '../completionRate';
 
 interface SummaryCardsProps {
   nomeEmpresa: string;
@@ -39,6 +35,8 @@ function CardMetrica({
   corTexto,
   metrica,
 }: CardMetricaProps) {
+  // O back manda só o prisma e a nota: o nome e a descrição são do i18n.
+  const { t } = useTranslation(['dashboardPrisma', 'dashboard']);
   return (
     <Card asChild>
       <article>
@@ -54,10 +52,10 @@ function CardMetrica({
             <InfoTip title={rotulo} text={info} />
           </p>
           <h3 className="mt-1 text-3xl font-bold text-heading">
-            {metrica.titulo}
+            {t(`dashboardPrisma:prismas.${metrica.prisma}`)}
           </h3>
           <p className="mt-2 text-xs text-card-foreground">
-            {metrica.descricao}
+            {t(`dashboard:descricaoPrisma.${metrica.prisma}`)}
           </p>
         </CardContent>
       </article>
@@ -79,7 +77,7 @@ export function SummaryCards({
   const [isOpen, setIsOpen] = useState(true);
   const conteudoId = useId();
 
-  const taxa = convidados > 0 ? Math.round((concluidos / convidados) * 100) : 0;
+  const taxa = completionRate(concluidos, convidados);
 
   return (
     <section className="w-full">

@@ -66,10 +66,10 @@ export const en: typeof ptBR = {
     avancar: 'Continue',
     pular: 'Skip',
 
-    demograficos1: {
-      titulo: "Let's get started! What's your name?",
-      descricaoNome: 'This is the name shown to other users',
-      nomeObrigatorio: 'Enter your name to continue.',
+    demograficos: {
+      carregando: 'Loading your information…',
+      erroCarregar: "We couldn't load your information.",
+      erroSalvar: "We couldn't save your information. Please try again.",
     },
 
     demograficos2: {
@@ -283,6 +283,41 @@ export const en: typeof ptBR = {
       diminuiu: 'down {{valor}}',
       estavel: 'no change',
     },
+    // Rótulos da planilha baixada em "Baixar > CSV".
+    csv: {
+      relatorio: 'Report',
+      tituloIndividual: 'Individual Dashboard - CREED.ai',
+      tituloOrganizacao: 'Organization Dashboard - CREED.ai',
+      organizacao: 'Organization',
+      mentorando: 'Mentee',
+      periodo: 'Period',
+      recorte: 'Scope / View',
+      resumoCreed: 'CREED.ai Summary',
+      prismaDestaque: 'Highlight Prism',
+      prismaOportunidade: 'Opportunity Prism',
+      pontuacao: 'Score',
+      pontuacaoEscala: 'Score (0-100)',
+      codigo: 'Code',
+      dimensao: 'Dimension',
+      variacao: 'Change',
+      comparacoesAnteriores: 'Comparisons with Previous Periods',
+      comparacoes: 'Comparisons',
+      recorteSetor: 'Scope / Department',
+      resumoOrganizacao: 'Organization Summary',
+      valor: 'Value',
+      convidados: 'Invited',
+      concluidos: 'Completed',
+      taxaConclusao: 'Completion Rate',
+      destaque: 'Highlight',
+      oportunidade: 'Opportunity',
+      maisComum: 'Most Common',
+      alinhamento: 'Team Alignment',
+      respondentesTotal: 'Respondents: {{total}}',
+      nivel: 'Level',
+      mapa: 'Departments × Prisms Map',
+      setor: 'Department',
+      respondentes: 'Respondents',
+    },
   },
   boasVindas: {
     titulo: 'Welcome!',
@@ -303,9 +338,21 @@ export const en: typeof ptBR = {
   },
   sobre: {
     titulo: 'About',
-    // TODO placeholder: texto institucional definitivo ainda não definido com a cliente.
-    texto:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+    tituloTexto: 'How CREED Came to Be',
+    paragrafos: [
+      'CREED was born out of Dr. Naira Libermann’s academic research journey, building on in-depth studies conducted throughout her scientific career, which now includes postdoctoral research at the Open University of Portugal.',
+      'The methodology emerged from the need to understand why some people are able to innovate, adapt, and turn ideas into action, while others encounter barriers along the way. By combining insights from neuroscience, education, entrepreneurship, and human behavior, Naira developed an approach grounded in five pillars: psychological safety, adaptive leadership, entrepreneurial culture, cognitive adaptability, and neuroplasticity.',
+      'Thus, CREED was born: a methodology that transforms scientific knowledge into human development, helping individuals and organizations recognize their capabilities, overcome barriers, and unlock their innovation potential.',
+      'The answers already existed, but they were scattered across different fields. Effectuation proposes taking action based on who I am, what I know, and whom I know. Education involves developing competencies through experience, reflection, and action. Neuroscience explores how we learn, unlearn, and create new patterns. Behavioral science shows how trust, leadership, and culture shape our actions. Bringing these areas of knowledge together gave rise to CREED.',
+      'CREED is an acronym for Responsive Competencies for Entrepreneurial Education and the Development of Human Innovative Potential in the Age of Artificial Intelligence. The acronym brings together five conceptual elements: Competencies, Responsive, Education, Entrepreneurial, and Development.',
+      'The C for Competencies represents the integrated mobilization of knowledge, skills, and attitudes, bringing together knowing, doing, and being.',
+      'The R for Responsive expresses the ability to adapt and respond to complex, dynamic, and culturally diverse contexts, taking into account complexity, change, and cultural diversity.',
+      'The first E, for Education, represents an ongoing process of learning and human transformation. Not an event, but a journey of learning, unlearning, and transformation.',
+      'The second E, for Entrepreneurial, indicates an orientation toward taking initiative, experimentation, creativity, and value creation.',
+      'The D for Development refers to the continuous expansion of the cognitive, behavioral, socio-emotional, and relational capabilities that underpin human innovative potential.',
+      'In short, CREED is an architecture that brings together what was once fragmented: entrepreneurial education, neuroscience, and multiculturalism, in order to understand and foster the development of human innovative potential.',
+      'The next step is to understand where you are today and where you can go. Discover how the five CREED Prisms are reflected in the way you innovate, adapt to change, and take action today. Create your free Potential Map. CREED: Your starting point for the next step.',
+    ],
     voltar: 'Back',
   },
   error: {
@@ -468,6 +515,12 @@ export const en: typeof ptBR = {
     titulo: 'Thank you for responding',
     mensagem: 'Your answers have been submitted.',
     voltar: 'Back',
+    insightEmPreparo: 'Creed.ai is preparing your insight.',
+    insightPronto: 'Your Creed.ai insight is ready.',
+    verInsight: 'See my insight',
+    insightNoDashboard: 'Your insight will appear on the dashboard when ready.',
+    insightIndisponivel:
+      'The insight for this response is not available. Your result is already on the dashboard.',
   },
   formulario: {
     titulo: 'Form',
@@ -486,6 +539,7 @@ export const en: typeof ptBR = {
     responderTudoAviso:
       'Answer the required questions in the section to move on.',
     semPerguntas: 'This questionnaire has no questions yet.',
+    jaRespondido: 'You have already answered this questionnaire.',
     concluido: 'Completed',
     perguntasRespondidas: '{{respondidas}} of {{total}} answered',
     concluidoTitulo: 'All questions answered',
@@ -499,7 +553,8 @@ export const en: typeof ptBR = {
     menuInformacoes: 'About',
     menuSair: 'Log out',
     erros: {
-      naoEncontrado: 'Questionnaire not found.',
+      semQuestionarioAberto:
+        'There is no questionnaire open for you right now.',
       semAcesso: "You don't have access to this questionnaire.",
       servicoIndisponivel: "Couldn't reach the server. Please try again.",
     },
@@ -527,6 +582,10 @@ export const en: typeof ptBR = {
     destaque: 'Highlight',
     oportunidade: 'Opportunity',
     analise: 'Creed.ai Analysis',
+    analiseIndisponivel: 'Analysis not available yet.',
+    insightEmPreparo: 'Creed.ai is preparing this text.',
+    insightIndisponivel: 'This text is not available.',
+    geradoEm: 'Generated on {{data}}',
     recomendacao: 'Recommendation',
     resumoEmpresa: 'Summary of {{empresa}}',
     taxaConclusao: 'Completion Rate',
@@ -536,6 +595,33 @@ export const en: typeof ptBR = {
   dashboard: {
     titulo: 'Dashboard',
     erroAoCarregar: 'Could not load the dashboard.',
+    semResultado:
+      'You do not have a result yet. It shows up here after you submit a questionnaire.',
+    irParaQuestionario: 'Go to the questionnaire',
+    semResultadoMentorando:
+      'This mentee has no result yet. It shows up here after they submit a questionnaire.',
+    voltarParaEmpresa: 'Back to the company dashboard',
+    todasEmpresas: 'All companies',
+    todosMentorandos: 'All mentees',
+    Empresa: 'Company',
+    Mentorando: 'Mentee',
+    respostasEntre: 'Responses from {{inicio}} to {{fim}}',
+    mapaEmpresas: 'Companies × prisms',
+    mapaMentorandos: 'Mentees × prisms',
+    semResultadoEmpresa:
+      'There are no results yet. They show up here after someone answers a questionnaire.',
+    descricaoPrisma: {
+      seguranca_psicologica:
+        'The team shows openness and trust to share opinions and experiment.',
+      lideranca_adaptativa:
+        'The ability of leaders and teams to adapt to fast changes in context.',
+      cultura_empreendedora:
+        'Encouragement of proactivity, ownership and a continuous search for innovation.',
+      adaptabilidade_cognitiva:
+        'Cognitive flexibility to solve problems and learn from new situations.',
+      neuroinovacao_prisma:
+        'Potential for collective intelligence and relevant impact on the market.',
+    },
     Funcionario: 'Employee',
     Baixar: 'Download',
     erroAoExportarPdf: 'Could not generate the dashboard PDF.',
@@ -549,7 +635,8 @@ export const en: typeof ptBR = {
       destaque: 'The prism with the highest score.',
       oportunidade:
         'The prism with the lowest score: where there is most room to grow.',
-      maisComum: 'The prism whose score is closest to the average.',
+      maisComum:
+        'The prism that is most often the strongest point of each person in the view.',
       variacao:
         'How much each prism went up (▲) or down (▼) compared with what is chosen in "Compare with".',
       prisma:
@@ -635,8 +722,9 @@ export const en: typeof ptBR = {
         delete: 'Delete',
       },
       status: {
-        ativo: 'Active',
+        respondeu: 'Answered',
         pendente: 'Pending',
+        semPeriodo: 'No period',
       },
     },
     errors: {
@@ -715,7 +803,7 @@ export const en: typeof ptBR = {
         '{{email}} will receive the invitation by email.',
       questionarioNoAr: 'The questionnaire is live',
       questionarioNoArDescricao:
-        'Responses are open during the period you set.',
+        'Responses remain open during the defined period.',
     },
     controles: 'Controls',
     administradora: 'Administrator',

@@ -37,6 +37,18 @@ describe('responsesApi', () => {
     vi.unstubAllGlobals();
   });
 
+  it('getCurrentForm pergunta ao back qual é o questionário atual', async () => {
+    const fetchMock = stubFetch();
+
+    await responsesApi.getCurrentForm();
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: '/api/v1/forms/current',
+      method: 'GET',
+      body: undefined,
+    });
+  });
+
   it('createFormResponse manda só o form_id, sem vínculo', async () => {
     const fetchMock = stubFetch(201);
 
@@ -87,5 +99,23 @@ describe('responsesApi', () => {
       method: 'PATCH',
       body: undefined,
     });
+  });
+
+  it('getInsightStatus lê o insight da resposta e repassa o signal', async () => {
+    const fetchMock = stubFetch();
+    const controller = new AbortController();
+
+    await responsesApi.getInsightStatus(FORM_RESPONSE_ID, controller.signal);
+
+    expect(lastCall(fetchMock)).toEqual({
+      url: `/api/v1/form-responses/${FORM_RESPONSE_ID}/insight`,
+      method: 'GET',
+      body: undefined,
+    });
+    const [, init] = fetchMock.mock.lastCall as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(init.signal).toBe(controller.signal);
   });
 });

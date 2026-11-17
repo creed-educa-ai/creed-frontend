@@ -7,7 +7,6 @@ import {
 } from '@/features/responses/AnswersReviewView';
 import {
   clearSubmissionError,
-  DEMO_FORM_ID,
   submitResponses,
 } from '@/features/responses/responsesSlice';
 
@@ -38,9 +37,8 @@ export function AnswersReviewRoute() {
         // slice decide o que vai para o back e em que forma (`value` ou
         // `option_id`). `unwrap` rejeita quando o envio falha, e a View
         // libera o botão.
-        await dispatch(
+        const formResponseId = await dispatch(
           submitResponses({
-            formId: DEMO_FORM_ID,
             answers: questions.map((question, index) => ({
               question_id: question.id,
               answer: answers[index] ?? null,
@@ -48,8 +46,11 @@ export function AnswersReviewRoute() {
           }),
         ).unwrap();
         // replace: a seta de voltar não reabre a revisão de um questionário
-        // já enviado.
-        navigate('/questionnaire/submitted', { replace: true });
+        // já enviado. A confirmação acompanha o insight desta resposta.
+        navigate('/questionnaire/submitted', {
+          replace: true,
+          state: { formResponseId },
+        });
       }}
     />
   );

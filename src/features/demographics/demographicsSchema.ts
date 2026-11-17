@@ -11,8 +11,13 @@ import {
 
 const invalidOption = 'respondentes:demograficos2.invalidOption';
 
+// Limites de tamanho do `DemographicCreate` do back. Os campos param de aceitar
+// texto neste ponto, para o PUT não voltar com 422.
+export const OTHER_NATIONALITY_MAX_LENGTH = 100;
+export const PERSPECTIVE_MAX_LENGTH = 2000;
+
 // Valida as opções da UI. Os nomes dos campos são os do `DemographicCreate`
-// do back, que ainda não tem rota (types/api.ts).
+// do back (types/api.ts).
 export const demographicsSchema = z.object({
   gender: z.enum(genderValues, { error: invalidOption }).nullable(),
   age_range: z.enum(ageRangeValues, { error: invalidOption }).nullable(),

@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { DepartmentTag } from '@/components/department/DepartmentTag';
-import type { DepartmentRow } from '@/features/dashboards/dashboardsApi';
+import type {
+  DepartmentRow,
+  OverviewGroup,
+} from '@/features/dashboards/dashboardsApi';
 import { PRISMAS } from '@/features/dashboards/prismas';
 import { cn } from '@/lib/utils';
 import { InfoTip } from './InfoTip';
@@ -9,8 +12,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cardTitleClassName } from '@/lib/typography';
 
 interface DepartmentMatrixCardProps {
-  rows: DepartmentRow[];
+  // Setores (o dashboard da empresa) ou grupos com nome: as empresas ou os
+  // mentorandos, no retrato atual da administradora.
+  rows: (DepartmentRow | OverviewGroup)[];
   period: string;
+  // Sem eles, o mapa de setores.
+  title?: string | undefined;
+  heading?: string | undefined;
+}
+
+// O nome da linha: o setor como tag, igual à tabela de membros; o grupo, como
+// texto.
+function rowKey(row: DepartmentRow | OverviewGroup) {
+  return 'department' in row ? row.department : row.id;
 }
 
 // Diferenças menores que isto ficam sem cor: um ou dois pontos de distância
@@ -39,9 +53,11 @@ function signed(difference: number) {
 export function DepartmentMatrixCard({
   rows,
   period,
+  title: customTitle,
+  heading,
 }: DepartmentMatrixCardProps) {
   const { t } = useTranslation(['dashboardPrisma', 'dashboard']);
-  const title = t('dashboardPrisma:mapa.titulo');
+  const title = customTitle ?? t('dashboardPrisma:mapa.titulo');
 
   return (
     <Card asChild>
@@ -115,7 +131,7 @@ export function DepartmentMatrixCard({
                         scope="col"
                         className="pb-2 text-left font-bold text-muted-foreground"
                       >
-                        {t('dashboard:Setor')}
+                        {heading ?? t('dashboard:Setor')}
                       </th>
                       {PRISMAS.map((prisma) => (
                         <th
@@ -129,64 +145,69 @@ export function DepartmentMatrixCard({
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map(
-                      ({ department, respondents, scores, difference }) => {
-                        return (
-                          // Linha fina entre os setores, como nas outras tabelas.
-                          <tr
-                            key={department}
-                            className="border-b border-border last:border-b-0"
+                    {rows.map((row) => {
+                      const { respondents, scores, difference } = row;
+                      return (
+                        // Linha fina entre os setores, como nas outras tabelas.
+                        <tr
+                          key={rowKey(row)}
+                          className="border-b border-border last:border-b-0"
+                        >
+                          <th
+                            scope="row"
+                            className="py-2.5 pr-2 text-left font-normal"
                           >
-                            <th
-                              scope="row"
-                              className="py-2.5 pr-2 text-left font-normal"
-                            >
-                              {/* O setor como tag, igual à tabela de membros. O selo não
+                            {/* O setor como tag, igual à tabela de membros. O selo não
                         quebra linha: um nome em duas linhas deixaria a linha
                         inteira mais alta que as outras. */}
-                              <DepartmentTag department={department} />
-                              <span className="mt-1 block text-xs text-muted-foreground">
-                                {t('dashboardPrisma:mapa.respostas', {
-                                  total: respondents,
-                                })}
+                            {'department' in row ? (
+                              <DepartmentTag department={row.department} />
+                            ) : (
+                              <span className="font-semibold text-heading">
+                                {row.label}
                               </span>
-                            </th>
-                            {PRISMAS.map((prisma) => {
-                              const outline =
-                                difference && outlineColor(difference[prisma]);
-                              return (
-                                <td
-                                  key={prisma}
-                                  className="px-1 py-2.5 text-center whitespace-nowrap"
-                                >
-                                  {scores && difference ? (
-                                    // O contorno é transparente na nota neutra: todas
-                                    // ocupam o mesmo espaço, com ou sem cor.
-                                    <span
-                                      className={cn(
-                                        'inline-block rounded-md border-2 border-transparent px-2 py-1',
-                                        outline,
-                                      )}
-                                    >
-                                      <span className="font-bold text-chart-1">
-                                        {scores[prisma]}
-                                      </span>{' '}
-                                      <span className="text-xs text-chart-2">
-                                        {signed(difference[prisma])}
-                                      </span>
+                            )}
+                            <span className="mt-1 block text-xs text-muted-foreground">
+                              {t('dashboardPrisma:mapa.respostas', {
+                                total: respondents,
+                              })}
+                            </span>
+                          </th>
+                          {PRISMAS.map((prisma) => {
+                            const outline =
+                              difference && outlineColor(difference[prisma]);
+                            return (
+                              <td
+                                key={prisma}
+                                className="px-1 py-2.5 text-center whitespace-nowrap"
+                              >
+                                {scores && difference ? (
+                                  // O contorno é transparente na nota neutra: todas
+                                  // ocupam o mesmo espaço, com ou sem cor.
+                                  <span
+                                    className={cn(
+                                      'inline-block rounded-md border-2 border-transparent px-2 py-1',
+                                      outline,
+                                    )}
+                                  >
+                                    <span className="font-bold text-chart-1">
+                                      {scores[prisma]}
+                                    </span>{' '}
+                                    <span className="text-xs text-chart-2">
+                                      {signed(difference[prisma])}
                                     </span>
-                                  ) : (
-                                    <span className="text-muted-foreground">
-                                      —
-                                    </span>
-                                  )}
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        );
-                      },
-                    )}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted-foreground">
+                                    —
+                                  </span>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

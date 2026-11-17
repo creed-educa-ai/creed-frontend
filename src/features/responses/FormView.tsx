@@ -10,26 +10,32 @@ import { useNavigate } from 'react-router-dom';
 import type { ReviewQuestion } from '@/features/responses/AnswersReviewView';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { IDIOMAS, IDIOMA_PADRAO } from '@/i18n/config';
+import type { QuestionLang } from '@/types/api';
 import {
-  DEMO_FORM_ID,
   loadQuestionnaire,
   selectQuestionnaireSections,
   type PerguntaDaTela,
   type QuestionnaireSection,
 } from '@/features/responses/responsesSlice';
 
-// Busca as perguntas no back e decide o que desenhar: carregando, erro, vazio
-// ou o questionário. A navegação entre as perguntas mora em `FormQuestions`.
+// Busca no back o questionário aberto para a pessoa e decide o que desenhar:
+// carregando, erro (inclusive "nenhum aberto"), já respondido, vazio ou o
+// questionário. A navegação entre as perguntas mora em `FormQuestions`.
 export function FormView() {
-  const { t } = useTranslation(['formulario', 'comum']);
+  const { t, i18n } = useTranslation(['formulario', 'comum']);
   const dispatch = useAppDispatch();
   const status = useAppSelector((state) => state.responses.status);
   const error = useAppSelector((state) => state.responses.error);
+  const formResponse = useAppSelector((state) => state.responses.formResponse);
   const secoes = useAppSelector(selectQuestionnaireSections);
+  // O idioma da tela é o das perguntas. Trocar no menu recarrega o texto.
+  const lang: QuestionLang =
+    IDIOMAS.find((idioma) => idioma === i18n.resolvedLanguage) ?? IDIOMA_PADRAO;
 
   useEffect(() => {
-    void dispatch(loadQuestionnaire(DEMO_FORM_ID));
-  }, [dispatch]);
+    void dispatch(loadQuestionnaire(lang));
+  }, [dispatch, lang]);
 
   function conteudo() {
     if (status === 'error') {
@@ -46,7 +52,7 @@ export function FormView() {
             type="button"
             variant="outline"
             onClick={() => {
-              void dispatch(loadQuestionnaire(DEMO_FORM_ID));
+              void dispatch(loadQuestionnaire(lang));
             }}
           >
             {t('comum:acoes.tentarNovamente')}
@@ -59,6 +65,14 @@ export function FormView() {
       return (
         <p role="status" className="mx-auto my-auto text-muted-foreground">
           {t('comum:carregando')}
+        </p>
+      );
+    }
+
+    if (formResponse?.status === 'submitted') {
+      return (
+        <p className="mx-auto my-auto text-center text-muted-foreground">
+          {t('formulario:jaRespondido')}
         </p>
       );
     }

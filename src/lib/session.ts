@@ -1,6 +1,11 @@
 import type { SessionResponse } from '@/types/api';
 
 const STORAGE_KEY = 'creed.session';
+let sessionVersion = 0;
+
+export function getSessionVersion(): number {
+  return sessionVersion;
+}
 
 // "Lembrar de mim" é a escolha entre os dois: `localStorage` sobrevive a fechar
 // o navegador, `sessionStorage` morre com a aba.
@@ -28,12 +33,7 @@ export function getSession(): SessionResponse | null {
   return null;
 }
 
-/**
- * Grava a sessão. Sem `lembrar`, mantém onde ela já está — é o caso da
- * renovação automática, que não pode promover uma sessão de aba a sessão
- * persistente pelas costas de quem deixou "lembrar de mim" desmarcado.
- */
-export function setSession(session: SessionResponse, lembrar?: boolean): void {
+function writeSession(session: SessionResponse, lembrar?: boolean): void {
   const alvo =
     lembrar === undefined
       ? armazenamentoAtual()
@@ -48,7 +48,18 @@ export function setSession(session: SessionResponse, lembrar?: boolean): void {
   }
 }
 
+export function setSession(session: SessionResponse, lembrar?: boolean): void {
+  sessionVersion += 1;
+  writeSession(session, lembrar);
+}
+
+// Renovar os tokens mantém a sessão e a escolha de armazenamento do login.
+export function renewSession(session: SessionResponse): void {
+  writeSession(session);
+}
+
 export function clearSession(): void {
+  sessionVersion += 1;
   for (const armazenamento of armazenamentos()) {
     armazenamento.removeItem(STORAGE_KEY);
   }

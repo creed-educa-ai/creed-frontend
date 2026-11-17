@@ -29,13 +29,20 @@ import { EmptyState } from '@/components/states/EmptyState';
 
 type SortableColumn = 'name' | 'status' | 'tag' | 'updatedAt';
 
-// Ordem do status no crescente, a mesma da tabela de empresas do admin.
-// > 🟡 Premissa — "Pendente" (convite ainda não aceito) antes de "Ativo", não
-// > a ordem alfabética do rótulo, que muda com o idioma.
+// Ordem do status no crescente: quem ainda não respondeu primeiro, que é
+// quem a gestora precisa acompanhar. Não é a ordem alfabética do rótulo, que
+// muda com o idioma.
 const STATUS_ORDER: Record<Member['status'], number> = {
   pendente: 0,
-  ativo: 1,
+  respondeu: 1,
+  semPeriodo: 2,
 };
+
+const STATUS_TONE = {
+  respondeu: 'success',
+  pendente: 'warning',
+  semPeriodo: 'neutral',
+} as const satisfies Record<Member['status'], string>;
 
 interface MembersTableProps {
   members: Member[];
@@ -48,10 +55,17 @@ interface MembersTableProps {
   selectable?: boolean;
 }
 
-function formatDate(iso: string, language: string) {
+// Sem data (vínculo nunca alterado), um traço.
+function formatDate(iso: string | null, language: string) {
+  if (iso === null) return '—';
   return new Intl.DateTimeFormat(language, { dateStyle: 'short' }).format(
     new Date(iso),
   );
+}
+
+// Sem data, fica no começo do crescente: é o mais antigo.
+function timeOf(iso: string | null) {
+  return iso === null ? 0 : Date.parse(iso);
 }
 
 export function MembersTable({
@@ -101,7 +115,7 @@ export function MembersTable({
       }
       const cmp =
         sorting.column === 'updatedAt'
-          ? Date.parse(a.updated_at) - Date.parse(b.updated_at)
+          ? timeOf(a.updated_at) - timeOf(b.updated_at)
           : sorting.column === 'status'
             ? STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
             : byText(a.name, b.name);
@@ -124,7 +138,7 @@ export function MembersTable({
   // diante (md), fica compacta, como no mockup.
   function statusPill(member: Member) {
     return (
-      <StatusPill tone={member.status === 'ativo' ? 'success' : 'warning'}>
+      <StatusPill tone={STATUS_TONE[member.status]}>
         {t(`organizations:members.status.${member.status}`)}
       </StatusPill>
     );

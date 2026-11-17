@@ -29,10 +29,20 @@ describe('questionsApi', () => {
   it('listQuestions filtra pela seção quando pedida', async () => {
     const fetchMock = stubFetch(200, []);
 
-    await questionsApi.listQuestions(FORM_ID, 'S4');
+    await questionsApi.listQuestions(FORM_ID, { section: 'S4' });
 
     expect(lastCall(fetchMock).url).toBe(
       `/api/v1/forms/${FORM_ID}/questions?section=S4`,
+    );
+  });
+
+  it('listQuestions pede o idioma quando informado', async () => {
+    const fetchMock = stubFetch(200, []);
+
+    await questionsApi.listQuestions(FORM_ID, { section: 'S4', lang: 'es' });
+
+    expect(lastCall(fetchMock).url).toBe(
+      `/api/v1/forms/${FORM_ID}/questions?section=S4&lang=es`,
     );
   });
 

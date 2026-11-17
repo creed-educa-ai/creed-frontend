@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/sonner';
@@ -22,6 +23,7 @@ import { cardTitleClassName } from '@/lib/typography';
 export function CompaniesSection() {
   const { t } = useTranslation(['comum', 'empresas']);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { organizations, status, error } = useAppSelector(
     (state) => state.organizations,
   );
@@ -40,8 +42,9 @@ export function CompaniesSection() {
     (organization) => organization.id !== organizacaoDaSessao,
   );
 
+  // O dashboard da administradora, já com a empresa escolhida.
   const handleVerResultados = (id: string) => {
-    console.log('Ver resultados da empresa:', id);
+    navigate(`/dashboard/company?organization_id=${encodeURIComponent(id)}`);
   };
 
   // A falha vira toast, e a promessa resolve mesmo assim: o diálogo de

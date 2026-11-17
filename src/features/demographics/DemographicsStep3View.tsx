@@ -7,6 +7,7 @@ import { FormLayout } from '@/components/layout/formLayout';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
+import { PERSPECTIVE_MAX_LENGTH } from './demographicsSchema';
 import { setPerspective } from './demographicsSlice';
 import { pageTitleClassName } from '@/lib/typography';
 
@@ -23,14 +24,20 @@ export type DemographicsStep3Form = z.infer<typeof demograficos3Schema>;
 const respostaVazia: DemographicsStep3Form = { perspective: '' };
 
 interface Demograficos3ViewProps {
-  // A CREED-20.7 conecta estas ações ao fluxo, no mesmo formato da tela 2.
+  // Quem navega e fala com a API é o demographicsFlow, por estas props.
   onContinue?: (data: DemographicsStep3Form) => void;
   onSkip?: () => void;
+  // É a última etapa: é aqui que o fluxo salva o perfil no back. Enquanto
+  // salva, os botões ficam travados; se falhar, a mensagem aparece na tela.
+  saving?: boolean;
+  errorMessage?: string | null;
 }
 
 export function DemographicsStep3View({
   onContinue,
   onSkip,
+  saving = false,
+  errorMessage = null,
 }: Demograficos3ViewProps) {
   const { t } = useTranslation('respondentes');
   const dispatch = useAppDispatch();
@@ -51,8 +58,8 @@ export function DemographicsStep3View({
     defaultValues: { perspective: perspectivaSalva },
   });
 
-  // Nenhuma das duas ações navega: a ligação entre as telas é da CREED-20.7,
-  // que recebe o controle pelas props (P-009).
+  // Nenhuma das duas ações navega nem salva no back: isso é do fluxo, que
+  // recebe o controle pelas props (P-009).
   function salvar(dados: DemographicsStep3Form) {
     dispatch(setPerspective(dados.perspective));
     onContinue?.(dados);
@@ -83,12 +90,23 @@ export function DemographicsStep3View({
           <Textarea
             id="perspective"
             placeholder={t('demograficos3.placeholder')}
+            maxLength={PERSPECTIVE_MAX_LENGTH}
             {...register('perspective')}
           />
         </Field>
 
+        {errorMessage && (
+          <p role="alert" className="text-sm text-destructive">
+            {errorMessage}
+          </p>
+        )}
+
         <div className="mt-2 flex flex-col gap-2">
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isSubmitting || saving}
+          >
             {t('avancar')}
           </Button>
           <Button
@@ -96,7 +114,7 @@ export function DemographicsStep3View({
             variant="outline"
             className="w-full"
             onClick={pular}
-            disabled={isSubmitting}
+            disabled={isSubmitting || saving}
           >
             {t('pular')}
           </Button>
