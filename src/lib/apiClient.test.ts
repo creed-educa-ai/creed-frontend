@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { apiClient, ApiError } from '@/lib/apiClient';
-import { getSession, setSession } from '@/lib/session';
+import { clearSession, getSession, setSession } from '@/lib/session';
+import { deferred } from '@/test/deferred';
 import type { SessionResponse } from '@/types/api';
 
 const fakeUser = {
@@ -118,6 +119,63 @@ describe('apiClient', () => {
     await expect(apiClient.get('/whatever')).rejects.toThrow(ApiError);
 
     expect(getSession()).toBeNull();
+  });
+
+  it('preserves a missing profile response after refreshing the session', async () => {
+    setSession(oldSession);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse('token expired', 401))
+      .mockResolvedValueOnce(jsonResponse(refreshedSession))
+      .mockResolvedValueOnce(jsonResponse('profile not found', 404));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(apiClient.get('/demographics/me')).rejects.toMatchObject({
+      status: 404,
+    });
+    expect(getSession()).toEqual(refreshedSession);
+  });
+
+  it('does not retry a PUT when an old session returns 401 after a new login', async () => {
+    setSession(oldSession);
+    const previous = deferred<Response>();
+    const fetchMock = vi.fn().mockReturnValueOnce(previous.promise);
+    vi.stubGlobal('fetch', fetchMock);
+
+    const save = apiClient.put('/demographics/me', { perspective: 'Texto' });
+    clearSession();
+    const newLogin = { ...oldSession, access_token: 'access-new-login' };
+    setSession(newLogin);
+    previous.resolve(jsonResponse('token expired', 401));
+
+    await expect(save).rejects.toThrow(ApiError);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(getSession()).toEqual(newLogin);
+  });
+
+  it('does not overwrite a new login when a previous refresh resolves', async () => {
+    setSession(oldSession);
+    const refreshStarted = deferred<true>();
+    const refresh = deferred<Response>();
+    const fetchMock = vi.fn((url: string): Promise<Response> => {
+      if (url.endsWith('/authentication/renew')) {
+        refreshStarted.resolve(true);
+        return refresh.promise;
+      }
+      return Promise.resolve(jsonResponse('token expired', 401));
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const save = apiClient.put('/demographics/me', { perspective: 'Texto' });
+    await refreshStarted.promise;
+    clearSession();
+    const newLogin = { ...oldSession, access_token: 'access-new-login' };
+    setSession(newLogin);
+    refresh.resolve(jsonResponse(refreshedSession));
+
+    await expect(save).rejects.toThrow(ApiError);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(getSession()).toEqual(newLogin);
   });
 
   it('without a session, a 401 just throws (nothing to refresh)', async () => {
