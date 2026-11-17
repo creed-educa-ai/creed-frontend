@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
+import { demographicsApi } from '@/features/demographics/demographicsApi';
+import demographicsReducer from '@/features/demographics/demographicsSlice';
 import responsesReducer, { loadQuestionnaire } from './responsesSlice';
 import { responsesApi } from './responsesApi';
 import { questionsApi } from '@/features/questions/questionsApi';
@@ -12,6 +14,11 @@ import { ApiError } from '@/lib/apiClient';
 import type { CurrentFormRead, FormResponseResponse } from '@/types/api';
 import { QuestionnaireOnboardingView } from './QuestionnaireOnboardingView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+
+function DemographicsReview() {
+  const state = useLocation().state as { review?: boolean } | null;
+  return <p>{state?.review ? 'perfil em revisão' : 'perfil'}</p>;
+}
 
 describe('QuestionnaireOnboardingView', () => {
   const currentForm: CurrentFormRead = {
@@ -293,6 +300,50 @@ describe('QuestionnaireOnboardingView', () => {
     );
 
     expect(await screen.findByText('questionário')).toBeInTheDocument();
+  });
+
+  it('requests the saved demographics and opens review for an available questionnaire', async () => {
+    vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue(currentForm);
+    vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue([]);
+    const loadProfile = vi
+      .spyOn(demographicsApi, 'getMyDemographics')
+      .mockRejectedValue(
+        new ApiError('Perfil demográfico não encontrado', 404),
+      );
+    const store = configureStore({
+      reducer: {
+        authentication: authenticationReducer,
+        demographics: demographicsReducer,
+        responses: responsesReducer,
+      },
+    });
+    render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/questionnaire']}>
+          <Routes>
+            <Route
+              path="/questionnaire"
+              element={<QuestionnaireOnboardingView />}
+            />
+            <Route
+              path="/demographics/step-2"
+              element={<DemographicsReview />}
+            />
+          </Routes>
+        </MemoryRouter>
+      </Provider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Iniciar' })).toBeEnabled();
+    });
+    await userEvent.click(screen.getByRole('button', { name: 'Iniciar' }));
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Revisar dados' }),
+    );
+
+    expect(await screen.findByText('perfil em revisão')).toBeInTheDocument();
+    expect(loadProfile).toHaveBeenCalledTimes(1);
   });
 
   it('should translate all texts when changing language', async () => {

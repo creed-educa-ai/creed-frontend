@@ -1,6 +1,5 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import {
-  DemographicsStep1Route,
   DemographicsStep2Route,
   DemographicsStep3Route,
 } from '@/features/demographics/demographicsFlow';
@@ -50,7 +49,6 @@ export const router = createBrowserRouter([
       { path: '/dashboard/company', element: <CompanyDashboardRoute /> },
       { path: '/control-panel', element: <CompanyControlPanelView /> },
       { path: '/control-panel/admin', element: <AdminControlPanelView /> },
-      { path: '/demographics/step-1', element: <DemographicsStep1Route /> },
       { path: '/demographics/step-2', element: <DemographicsStep2Route /> },
       { path: '/demographics/step-3', element: <DemographicsStep3Route /> },
       { path: '/questionnaire', element: <QuestionnaireOnboardingView /> },

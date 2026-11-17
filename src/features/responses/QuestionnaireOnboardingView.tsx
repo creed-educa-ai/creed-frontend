@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { sectionTitleClassName } from '@/lib/typography';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { loadMyDemographics } from '@/features/demographics/demographicsSlice';
 import { IDIOMAS, IDIOMA_PADRAO } from '@/i18n/config';
 import type { QuestionLang } from '@/types/api';
 import { loadQuestionnaire } from '@/features/responses/responsesSlice';
@@ -155,7 +156,8 @@ export function QuestionnaireOnboardingView() {
         open={infoOpen}
         onOpenChange={setInfoOpen}
         onReview={() => {
-          navigate('/demographics/step-1');
+          void dispatch(loadMyDemographics());
+          navigate('/demographics/step-2', { state: { review: true } });
         }}
         onStart={() => {
           navigate('/questionnaire/questions');

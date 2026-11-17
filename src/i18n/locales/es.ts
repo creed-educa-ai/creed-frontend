@@ -67,10 +67,10 @@ export const es: typeof ptBR = {
     avancar: 'Continuar',
     pular: 'Omitir',
 
-    demograficos1: {
-      titulo: '¡Comencemos! ¿Cuál es tu nombre?',
-      descricaoNome: 'Este es el nombre que verán los demás usuarios',
-      nomeObrigatorio: 'Ingresa tu nombre para continuar.',
+    demograficos: {
+      carregando: 'Cargando tus datos…',
+      erroCarregar: 'No fue posible cargar tus datos.',
+      erroSalvar: 'No fue posible guardar tus datos. Inténtalo de nuevo.',
     },
 
     demograficos2: {
@@ -181,7 +181,6 @@ export const es: typeof ptBR = {
       pergunta:
         '¿Cómo influyó, o no, tu crianza familiar en tu trayectoria emprendedora o innovadora? Explica brevemente (opcional)',
       placeholder: 'Tu respuesta',
-      erroAoSalvar: 'No fue posible guardar tus datos',
     },
   },
   questionarioRevisao: {

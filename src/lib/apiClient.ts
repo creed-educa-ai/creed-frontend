@@ -6,7 +6,12 @@
 // `VITE_API_BASE_URL` no `.env.local` troca por uma base absoluta — é assim que o
 // front consome o mock do contrato enquanto o backend não existe, sem tocar em
 // código. Apagar a variável devolve o comportamento padrão.
-import { clearSession, getSession, setSession } from '@/lib/session';
+import {
+  clearSession,
+  getSession,
+  getSessionVersion,
+  renewSession,
+} from '@/lib/session';
 import type { SessionResponse } from '@/types/api';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
@@ -44,9 +49,18 @@ export class ApiError extends Error {
   }
 }
 
-let refreshInFlight: Promise<SessionResponse> | null = null;
+let refreshInFlight: {
+  version: number;
+  promise: Promise<SessionResponse>;
+} | null = null;
 
-async function refreshSession(): Promise<SessionResponse> {
+function assertCurrentSession(version: number) {
+  if (version !== getSessionVersion()) {
+    throw new ApiError('A sessão mudou durante a requisição', 401);
+  }
+}
+
+async function refreshSession(version: number): Promise<SessionResponse> {
   const currentSession = getSession();
   if (!currentSession) {
     throw new ApiError('Não há sessão para renovar', 401);
@@ -63,22 +77,28 @@ async function refreshSession(): Promise<SessionResponse> {
   }
 
   const newSession = (await response.json()) as SessionResponse;
-  setSession(newSession);
+  assertCurrentSession(version);
+  renewSession(newSession);
   return newSession;
 }
 
-function getOrStartRefresh(): Promise<SessionResponse> {
-  refreshInFlight ??= refreshSession().finally(() => {
-    refreshInFlight = null;
+function getOrStartRefresh(version: number): Promise<SessionResponse> {
+  if (refreshInFlight?.version === version) return refreshInFlight.promise;
+
+  const promise = refreshSession(version).finally(() => {
+    if (refreshInFlight?.version === version) refreshInFlight = null;
   });
-  return refreshInFlight;
+  refreshInFlight = { version, promise };
+  return promise;
 }
 
 async function request<T>(
   path: string,
   init?: RequestInit,
+  version = getSessionVersion(),
   alreadyRetried = false,
 ): Promise<T> {
+  assertCurrentSession(version);
   const session = getSession();
 
   // Montado pela API nativa: init.headers pode chegar como Headers, como array
@@ -93,16 +113,14 @@ async function request<T>(
   const response = await fetch(`${BASE_URL}${path}`, { ...init, headers });
 
   if (response.status === 401 && !ROUTES_WITHOUT_INTERCEPTOR.has(path)) {
+    assertCurrentSession(version);
     if (session && !alreadyRetried) {
-      try {
-        await getOrStartRefresh();
-        return await request<T>(path, init, true);
-      } catch {
-        // catch silencioso
-      }
+      const refreshed = await getOrStartRefresh(version).catch(() => null);
+      if (refreshed) return request<T>(path, init, version, true);
     }
 
     // Só limpa o storage aqui. Redirecionar para o "/login" é com a UI
+    assertCurrentSession(version);
     clearSession();
     throw new ApiError('Sessão expirada, por favor faça login novamente', 401);
   }

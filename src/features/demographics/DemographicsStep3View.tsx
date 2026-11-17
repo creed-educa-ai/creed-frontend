@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -8,6 +7,7 @@ import { FormLayout } from '@/components/layout/formLayout';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
+import { PERSPECTIVE_MAX_LENGTH } from './demographicsSchema';
 import { setPerspective } from './demographicsSlice';
 import { pageTitleClassName } from '@/lib/typography';
 
@@ -24,24 +24,26 @@ export type DemographicsStep3Form = z.infer<typeof demograficos3Schema>;
 const respostaVazia: DemographicsStep3Form = { perspective: '' };
 
 interface Demograficos3ViewProps {
-  // A CREED-20.7 conecta estas ações ao fluxo, no mesmo formato da tela 2.
-  // Podem devolver uma promessa (o envio ao back): os botões ficam
-  // desabilitados até ela terminar.
-  onContinue?: (data: DemographicsStep3Form) => void | Promise<void>;
-  onSkip?: () => void | Promise<void>;
+  // Quem navega e fala com a API é o demographicsFlow, por estas props.
+  onContinue?: (data: DemographicsStep3Form) => void;
+  onSkip?: () => void;
+  // É a última etapa: é aqui que o fluxo salva o perfil no back. Enquanto
+  // salva, os botões ficam travados; se falhar, a mensagem aparece na tela.
+  saving?: boolean;
+  errorMessage?: string | null;
 }
 
 export function DemographicsStep3View({
   onContinue,
   onSkip,
+  saving = false,
+  errorMessage = null,
 }: Demograficos3ViewProps) {
   const { t } = useTranslation('respondentes');
   const dispatch = useAppDispatch();
   const perspectivaSalva = useAppSelector(
     (state) => state.demographics.perspective,
   );
-  // O Pular não passa pelo handleSubmit: o envio dele tem estado próprio.
-  const [pulando, setPulando] = useState(false);
 
   // O texto vive no react-hook-form enquanto a pessoa digita e só vai para o
   // Redux no Avançar (formularios.md, regra 6). O valor inicial vem do slice
@@ -56,26 +58,19 @@ export function DemographicsStep3View({
     defaultValues: { perspective: perspectivaSalva },
   });
 
-  // Nenhuma das duas ações navega: a ligação entre as telas é da CREED-20.7,
-  // que recebe o controle pelas props (P-009).
-  async function salvar(dados: DemographicsStep3Form) {
+  // Nenhuma das duas ações navega nem salva no back: isso é do fluxo, que
+  // recebe o controle pelas props (P-009).
+  function salvar(dados: DemographicsStep3Form) {
     dispatch(setPerspective(dados.perspective));
-    await onContinue?.(dados);
+    onContinue?.(dados);
   }
 
   // Pular descarta a resposta desta etapa, inclusive a que já tinha sido salva.
-  async function pular() {
+  function pular() {
     reset(respostaVazia);
     dispatch(setPerspective(respostaVazia.perspective));
-    setPulando(true);
-    try {
-      await onSkip?.();
-    } finally {
-      setPulando(false);
-    }
+    onSkip?.();
   }
-
-  const enviando = isSubmitting || pulando;
 
   return (
     <FormLayout>
@@ -95,20 +90,31 @@ export function DemographicsStep3View({
           <Textarea
             id="perspective"
             placeholder={t('demograficos3.placeholder')}
+            maxLength={PERSPECTIVE_MAX_LENGTH}
             {...register('perspective')}
           />
         </Field>
 
+        {errorMessage && (
+          <p role="alert" className="text-sm text-destructive">
+            {errorMessage}
+          </p>
+        )}
+
         <div className="mt-2 flex flex-col gap-2">
-          <Button type="submit" className="w-full" disabled={enviando}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isSubmitting || saving}
+          >
             {t('avancar')}
           </Button>
           <Button
             type="button"
             variant="outline"
             className="w-full"
-            onClick={() => void pular()}
-            disabled={enviando}
+            onClick={pular}
+            disabled={isSubmitting || saving}
           >
             {t('pular')}
           </Button>

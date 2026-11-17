@@ -6,11 +6,15 @@ import { FormLayout } from '@/components/layout/formLayout';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { saveDemographicsStep } from './demographicsSlice';
+import {
+  saveDemographicsStep,
+  selectDemographicsForm,
+} from './demographicsSlice';
 import {
   demographicsSchema,
   emptyDemographics,
   normalizeDemographics,
+  OTHER_NATIONALITY_MAX_LENGTH,
   type DemographicsForm,
 } from './demographicsSchema';
 import { SingleChoiceField, MultipleChoiceField } from './DemographicsFields';
@@ -26,7 +30,7 @@ import {
 import { pageTitleClassName } from '@/lib/typography';
 
 interface Demograficos2ViewProps {
-  // A CREED-20.7 conecta estas ações ao fluxo e à API, sem rotas fictícias aqui.
+  // Quem navega e fala com a API é o demographicsFlow, por estas props.
   onContinue?: (data: DemographicsForm) => void;
   onSkip?: () => void;
 }
@@ -37,7 +41,9 @@ export function DemographicsStep2View({
 }: Demograficos2ViewProps) {
   const { t } = useTranslation('respondentes');
   const dispatch = useAppDispatch();
-  const draft = useAppSelector((state) => state.demographics);
+  // Valor inicial: o rascunho do slice, que o fluxo já preencheu com o perfil
+  // do back quando a pessoa veio revisar os dados.
+  const draft = useAppSelector(selectDemographicsForm);
   const {
     control,
     register,
@@ -47,7 +53,7 @@ export function DemographicsStep2View({
     formState: { isSubmitting },
   } = useForm<DemographicsForm>({
     resolver: zodResolver(demographicsSchema),
-    defaultValues: normalizeDemographics(draft),
+    defaultValues: draft,
   });
   const nationality = useWatch({ control, name: 'nationality' });
 
@@ -59,8 +65,8 @@ export function DemographicsStep2View({
 
   function saveStep(data: DemographicsForm) {
     const step = normalizeDemographics(data);
-    // Snapshot confirmado da etapa, compatível com as branches 20.4 e 20.6.
-    // Os campos em edição pertencem somente ao RHF; isto não persiste na API.
+    // Snapshot confirmado da etapa. Os campos em edição pertencem somente ao
+    // RHF; quem envia para a API é o fluxo, no fim da última etapa.
     dispatch(saveDemographicsStep(step));
     onContinue?.(step);
   }
@@ -154,7 +160,11 @@ export function DemographicsStep2View({
             <FieldLabel htmlFor="other_nationality">
               {t('campos.nacionalidadeOutra')}
             </FieldLabel>
-            <Input id="other_nationality" {...register('other_nationality')} />
+            <Input
+              id="other_nationality"
+              maxLength={OTHER_NATIONALITY_MAX_LENGTH}
+              {...register('other_nationality')}
+            />
           </Field>
         )}
         <div className="mt-2 flex flex-col gap-2">
