@@ -16,6 +16,8 @@ import type {
   AnswerCreate,
   FormRead,
   FormResponseResponse,
+  InsightStatus,
+  InsightStatusRead,
   QuestionLang,
   QuestionResponse,
   QuestionSection,
@@ -45,6 +47,9 @@ interface SubmissionState {
   // grava de novo a mesma pergunta (P-032).
   formResponseId: string | null;
   savedQuestionIds: string[];
+  // O estado do insight da resposta enviada, que a tela de confirmação
+  // acompanha. Nulo até a primeira consulta voltar.
+  insightStatus: InsightStatus | null;
 }
 
 interface ResponsesState {
@@ -70,6 +75,7 @@ const initialSubmission: SubmissionState = {
   error: null,
   formResponseId: null,
   savedQuestionIds: [],
+  insightStatus: null,
 };
 
 const initialState: ResponsesState = {
@@ -151,9 +157,10 @@ export function paraAnswerCreate(
 // 🟡 Premissa P-034: é aqui, e só aqui, que o questionário grava no back. Três
 // passos em ordem: abrir a resposta de formulário, gravar cada resposta
 // preenchida, enviar. Uma por vez, para a retomada saber exatamente onde parou.
-// O formulário é o que o `loadQuestionnaire` carregou.
+// O formulário é o que o `loadQuestionnaire` carregou. Devolve o id da
+// resposta enviada: a confirmação acompanha o insight dela.
 export const submitResponses = createAsyncThunk<
-  undefined,
+  string,
   { answers: AnswerToSubmit[] },
   { state: { responses: ResponsesState }; rejectValue: string }
 >(
@@ -204,10 +211,20 @@ export const submitResponses = createAsyncThunk<
         // Mesmo caso: o envio anterior chegou, a confirmação é que não voltou.
         if (!ehConflito(erro)) throw erro;
       }
+      return formResponseId;
     } catch {
       return rejectWithValue('questionarioRevisao:erros.envioFalhou');
     }
   },
+);
+
+// O insight nasce no envio, em preparo. A tela de confirmação chama de novo
+// de tempos em tempos e, ao sair, cancela (`abort()`). Uma consulta que falha
+// não muda nada: a próxima tenta de novo, e o teto da tela diz o resto.
+export const loadSubmittedInsight = createAsyncThunk<InsightStatusRead, string>(
+  'responses/loadSubmittedInsight',
+  (formResponseId, { signal }) =>
+    responsesApi.getInsightStatus(formResponseId, signal),
 );
 
 function isLatestLoad(state: ResponsesState, requestId: string) {
@@ -245,6 +262,9 @@ const responsesSlice = createSlice({
         state.submission.status = 'error';
         state.submission.error =
           action.payload ?? 'questionarioRevisao:erros.envioFalhou';
+      })
+      .addCase(loadSubmittedInsight.fulfilled, (state, action) => {
+        state.submission.insightStatus = action.payload.status;
       })
       .addCase(loadQuestionnaire.pending, (state, action) => {
         // Já carregado, a troca de idioma recarrega sem voltar a "carregando":

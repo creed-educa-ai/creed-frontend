@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
-import { dashboardsApi } from '@/features/dashboards/dashboardsApi';
+import {
+  dashboardsApi,
+  type UserDashboard,
+} from '@/features/dashboards/dashboardsApi';
 import dashboardsReducer from '@/features/dashboards/dashboardsSlice';
 import { UserDashboardView } from './UserDashboardView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
@@ -47,7 +50,7 @@ async function renderizar(role = 'respondente') {
   await waitFor(() => {
     expect(store.getState().dashboards.user.status).toBe('ready');
   });
-  return view;
+  return { ...view, store };
 }
 
 describe('UserDashboardView', () => {
@@ -441,13 +444,14 @@ describe('UserDashboardView', () => {
     await user.click(screen.getByRole('menuitemradio', { name: '31/12/2025' }));
 
     await waitFor(() => {
-      expect(dashboardsApi.getUserDashboard).toHaveBeenLastCalledWith({
-        period: 'periodo-2025-2',
-      });
+      expect(dashboardsApi.getUserDashboard).toHaveBeenLastCalledWith(
+        { period: 'periodo-2025-2' },
+        expect.any(AbortSignal),
+      );
     });
   });
 
-  it('should say the analysis is not available yet when the texts come empty', async () => {
+  it('should say the analysis is not available yet when there is no insight', async () => {
     vi.spyOn(dashboardsApi, 'getUserDashboard').mockResolvedValue({
       ...userDashboardFixture(),
       creed_summary: {
@@ -455,6 +459,8 @@ describe('UserDashboardView', () => {
         analiseTexto: [],
         recomendacaoTexto: [],
         prismas: {} as never,
+        insight_status: 'none',
+        generated_at: null,
       },
     });
     await renderizar();
@@ -509,5 +515,100 @@ describe('UserDashboardView', () => {
     expect(
       screen.queryByRole('link', { name: 'Voltar ao dashboard da empresa' }),
     ).not.toBeInTheDocument();
+  });
+
+  describe('with the Creed.ai text being prepared', () => {
+    // O back manda os textos vazios e sem data enquanto o insight está em
+    // preparo.
+    function emPreparo(): UserDashboard {
+      const resultado = userDashboardFixture();
+      return {
+        ...resultado,
+        creed_summary: {
+          ...resultado.creed_summary,
+          analiseTexto: [],
+          recomendacaoTexto: [],
+          prismas: {} as never,
+          insight_status: 'pending',
+          generated_at: null,
+        },
+      };
+    }
+
+    // O relógio falso também anda sozinho: o `waitFor` do `renderizar`
+    // continua funcionando.
+    beforeEach(() => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should ask again every 15 s and show the text once it is ready', async () => {
+      const busca = vi
+        .spyOn(dashboardsApi, 'getUserDashboard')
+        .mockResolvedValueOnce(emPreparo())
+        .mockResolvedValueOnce(emPreparo())
+        .mockResolvedValue(userDashboardFixture());
+      await renderizar();
+
+      expect(
+        screen.getAllByText('O Creed.ai está preparando este texto.'),
+      ).toHaveLength(6);
+
+      await act(() => vi.advanceTimersByTimeAsync(15_000));
+      expect(busca).toHaveBeenCalledTimes(2);
+      await act(() => vi.advanceTimersByTimeAsync(15_000));
+      expect(busca).toHaveBeenCalledTimes(3);
+      expect(screen.getByText('Gerado em 02/07/2026')).toBeInTheDocument();
+      // O resultado do cálculo ficou na tela o tempo todo.
+      expect(screen.getByText('Destaque')).toBeInTheDocument();
+
+      // Pronto: para de perguntar.
+      await act(() => vi.advanceTimersByTimeAsync(60_000));
+      expect(busca).toHaveBeenCalledTimes(3);
+    });
+
+    it('should stop asking after 2 minutes', async () => {
+      const busca = vi
+        .spyOn(dashboardsApi, 'getUserDashboard')
+        .mockImplementation(() => Promise.resolve(emPreparo()));
+      await renderizar();
+
+      await act(() => vi.advanceTimersByTimeAsync(2 * 60 * 1000));
+      // A carga da tela e mais 8 (2 min / 15 s).
+      expect(busca).toHaveBeenCalledTimes(9);
+
+      await act(() => vi.advanceTimersByTimeAsync(60_000));
+      expect(busca).toHaveBeenCalledTimes(9);
+      expect(
+        screen.getAllByText('O Creed.ai está preparando este texto.'),
+      ).toHaveLength(6);
+    });
+
+    it('should cancel the search when leaving the screen', async () => {
+      let sinal: AbortSignal | undefined;
+      const busca = vi
+        .spyOn(dashboardsApi, 'getUserDashboard')
+        .mockResolvedValueOnce(emPreparo())
+        // A busca repetida fica a caminho até a pessoa sair.
+        .mockImplementation((_filtros, signal) => {
+          sinal = signal;
+          return new Promise(() => undefined);
+        });
+      const { store, unmount } = await renderizar();
+
+      await act(() => vi.advanceTimersByTimeAsync(15_000));
+      expect(sinal?.aborted).toBe(false);
+
+      unmount();
+      await vi.advanceTimersByTimeAsync(60_000);
+
+      expect(sinal?.aborted).toBe(true);
+      expect(busca).toHaveBeenCalledTimes(2);
+      // Cancelada não é erro.
+      expect(store.getState().dashboards.user.status).not.toBe('error');
+    });
   });
 });

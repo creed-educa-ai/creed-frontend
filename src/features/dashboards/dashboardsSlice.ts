@@ -46,21 +46,26 @@ const initialState: DashboardsState = {
 // Cada troca de filtro carrega de novo: quem recorta é o back. O dado anterior
 // fica no estado enquanto o novo chega, para a tela não piscar.
 // 404 é a pessoa que ainda não enviou nenhum questionário: a tela mostra o
-// caminho até ele, não uma mensagem de erro.
+// caminho até ele, não uma mensagem de erro. Com o texto do Creed.ai em
+// preparo, a tela chama de novo de tempos em tempos e, ao sair, cancela a
+// busca (`abort()` da promessa do dispatch).
 export const loadUserDashboard = createAsyncThunk<
   UserDashboard,
   Pick<DashboardFilters, 'period' | 'member_id'>,
   { rejectValue: ErrorKey }
->('dashboards/loadUserDashboard', async (filters, { rejectWithValue }) => {
-  try {
-    return await dashboardsApi.getUserDashboard(filters);
-  } catch (erro) {
-    if (erro instanceof ApiError && erro.status === 404) {
-      return rejectWithValue('dashboard:semResultado');
+>(
+  'dashboards/loadUserDashboard',
+  async (filters, { rejectWithValue, signal }) => {
+    try {
+      return await dashboardsApi.getUserDashboard(filters, signal);
+    } catch (erro) {
+      if (erro instanceof ApiError && erro.status === 404) {
+        return rejectWithValue('dashboard:semResultado');
+      }
+      return rejectWithValue('dashboard:erroAoCarregar');
     }
-    return rejectWithValue('dashboard:erroAoCarregar');
-  }
-});
+  },
+);
 
 // Trocar o filtro rápido dispara várias cargas: a tela cancela a anterior
 // (`abort()` da promessa do dispatch), e só a última chega ao estado. 404 é a
@@ -121,6 +126,8 @@ const dashboardsSlice = createSlice({
         state.user.data = action.payload;
       })
       .addCase(loadUserDashboard.rejected, (state, action) => {
+        // Cancelada porque a pessoa saiu da tela: não é erro.
+        if (action.meta.aborted) return;
         if ((action.meta.arg.member_id ?? null) !== state.user.memberId) return;
         state.user.status = 'error';
         state.user.error = action.payload ?? 'dashboard:erroAoCarregar';

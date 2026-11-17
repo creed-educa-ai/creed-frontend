@@ -411,6 +411,8 @@ function buildCreedSummary(
     ),
     destaque: ordered[0] ?? 'seguranca_psicologica',
     oportunidade: ordered[ordered.length - 1] ?? 'neuroinovacao_prisma',
+    insight_status: 'done',
+    generated_at: '2026-07-02T13:30:00Z',
   };
 }
 

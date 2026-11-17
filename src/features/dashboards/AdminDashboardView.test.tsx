@@ -82,6 +82,9 @@ function retrato(kind: OverviewKind): OverviewDashboard {
       prismas: {} as never,
       destaque: 'seguranca_psicologica',
       oportunidade: 'seguranca_psicologica',
+      // O retrato atual não tem insight.
+      insight_status: 'none',
+      generated_at: null,
     },
   };
 }
@@ -225,10 +228,10 @@ describe('AdminDashboardView', () => {
     await escolher(user, 'Todas as empresas', 'Mentorando 1');
 
     await waitFor(() => {
-      expect(dashboardsApi.getUserDashboard).toHaveBeenLastCalledWith({
-        period: undefined,
-        member_id: 'link-m1',
-      });
+      expect(dashboardsApi.getUserDashboard).toHaveBeenLastCalledWith(
+        { period: undefined, member_id: 'link-m1' },
+        expect.any(AbortSignal),
+      );
     });
     // O nome dele no cabeçalho, e só os períodos dele: sem setor nem pessoa.
     await screen.findByRole('button', { name: /30\/06\/2026\s*Período/ });
@@ -272,10 +275,10 @@ describe('AdminDashboardView', () => {
     renderizar('admin', '/dashboard/company?member_id=link-m1');
 
     await waitFor(() => {
-      expect(dashboardsApi.getUserDashboard).toHaveBeenLastCalledWith({
-        period: undefined,
-        member_id: 'link-m1',
-      });
+      expect(dashboardsApi.getUserDashboard).toHaveBeenLastCalledWith(
+        { period: undefined, member_id: 'link-m1' },
+        expect.any(AbortSignal),
+      );
     });
     expect(
       await screen.findByRole('button', { name: 'Mentorando 1' }),

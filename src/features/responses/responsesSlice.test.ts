@@ -5,6 +5,7 @@ import { responsesApi } from '@/features/responses/responsesApi';
 import reducer, {
   clearSubmissionError,
   loadQuestionnaire,
+  loadSubmittedInsight,
   paraAnswerCreate,
   selectQuestionnaireSections,
   submitResponses,
@@ -138,6 +139,7 @@ describe('responsesSlice', () => {
         error: null,
         formResponseId: null,
         savedQuestionIds: [],
+        insightStatus: null,
       },
     });
   });
@@ -496,7 +498,17 @@ describe('responsesSlice', () => {
         error: null,
         formResponseId: null,
         savedQuestionIds: [],
+        insightStatus: null,
       });
+    });
+
+    it('devolve o id da resposta enviada, para a confirmação acompanhar o insight', async () => {
+      simularBack();
+      const store = criarStore();
+
+      const resultado = await enviar(store);
+
+      expect(resultado.payload).toBe(FORM_RESPONSE_ID);
     });
 
     it('409 ao abrir quer dizer que a pessoa já respondeu', async () => {
@@ -610,6 +622,65 @@ describe('responsesSlice', () => {
       expect(submission.savedQuestionIds).toEqual(['q1', 'q2', 'q5']);
     });
   });
+  describe('loadSubmittedInsight', () => {
+    it('guarda o estado do insight da resposta enviada', async () => {
+      const consulta = vi
+        .spyOn(responsesApi, 'getInsightStatus')
+        .mockResolvedValue({
+          status: 'done',
+          content: null,
+          completed_at: '2026-11-15T13:30:00Z',
+        });
+      const store = criarStore();
+
+      await store.dispatch(loadSubmittedInsight(FORM_RESPONSE_ID));
+
+      expect(consulta).toHaveBeenCalledWith(
+        FORM_RESPONSE_ID,
+        expect.any(AbortSignal),
+      );
+      expect(store.getState().responses.submission.insightStatus).toBe('done');
+    });
+
+    it('uma consulta que falha não muda o que a tela já sabia', async () => {
+      const consulta = vi
+        .spyOn(responsesApi, 'getInsightStatus')
+        .mockResolvedValueOnce({
+          status: 'pending',
+          content: null,
+          completed_at: null,
+        })
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'));
+      const store = criarStore();
+
+      await store.dispatch(loadSubmittedInsight(FORM_RESPONSE_ID));
+      await store.dispatch(loadSubmittedInsight(FORM_RESPONSE_ID));
+
+      expect(consulta).toHaveBeenCalledTimes(2);
+      expect(store.getState().responses.submission.insightStatus).toBe(
+        'pending',
+      );
+      expect(store.getState().responses.submission.error).toBeNull();
+    });
+
+    it('um envio novo esquece o insight da resposta anterior', () => {
+      const store = criarStore();
+      store.dispatch(
+        loadSubmittedInsight.fulfilled(
+          { status: 'done', content: null, completed_at: null },
+          'teste',
+          FORM_RESPONSE_ID,
+        ),
+      );
+
+      store.dispatch(
+        submitResponses.fulfilled('outra-resposta', 'teste', { answers: [] }),
+      );
+
+      expect(store.getState().responses.submission.insightStatus).toBeNull();
+    });
+  });
+
   describe('paraAnswerCreate', () => {
     it('descritiva vai em value', () => {
       expect(paraAnswerCreate(question({ id: 'q1' }), 'Meu texto')).toEqual({
