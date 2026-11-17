@@ -50,8 +50,8 @@ export function AdminControlPanelView() {
       {/* "Controles", como no painel da empresa: o card "Adicionar mentorando"
           na largura toda, com nome, e-mail e Adicionar numa linha. Embaixo,
           "Membros": um separador só para as duas tabelas, cada uma com o
-          título no próprio card. Uma embaixo da outra até o desktop cheio
-          (2xl), lado a lado dali para cima. */}
+          título no próprio card. Uma embaixo da outra em qualquer largura, os
+          mentorandos primeiro, logo abaixo do card que os adiciona. */}
       <main
         className={cn(
           'flex flex-col gap-8 pb-10',
@@ -75,9 +75,9 @@ export function AdminControlPanelView() {
 
         <section className="flex flex-col gap-4">
           <SectionHeader>{t('painelControle:membros')}</SectionHeader>
-          <div className="grid grid-cols-1 gap-8 2xl:grid-cols-2">
-            <CompaniesSection />
+          <div className="flex flex-col gap-8">
             <MenteesSection />
+            <CompaniesSection />
           </div>
         </section>
       </main>

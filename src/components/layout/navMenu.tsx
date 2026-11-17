@@ -88,6 +88,8 @@ export function NavMenu() {
       : role === 'gestor'
         ? '/control-panel'
         : null;
+  // A admin só administra e vê os dashboards: não tem questionário para ela.
+  const hasQuestionnaire = role !== 'admin';
 
   function handleLogout() {
     dispatch(logout());
@@ -131,9 +133,14 @@ export function NavMenu() {
             <SlidersHorizontal size={24} />
           </NavMenuLink>
         )}
-        <NavMenuLink to="/questionnaire" label={t('formulario:menuFormulario')}>
-          <ClipboardPen size={24} />
-        </NavMenuLink>
+        {hasQuestionnaire && (
+          <NavMenuLink
+            to="/questionnaire"
+            label={t('formulario:menuFormulario')}
+          >
+            <ClipboardPen size={24} />
+          </NavMenuLink>
+        )}
         <NavMenuLink to="/about" label={t('formulario:menuInformacoes')}>
           <Info size={24} />
         </NavMenuLink>

@@ -12,7 +12,7 @@ const membrosMock: Member[] = [
     email: 'michael.mitc@example.com',
     status: 'respondeu',
     tag: 'Marketing',
-    updated_at: '2026-10-18T14:12:00.000Z',
+    role: 'respondente',
   },
   {
     id: '2',
@@ -20,7 +20,7 @@ const membrosMock: Member[] = [
     email: 'felicia.reid@example.com',
     status: 'respondeu',
     tag: 'Financeiro',
-    updated_at: '2026-10-17T09:40:00.000Z',
+    role: 'gestor',
   },
   {
     id: '3',
@@ -28,7 +28,7 @@ const membrosMock: Member[] = [
     email: 'georgia.young@example.com',
     status: 'pendente',
     tag: 'RecursosHumanos',
-    updated_at: '2026-10-16T18:05:00.000Z',
+    role: 'respondente',
   },
   {
     id: '4',
@@ -36,7 +36,7 @@ const membrosMock: Member[] = [
     email: 'alma.lawson@example.com',
     status: 'respondeu',
     tag: 'TecnologiaInformacao',
-    updated_at: '2026-10-15T11:22:00.000Z',
+    role: 'respondente',
   },
   {
     id: '5',
@@ -44,7 +44,7 @@ const membrosMock: Member[] = [
     email: 'dolores.chambers@example.com',
     status: 'pendente',
     tag: 'Administrativo',
-    updated_at: '2026-10-14T08:01:00.000Z',
+    role: 'respondente',
   },
   {
     id: '6',
@@ -52,7 +52,7 @@ const membrosMock: Member[] = [
     email: 'ana.souza@example.com',
     status: 'respondeu',
     tag: 'Marketing',
-    updated_at: '2026-10-13T16:47:00.000Z',
+    role: 'respondente',
   },
   {
     id: '7',
@@ -60,7 +60,7 @@ const membrosMock: Member[] = [
     email: 'bruno.lima@example.com',
     status: 'pendente',
     tag: null,
-    updated_at: '2026-10-12T10:18:00.000Z',
+    role: 'respondente',
   },
   {
     id: '8',
@@ -68,7 +68,7 @@ const membrosMock: Member[] = [
     email: 'carla.dias@example.com',
     status: 'respondeu',
     tag: null,
-    updated_at: '2026-10-11T13:33:00.000Z',
+    role: 'respondente',
   },
 ];
 
@@ -112,7 +112,9 @@ describe('MembersTable', () => {
     );
     await userEvent.click(screen.getByRole('button', { name: 'Próximo' }));
     await userEvent.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar membros por email' }),
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar membros por nome ou email',
+      }),
       ' FELICIA.REID ',
     );
 
@@ -133,7 +135,9 @@ describe('MembersTable', () => {
       <MembersTable members={itens} onDelete={vi.fn()} onChangeTag={vi.fn()} />,
     );
     await userEvent.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar membros por nome' }),
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar membros por nome ou email',
+      }),
       'inexistente',
     );
     expect(
@@ -157,18 +161,19 @@ describe('MembersTable', () => {
     expect(ordenar.closest('th')).toHaveAttribute('aria-sort', 'none');
   });
 
-  it('filtra por nome e por email ao mesmo tempo', async () => {
+  it('um campo só acha pelo nome ou pelo email', async () => {
     render(
       <MembersTable members={itens} onDelete={vi.fn()} onChangeTag={vi.fn()} />,
     );
-    await userEvent.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar membros por nome' }),
-      'a',
-    );
-    await userEvent.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar membros por email' }),
-      'felicia',
-    );
+    const busca = screen.getByRole('searchbox', {
+      name: 'Pesquisar membros por nome ou email',
+    });
+    expect(screen.getAllByRole('searchbox')).toHaveLength(1);
+    await userEvent.type(busca, 'wilson');
+    expect(linhas()).toHaveLength(1);
+    expect(linhas()[0]).toHaveTextContent('Wilson Mathias');
+    await userEvent.clear(busca);
+    await userEvent.type(busca, 'felicia');
     expect(linhas()).toHaveLength(1);
     expect(linhas()[0]).toHaveTextContent('Wilson Mathias');
   });
@@ -184,14 +189,14 @@ describe('MembersTable', () => {
     expect(linhas()[0]).toHaveTextContent('Respondeu');
   });
 
-  it('membro sem período e sem data: selo "Sem período" e um traço na data', () => {
+  it('membro sem período: selo "Sem período"', () => {
     const semPeriodo: Member = {
       id: '99',
       name: 'Nova Pessoa',
       email: 'nova@example.com',
       status: 'semPeriodo',
       tag: null,
-      updated_at: null,
+      role: 'respondente',
     };
     render(
       <MembersTable
@@ -202,7 +207,6 @@ describe('MembersTable', () => {
     );
 
     expect(linhas()[0]).toHaveTextContent('Sem período');
-    expect(linhas()[0]).toHaveTextContent('—');
   });
 
   it('mostra cada membro também como cartão, para o celular', () => {
@@ -230,11 +234,11 @@ describe('MembersTable', () => {
     );
     await userEvent.click(
       within(tabela()).getByRole('button', {
-        name: 'Marketing: alterar a tag de Enner Valência',
+        name: 'Marketing: alterar o setor de Enner Valência',
       }),
     );
     const opcoes = screen.getAllByRole('menuitemradio');
-    // Os cinco setores e "Sem tag".
+    // Os cinco setores e "Sem setor".
     expect(opcoes).toHaveLength(6);
     expect(
       screen.getByRole('menuitemradio', { name: 'Marketing' }),
@@ -243,7 +247,7 @@ describe('MembersTable', () => {
     expect(onChangeTag).toHaveBeenCalledWith('1', 'TecnologiaInformacao');
   });
 
-  it('mostra "Sem tag" para quem ainda não tem e deixa escolher', async () => {
+  it('mostra "Sem setor" para quem ainda não tem e deixa escolher', async () => {
     const onChangeTag = vi.fn();
     render(
       <MembersTable
@@ -255,11 +259,11 @@ describe('MembersTable', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Próximo' }));
     await userEvent.click(
       within(tabela()).getByRole('button', {
-        name: 'Sem tag: alterar a tag de Bruno Lima',
+        name: 'Sem setor: alterar o setor de Bruno Lima',
       }),
     );
     expect(
-      screen.getByRole('menuitemradio', { name: 'Sem tag' }),
+      screen.getByRole('menuitemradio', { name: 'Sem setor' }),
     ).toHaveAttribute('aria-checked', 'true');
     await userEvent.click(screen.getByRole('menuitemradio', { name: 'RH' }));
     expect(onChangeTag).toHaveBeenCalledWith('7', 'RecursosHumanos');
@@ -271,7 +275,7 @@ describe('MembersTable', () => {
     );
     const nomes = () =>
       linhas().map((linha) => linha.querySelector('td')?.textContent);
-    const ordenar = screen.getByRole('button', { name: 'Ordenar por tag' });
+    const ordenar = screen.getByRole('button', { name: 'Ordenar por setor' });
 
     await userEvent.click(ordenar);
     expect(ordenar.closest('th')).toHaveAttribute('aria-sort', 'ascending');
@@ -301,21 +305,26 @@ describe('MembersTable', () => {
     expect(nomes()).toEqual(['Clayton Sampaio', 'Bruno Lima', 'Carla Dias']);
   });
 
-  it('ordena datas e as formata no idioma selecionado', async () => {
+  it('mostra a função como selo, ordena por ela e traduz', async () => {
     render(
       <MembersTable members={itens} onDelete={vi.fn()} onChangeTag={vi.fn()} />,
     );
-    expect(within(tabela()).getByText('18/10/2026')).toBeInTheDocument();
-    const ordenar = screen.getByRole('button', {
-      name: 'Ordenar por data recente',
-    });
+    expect(
+      within(tabela()).getByRole('columnheader', { name: /Função/ }),
+    ).toBeInTheDocument();
+    expect(
+      within(tabela()).queryByText('Data recente'),
+    ).not.toBeInTheDocument();
+    const ordenar = screen.getByRole('button', { name: 'Ordenar por função' });
     await userEvent.click(ordenar);
-    expect(linhas()[0]).toHaveTextContent('Carla Dias');
+    expect(linhas()[0]).toHaveTextContent('Wilson Mathias');
+    expect(linhas()[0]).toHaveTextContent('Gestor');
+    expect(linhas()[1]).toHaveTextContent('Membro');
     await userEvent.click(ordenar);
-    expect(linhas()[0]).toHaveTextContent('Enner Valência');
+    expect(linhas()[0]).not.toHaveTextContent('Wilson Mathias');
     expect(ordenar.closest('th')).toHaveAttribute('aria-sort', 'descending');
     await act(() => i18n.changeLanguage('en'));
-    expect(within(tabela()).getByText('10/18/26')).toBeInTheDocument();
+    expect(within(tabela()).getAllByText('Member').length).toBeGreaterThan(0);
     expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
   });
 
@@ -359,28 +368,6 @@ describe('MembersTable', () => {
     expect(
       screen.getByText('0 de 5 linha(s) selecionada(s).'),
     ).toBeInTheDocument();
-  });
-
-  it('ordena datas pelo instante mesmo com fusos diferentes', async () => {
-    const comFusos = itens.slice(0, 2).map((membro, indice) => ({
-      ...membro,
-      updated_at:
-        indice === 0 ? '2026-10-18T10:00:00-03:00' : '2026-10-18T12:00:00Z',
-    }));
-    render(
-      <MembersTable
-        members={comFusos}
-        onDelete={vi.fn()}
-        onChangeTag={vi.fn()}
-      />,
-    );
-    const ordenar = screen.getByRole('button', {
-      name: 'Ordenar por data recente',
-    });
-    await userEvent.click(ordenar);
-    expect(linhas()[0]).toHaveTextContent('Wilson Mathias');
-    await userEvent.click(ordenar);
-    expect(linhas()[0]).toHaveTextContent('Enner Valência');
   });
 
   it('não tem a coluna Ação nem o botão Ver', () => {

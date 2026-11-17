@@ -11,7 +11,11 @@ import responsesReducer, { loadQuestionnaire } from './responsesSlice';
 import { responsesApi } from './responsesApi';
 import { questionsApi } from '@/features/questions/questionsApi';
 import { ApiError } from '@/lib/apiClient';
-import type { CurrentFormRead, FormResponseResponse } from '@/types/api';
+import type {
+  CurrentFormRead,
+  FormResponseResponse,
+  UserSessionResponse,
+} from '@/types/api';
 import { QuestionnaireOnboardingView } from './QuestionnaireOnboardingView';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 
@@ -59,20 +63,41 @@ describe('QuestionnaireOnboardingView', () => {
     vi.restoreAllMocks();
   });
 
+  const GESTORA: UserSessionResponse = {
+    id: 'usuario-1',
+    email: 'gestora@example.com',
+    name: 'Ana Gestora',
+    role: 'gestor',
+    link_id: 'vinculo-1',
+    organization_id: 'org-1',
+    organization_name: null,
+  };
+
   // O menu do topo lê o papel na sessão; vazia, ele mostra o de respondente.
-  function criarStore() {
+  // Com `user`, a sessão de quem entrou (o cabeçalho mostra o nome).
+  function criarStore(user?: UserSessionResponse) {
     return configureStore({
       reducer: {
         authentication: authenticationReducer,
         responses: responsesReducer,
       },
+      ...(user && {
+        preloadedState: {
+          authentication: {
+            user,
+            status: 'authenticated' as const,
+            error: null,
+            passwordReset: { status: 'idle' as const, error: null },
+          },
+        },
+      }),
     });
   }
 
   function renderizar(
     getCurrentForm: () => Promise<CurrentFormRead> = () =>
       Promise.resolve(currentForm),
-    store = criarStore(),
+    store: ReturnType<typeof criarStore> = criarStore(),
   ) {
     vi.spyOn(responsesApi, 'getCurrentForm').mockImplementation(getCurrentForm);
     vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue([]);
@@ -86,9 +111,11 @@ describe('QuestionnaireOnboardingView', () => {
   }
 
   it('should render header with user name and title', () => {
-    renderizar();
+    renderizar(undefined, criarStore(GESTORA));
 
-    expect(screen.getByText('João Silva')).toBeInTheDocument();
+    // O nome vem da sessão, de gestora ou de quem responde.
+    expect(screen.getByText('Ana Gestora')).toBeInTheDocument();
+    expect(screen.queryByText('João Silva')).not.toBeInTheDocument();
     expect(
       screen.getByRole('heading', { level: 1, name: 'Formulário' }),
     ).toBeInTheDocument();
@@ -130,13 +157,13 @@ describe('QuestionnaireOnboardingView', () => {
     renderizar(() => promise, store);
 
     expect(screen.getByRole('status')).toHaveTextContent('Carregando');
-    expect(screen.queryByText('~15 minutos')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Suas respostas ajudam/)).not.toBeInTheDocument();
 
     resolve({ ...currentForm, form_response: submittedResponse });
     expect(
       await screen.findByText('Você já respondeu este questionário.'),
     ).toBeInTheDocument();
-    expect(screen.queryByText('~15 minutos')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Suas respostas ajudam/)).not.toBeInTheDocument();
   });
 
   it('shows a server error as an alert and retries on request', async () => {
@@ -173,26 +200,46 @@ describe('QuestionnaireOnboardingView', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('keeps "Vamos começar?" as the title when a questionnaire is open', async () => {
+    renderizar();
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Vamos começar?' }),
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Iniciar' })).toBeEnabled();
+    });
+  });
+
   it('enables starting when a questionnaire is open', async () => {
     renderizar();
 
     expect(
       await screen.findByText('Você tem um questionário disponível'),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Suas respostas ajudam/)).toBeInTheDocument();
-    expect(screen.getByText('~15 minutos')).toBeInTheDocument();
-    expect(screen.getByText('4 seções')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Suas respostas ajudam a mapear não apenas o panorama da sua organização, mas também o seu.',
+      ),
+    ).toBeInTheDocument();
+    // Saíram a promessa de pausar com o progresso salvo, a duração e as seções.
+    expect(screen.queryByText(/pausar/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/minutos/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/seções/)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Iniciar' })).toBeEnabled();
   });
 
   it('shows no-open-questionnaire message and disables starting', async () => {
     renderizar(() => Promise.reject(new ApiError('not found', 404)));
 
+    // O aviso vira o título do card, no lugar do "Vamos começar?".
     expect(
-      await screen.findByText(
-        'Nenhum questionário aberto para você no momento.',
-      ),
+      await screen.findByRole('heading', {
+        level: 2,
+        name: 'Nenhum questionário aberto para você no momento.',
+      }),
     ).toBeInTheDocument();
+    expect(screen.queryByText('Vamos começar?')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Iniciar' })).toBeDisabled();
   });
 
@@ -205,8 +252,12 @@ describe('QuestionnaireOnboardingView', () => {
     );
 
     expect(
-      await screen.findByText('Você já respondeu este questionário.'),
+      await screen.findByRole('heading', {
+        level: 2,
+        name: 'Você já respondeu este questionário.',
+      }),
     ).toBeInTheDocument();
+    expect(screen.queryByText('Vamos começar?')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Iniciar' })).toBeDisabled();
   });
 

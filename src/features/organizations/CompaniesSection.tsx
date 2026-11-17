@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/sonner';
+import { dashboardsApi } from '@/features/dashboards/dashboardsApi';
 import { CompanyTable } from '@/features/organizations/CompanyTable';
 import {
   approveOrganization,
@@ -11,6 +12,7 @@ import {
   loadOrganizations,
   NAO_APROVADA,
 } from '@/features/organizations/organizationsSlice';
+import { ApiError } from '@/lib/apiClient';
 import type { OrganizationResponse } from '@/types/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { ErrorState } from '@/components/states/ErrorState';
@@ -34,6 +36,30 @@ export function CompaniesSection() {
   useEffect(() => {
     void dispatch(loadOrganizations());
   }, [dispatch]);
+
+  // Quais empresas têm resultado: as do retrato atual da administradora, que
+  // só traz empresa com alguma resposta enviada. `null` enquanto não se sabe,
+  // ou se a busca falhou: aí o "Ver Resultados" fica como antes, para a falha
+  // não travar a tabela.
+  const [comResultados, setComResultados] =
+    useState<ReadonlySet<string> | null>(null);
+  useEffect(() => {
+    const controle = new AbortController();
+    void dashboardsApi.getOverview('companies', controle.signal).then(
+      (retrato) => {
+        setComResultados(new Set(retrato.groups.map((grupo) => grupo.id)));
+      },
+      (erro: unknown) => {
+        // 404: nenhuma empresa tem resposta ainda.
+        if (erro instanceof ApiError && erro.status === 404) {
+          setComResultados(new Set());
+        }
+      },
+    );
+    return () => {
+      controle.abort();
+    };
+  }, []);
 
   // 🟡 Premissa P-081 — a tabela não mostra a organização da sessão (a da
   // CREED). Sem `organization_id` na sessão, nada sai da lista, e o back
@@ -122,6 +148,7 @@ export function CompaniesSection() {
           {status === 'ready' && (
             <CompanyTable
               empresas={empresas}
+              comResultados={comResultados}
               onVerResultados={handleVerResultados}
               onExcluir={handleExcluir}
               onAceitar={(empresa) => {

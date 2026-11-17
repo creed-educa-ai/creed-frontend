@@ -202,6 +202,9 @@ interface QuestionProps {
   titulo: string;
   subtitulo: string;
   tipo: QuestionType;
+  // Opcional e em branco, o "Avançar" vira "Pular": deixa claro que dá para
+  // seguir sem responder.
+  opcional?: boolean;
   respostas?: string[];
   valor?: string;
   onMudar: (valor: string) => void;
@@ -223,6 +226,7 @@ export function Questions({
   titulo,
   subtitulo,
   tipo,
+  opcional = false,
   respostas = [],
   valor = '',
   onMudar,
@@ -342,7 +346,9 @@ export function Questions({
                 onProximo();
               }}
             >
-              {t('formulario:avancar')}
+              {opcional && valor.trim() === ''
+                ? t('formulario:pular')
+                : t('formulario:avancar')}
             </Button>
           </footer>
         </div>

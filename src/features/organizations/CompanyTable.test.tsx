@@ -74,11 +74,28 @@ describe('CompanyTable', () => {
     expect(within(tabela).getByText('Ativo')).toBeInTheDocument();
 
     expect(
-      screen.getByRole('searchbox', { name: 'Pesquisar empresas por nome' }),
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar empresas por nome ou email',
+      }),
     ).toBeInTheDocument();
 
     // A aprovação é pelo botão "Pendente": a tabela não tem caixas de seleção.
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+  });
+
+  it('põe Status antes de Resultados, como a tabela de mentorandos', () => {
+    renderTabela();
+
+    const colunas = within(screen.getByRole('table'))
+      .getAllByRole('columnheader')
+      .map((coluna) => coluna.textContent);
+    expect(colunas).toEqual([
+      expect.stringContaining('Nome'),
+      'Email',
+      expect.stringContaining('Status'),
+      'Resultados',
+      'Excluir',
+    ]);
   });
 
   it('mostra a inativa com o selo "Inativo", e a sem e-mail sem quebrar', async () => {
@@ -99,7 +116,9 @@ describe('CompanyTable', () => {
 
     // A busca por e-mail não quebra na organização sem e-mail.
     await user.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar empresas por email' }),
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar empresas por nome ou email',
+      }),
       'acme',
     );
     expect(
@@ -129,7 +148,9 @@ describe('CompanyTable', () => {
     renderTabela();
 
     await user.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar empresas por nome' }),
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar empresas por nome ou email',
+      }),
       'Acme',
     );
 
@@ -239,33 +260,20 @@ describe('CompanyTable', () => {
     expect(within(linhaTech).getByText('Ativo').tagName).toBe('SPAN');
   });
 
-  it('filtra pelo email, separado do nome', async () => {
+  it('o mesmo campo acha também pelo email', async () => {
     const user = userEvent.setup();
     renderTabela();
     const tabela = screen.getByRole('table');
 
-    expect(
-      screen.getByRole('searchbox', { name: 'Pesquisar empresas por email' }),
-    ).toBeInTheDocument();
-
+    expect(screen.getAllByRole('searchbox')).toHaveLength(1);
     await user.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar empresas por email' }),
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar empresas por nome ou email',
+      }),
       'techsolutions',
     );
     expect(within(tabela).getByText('Tech Solutions')).toBeInTheDocument();
     expect(within(tabela).queryByText('Acme Inc.')).not.toBeInTheDocument();
-
-    // O nome não é procurado no campo de email.
-    await user.clear(
-      screen.getByRole('searchbox', { name: 'Pesquisar empresas por email' }),
-    );
-    await user.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar empresas por email' }),
-      'Inova Tech',
-    );
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Nenhuma empresa encontrada.',
-    );
   });
 
   it('ordena pelo status: pendentes no crescente, ativas no decrescente', async () => {
@@ -316,7 +324,9 @@ describe('CompanyTable', () => {
     renderTabela();
 
     await user.type(
-      screen.getByRole('searchbox', { name: 'Pesquisar empresas por nome' }),
+      screen.getByRole('searchbox', {
+        name: 'Pesquisar empresas por nome ou email',
+      }),
       'nada disso',
     );
 

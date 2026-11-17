@@ -31,6 +31,9 @@ import { EmptyState } from '@/components/states/EmptyState';
 
 interface CompanyTableProps {
   empresas: OrganizationResponse[];
+  // As empresas com alguma resposta: só elas têm o que mostrar no "Ver
+  // Resultados". `null` (ou ausente) quando não se sabe: o botão não trava.
+  comResultados?: ReadonlySet<string> | null;
   onVerResultados: (id: string) => void;
   // Pode devolver uma promessa: o diálogo de confirmação espera por ela.
   onExcluir: (id: string) => void | Promise<void>;
@@ -40,14 +43,14 @@ interface CompanyTableProps {
 
 export function CompanyTable({
   empresas,
+  comResultados = null,
   onVerResultados,
   onExcluir,
   onAceitar,
   onRejeitar,
 }: CompanyTableProps) {
   const { t, i18n } = useTranslation(['empresas', 'comum']);
-  const [pesquisaNome, setPesquisaNome] = useState('');
-  const [pesquisaEmail, setPesquisaEmail] = useState('');
+  const [pesquisa, setPesquisa] = useState('');
   const {
     sorting,
     toggle: alternarOrdem,
@@ -59,13 +62,12 @@ export function CompanyTable({
     useState<OrganizationResponse | null>(null);
 
   const filtradas = useMemo(() => {
-    const termoNome = normalizeForSearch(pesquisaNome);
-    const termoEmail = normalizeForSearch(pesquisaEmail);
-    // As duas buscas valem juntas: a empresa precisa bater com as duas.
+    const termo = normalizeForSearch(pesquisa);
+    // Um campo só, que procura no nome e no e-mail: basta bater com um deles.
     const lista = empresas.filter(
       (empresa) =>
-        normalizeForSearch(empresa.name).includes(termoNome) &&
-        normalizeForSearch(empresa.email ?? '').includes(termoEmail),
+        normalizeForSearch(empresa.name).includes(termo) ||
+        normalizeForSearch(empresa.email ?? '').includes(termo),
     );
 
     // Pendentes no topo: são as que pedem uma ação. Dentro de cada grupo vale
@@ -88,7 +90,7 @@ export function CompanyTable({
       });
       return sorting.direction === 'asc' ? cmp : -cmp;
     });
-  }, [pesquisaNome, pesquisaEmail, empresas, sorting, i18n.resolvedLanguage]);
+  }, [pesquisa, empresas, sorting, i18n.resolvedLanguage]);
 
   const paginacao = useTablePage(filtradas);
   const empresasDaPagina = paginacao.pageItems;
@@ -100,7 +102,10 @@ export function CompanyTable({
     return (
       <RowActionButton
         className="h-10 px-4 md:h-7 md:px-3"
-        disabled={empresa.status === 'pending'}
+        disabled={
+          empresa.status === 'pending' ||
+          (comResultados !== null && !comResultados.has(empresa.id))
+        }
         onClick={() => {
           onVerResultados(empresa.id);
         }}
@@ -158,24 +163,14 @@ export function CompanyTable({
       <TableToolbar
         searches={[
           {
-            key: 'nome',
-            value: pesquisaNome,
+            key: 'pesquisa',
+            value: pesquisa,
             onChange: (valor) => {
-              setPesquisaNome(valor);
+              setPesquisa(valor);
               paginacao.reset();
             },
-            label: t('empresas:pesquisarNome.label'),
-            placeholder: t('empresas:pesquisarNome.placeholder'),
-          },
-          {
-            key: 'email',
-            value: pesquisaEmail,
-            onChange: (valor) => {
-              setPesquisaEmail(valor);
-              paginacao.reset();
-            },
-            label: t('empresas:pesquisarEmail.label'),
-            placeholder: t('empresas:pesquisarEmail.placeholder'),
+            label: t('empresas:pesquisar.label'),
+            placeholder: t('empresas:pesquisar.placeholder'),
           },
         ]}
       />
@@ -184,9 +179,7 @@ export function CompanyTable({
         <EmptyState>{t('empresas:vazio')}</EmptyState>
       ) : (
         <>
-          {/* No desktop cheio (2xl) o painel do admin põe esta tabela ao lado
-              da outra: as células apertam para as colunas caberem na metade. */}
-          <div className="hidden overflow-x-auto md:block 2xl:[&_td]:px-2 2xl:[&_th]:px-2">
+          <div className="hidden overflow-x-auto md:block">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
@@ -202,9 +195,8 @@ export function CompanyTable({
                   <TableHead className={tableHeadClass}>
                     {t('empresas:colunas.email')}
                   </TableHead>
-                  <TableHead className={cn(tableHeadClass, 'text-center')}>
-                    {t('empresas:colunas.resultados')}
-                  </TableHead>
+                  {/* Resultados antes do Excluir, como na tabela de
+                      mentorandos do mesmo painel: as colunas ficam alinhadas. */}
                   <SortableHead
                     className="text-center"
                     label={t('empresas:colunas.status')}
@@ -215,6 +207,9 @@ export function CompanyTable({
                       alternarOrdem('status');
                     }}
                   />
+                  <TableHead className={cn(tableHeadClass, 'text-center')}>
+                    {t('empresas:colunas.resultados')}
+                  </TableHead>
                   <TableHead className={tableHeadDangerClass}>
                     {t('empresas:colunas.excluir')}
                   </TableHead>
@@ -229,12 +224,12 @@ export function CompanyTable({
                     </TableCell>
                     <TableCell
                       title={empresa.email ?? undefined}
-                      className="max-w-[220px] truncate text-muted-foreground 2xl:max-w-[160px]"
+                      className="max-w-[220px] truncate text-muted-foreground"
                     >
                       {empresa.email}
                     </TableCell>
-                    <CenterCell>{botaoResultados(empresa)}</CenterCell>
                     <CenterCell>{status(empresa)}</CenterCell>
+                    <CenterCell>{botaoResultados(empresa)}</CenterCell>
                     <CenterCell>{botaoExcluir(empresa)}</CenterCell>
                   </TableRow>
                 ))}

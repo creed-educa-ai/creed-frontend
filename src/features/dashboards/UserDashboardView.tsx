@@ -55,6 +55,13 @@ export function UserDashboardView({
   const isManager = useAppSelector(
     (state) => state.authentication.user?.role === 'gestor',
   );
+  const sessionName = useAppSelector(
+    (state) => state.authentication.user?.name ?? null,
+  );
+  // O nome da pessoa do resultado, nunca o da empresa. O de um mentorando vem
+  // do back (`member_name`); o próprio, da sessão. Vendo um mentorando, o nome
+  // da sessão é o da administradora: espera o do back.
+  const headerName = memberId ? (data?.member_name ?? null) : sessionName;
   // Nulo até a pessoa escolher: vale o período atual que veio do back.
   const [period, setPeriod] = useState<string | null>(null);
   const [pdfData, setPdfData] = useState<UserDashboard | null>(null);
@@ -126,10 +133,7 @@ export function UserDashboardView({
 
   return (
     <div className="dashboard-view flex min-h-svh flex-col overflow-hidden bg-background">
-      <PageHeader
-        eyebrow={data?.member_name ?? data?.organization_name ?? ''}
-        title={t('dashboard:titulo')}
-      />
+      <PageHeader eyebrow={headerName} title={t('dashboard:titulo')} />
 
       <main
         className={cn(

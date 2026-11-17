@@ -103,6 +103,23 @@ describe('FormView', () => {
         authentication: authenticationReducer,
         responses: responsesReducer,
       },
+      // Quem está respondendo: o cabeçalho mostra o nome da sessão.
+      preloadedState: {
+        authentication: {
+          user: {
+            id: 'usuario-1',
+            email: 'maria@example.com',
+            name: 'Maria Respondente',
+            role: 'respondente',
+            link_id: 'vinculo-1',
+            organization_id: 'org-1',
+            organization_name: null,
+          },
+          status: 'authenticated' as const,
+          error: null,
+          passwordReset: { status: 'idle' as const, error: null },
+        },
+      },
     });
     return render(
       <Provider store={store}>
@@ -128,6 +145,11 @@ describe('FormView', () => {
 
   async function avancar() {
     await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+  }
+
+  // Na opcional em branco, o "Avançar" vira "Pular".
+  async function pular() {
+    await userEvent.click(screen.getByRole('button', { name: 'Pular' }));
   }
 
   // Responde a pergunta que está na tela (texto, escala ou alternativa) e
@@ -237,7 +259,8 @@ describe('FormView', () => {
   it('should render header with title and user name', async () => {
     await renderizarCarregado();
 
-    expect(screen.getByText('João Silva')).toBeInTheDocument();
+    expect(screen.getByText('Maria Respondente')).toBeInTheDocument();
+    expect(screen.queryByText('João Silva')).not.toBeInTheDocument();
     expect(screen.getByText('Formulário')).toBeInTheDocument();
   });
 
@@ -441,7 +464,20 @@ describe('FormView', () => {
 
     // Seção 1 inteira, e na seção 2 as duas obrigatórias; a opcional fica vazia.
     await responderEAvancar(5);
-    await avancar();
+    // A opcional avisa que dá para pular, e o botão diz isso.
+    expect(
+      screen.getByText(
+        /Pergunta opcional: se preferir, você pode pular\. Seja breve/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Avançar' }),
+    ).not.toBeInTheDocument();
+    // Com texto, volta a ser "Avançar"; apagado, "Pular" de novo.
+    await userEvent.type(screen.getByRole('textbox'), 'oi');
+    expect(screen.getByRole('button', { name: 'Avançar' })).toBeInTheDocument();
+    await userEvent.clear(screen.getByRole('textbox'));
+    await pular();
 
     expect(
       screen.getByRole('heading', { name: 'Você chegou ao fim das perguntas' }),
@@ -475,7 +511,7 @@ describe('FormView', () => {
     expect(temCheck('Seção 3')).toBe(false);
 
     // Passa por ela em branco: agora conta como concluída (P-038).
-    await avancar();
+    await pular();
     expect(temCheck('Seção 3')).toBe(true);
   });
 

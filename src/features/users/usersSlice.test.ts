@@ -33,7 +33,7 @@ const membro: Member = {
   email: 'michael.mitc@example.com',
   status: 'respondeu',
   tag: 'Marketing',
-  updated_at: '2026-10-18T14:12:00.000Z',
+  role: 'respondente',
 };
 
 describe('usersSlice', () => {
@@ -169,17 +169,30 @@ describe('usersSlice — membros da empresa', () => {
       email: 'enner@example.com',
       status: 'semPeriodo',
       tag: 'Marketing',
-      updated_at: '2026-10-18T14:12:00.000Z',
+      role: 'respondente',
     });
   });
 
-  it('paraMember: o status é a resposta do período', () => {
+  it('paraMember: o status é a resposta do período aberto', () => {
     const respondeu = { ...PERIODO, has_answered: true };
     const pendente = { ...PERIODO, has_answered: false };
 
     expect(paraMember(doBack({ period: respondeu })).status).toBe('respondeu');
     expect(paraMember(doBack({ period: pendente })).status).toBe('pendente');
     expect(paraMember(doBack({ period: null })).status).toBe('semPeriodo');
+  });
+
+  it('paraMember: fora do período aberto, "Sem período", tenha respondido ou não', () => {
+    for (const period_status of ['past', 'scheduled'] as const) {
+      for (const has_answered of [true, false]) {
+        const period = { ...PERIODO, period_status, has_answered };
+        expect(paraMember(doBack({ period })).status).toBe('semPeriodo');
+      }
+    }
+  });
+
+  it('paraMember traz a função do vínculo', () => {
+    expect(paraMember(doBack({ role: 'gestor' })).role).toBe('gestor');
   });
 
   it('paraMember: vínculo sem login fica com e-mail vazio', () => {

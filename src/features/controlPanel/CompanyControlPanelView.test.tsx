@@ -305,6 +305,39 @@ describe('CompanyControlPanelView', () => {
     ).toBeInTheDocument();
   });
 
+  it('should offer the minutes in steps of 5', async () => {
+    const user = userEvent.setup();
+    await renderizar();
+
+    await user.click(botaoHora(colunaInicio()));
+    const coluna = screen.getByText('Min').parentElement;
+    if (!coluna) throw new Error('coluna dos minutos não encontrada');
+    expect(
+      within(coluna)
+        .getAllByRole('button')
+        .map((botao) => botao.textContent),
+    ).toEqual([
+      '00',
+      '05',
+      '10',
+      '15',
+      '20',
+      '25',
+      '30',
+      '35',
+      '40',
+      '45',
+      '50',
+      '55',
+    ]);
+
+    await user.click(screen.getByRole('button', { name: '09h' }));
+    await user.click(within(coluna).getByRole('button', { name: '35' }));
+    expect(
+      within(colunaInicio()).getByRole('button', { name: '09h35' }),
+    ).toBeInTheDocument();
+  });
+
   it('should show the time picker and the chosen time in English', async () => {
     await i18n.changeLanguage('en');
     const user = userEvent.setup();
@@ -477,7 +510,7 @@ describe('CompanyControlPanelView', () => {
     await user.click(botaoConfirmar());
 
     expect(
-      await screen.findByText(i18n.t('painelControle:periodo.agendado')),
+      await screen.findByText(i18n.t('painelControle:periodo.somenteLeitura')),
     ).toBeInTheDocument();
     expect(screen.getAllByText('17/01/2026')[0]).toBeInTheDocument();
     expect(screen.getByText('15h45')).toBeInTheDocument();
@@ -495,9 +528,6 @@ describe('CompanyControlPanelView', () => {
     ]);
     await renderizar();
 
-    expect(
-      screen.getByText(i18n.t('painelControle:periodo.aberto')),
-    ).toBeInTheDocument();
     expect(screen.getByText('09/01/2026')).toBeInTheDocument();
     expect(screen.getByText('20/01/2026')).toBeInTheDocument();
     expect(
@@ -519,7 +549,7 @@ describe('CompanyControlPanelView', () => {
 
     expect(botaoConfirmar()).toBeEnabled();
     expect(
-      screen.queryByText(i18n.t('painelControle:periodo.aberto')),
+      screen.queryByText(i18n.t('painelControle:periodo.somenteLeitura')),
     ).not.toBeInTheDocument();
   });
 

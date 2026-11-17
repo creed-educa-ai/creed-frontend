@@ -5,6 +5,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
+import {
+  dashboardsApi,
+  type OverviewDashboard,
+} from '@/features/dashboards/dashboardsApi';
 import { linksApi } from '@/features/links/linksApi';
 import formsReducer from '@/features/forms/formsSlice';
 import organizationsReducer from '@/features/organizations/organizationsSlice';
@@ -109,6 +113,10 @@ describe('AdminControlPanelView', () => {
     });
     // Os mentorandos vêm do linksApi; o fetch acima fica para as empresas.
     vi.spyOn(linksApi, 'listMembers').mockResolvedValue([WILSON]);
+    // Quais empresas têm resultado, para o "Ver Resultados".
+    vi.spyOn(dashboardsApi, 'getOverview').mockResolvedValue({
+      groups: [],
+    } as unknown as OverviewDashboard);
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
@@ -137,17 +145,15 @@ describe('AdminControlPanelView', () => {
         screen.getByRole('heading', { level: 2, name: titulo }),
       ).toBeInTheDocument();
     }
-    // "Adicionar mentorando" é o card de "Controles"; Empresas e Mentorandos,
-    // os cards de "Membros".
-    for (const titulo of [
+    // "Adicionar mentorando" é o card de "Controles"; Mentorandos e Empresas,
+    // nesta ordem, os cards de "Membros".
+    expect(
+      screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent),
+    ).toEqual([
       i18n.t('adicionarMentorando:titulo'),
-      i18n.t('empresas:titulo'),
       i18n.t('mentees:title'),
-    ]) {
-      expect(
-        screen.getByRole('heading', { level: 3, name: titulo }),
-      ).toBeInTheDocument();
-    }
+      i18n.t('empresas:titulo'),
+    ]);
   });
 
   it('should list the companies and the mentees', async () => {

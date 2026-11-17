@@ -61,6 +61,9 @@ export interface RefreshRequest {
 export interface UserSessionResponse {
   id: string;
   email: string;
+  // O nome de quem entrou, do participante do vínculo. Sessão guardada antes
+  // de o back mandar o campo chega sem ele, até o próximo login.
+  name?: string;
   // `str | None` no back; os valores são os de `Role`.
   role: string | null;
   link_id: string | null;
@@ -614,9 +617,10 @@ export interface InsightStatusRead {
 // Membro da organização, na tabela do painel da empresa: o `MemberListItem`
 // do back, no formato que a tabela desenha. Quem converte é o `usersSlice`.
 //
-// O status é a resposta do período do membro (`period.has_answered`): o back
+// O status é a resposta do período aberto (`period.has_answered`): o back
 // não sabe se o convite foi aceito, e o que a gestora acompanha é quem já
-// respondeu. Sem período, `semPeriodo`.
+// respondeu. Sem período aberto (nenhum, só agendado ou já encerrado),
+// `semPeriodo`.
 export type MemberStatus = 'respondeu' | 'pendente' | 'semPeriodo';
 
 export interface Member {
@@ -628,5 +632,5 @@ export interface Member {
   status: MemberStatus;
   // O setor do vínculo. Nulo até a empresa escolher.
   tag: DepartmentType | null;
-  updated_at: string | null;
+  role: Role;
 }

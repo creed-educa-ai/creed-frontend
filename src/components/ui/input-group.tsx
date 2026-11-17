@@ -127,8 +127,11 @@ function InputGroupInput({
   return (
     <Input
       data-slot="input-group-control"
+      // Cabe dentro da borda do grupo: a altura é a de dentro (o Input sozinho
+      // tem a de fora e vazava 1px em cima e embaixo) e os cantos seguem os do
+      // grupo. Transparente não aparecia; o fundo do autopreenchimento, sim.
       className={cn(
-        'flex-1 rounded-none border-0 bg-transparent shadow-none ring-0 focus-visible:ring-0 disabled:bg-transparent aria-invalid:ring-0',
+        'h-full flex-1 rounded-[inherit] border-0 bg-transparent shadow-none ring-0 focus-visible:ring-0 disabled:bg-transparent aria-invalid:ring-0 md:h-full',
         className,
       )}
       {...props}
