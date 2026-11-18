@@ -177,10 +177,13 @@ export function buildDashboardCsvRows(params: ExportCsvParams): CsvCell[][] {
     rows.push([]);
   };
 
-  const pushAlignment = (alignment: TeamAlignment | null) => {
+  const pushAlignment = (
+    alignment: TeamAlignment | null,
+    title = label('alinhamento'),
+  ) => {
     if (!alignment?.prismas) return;
     rows.push([
-      label('alinhamento'),
+      title,
       t('dashboardPrisma:csv.respondentesTotal', {
         total: alignment.respondents,
       }),
@@ -226,7 +229,11 @@ export function buildDashboardCsvRows(params: ExportCsvParams): CsvCell[][] {
     pushSummary(params.data.company_summary);
     pushPrismaScores();
     pushDimensions();
-    pushAlignment(params.data.alignment);
+    // Os mentorandos não são uma equipe: o alinhamento é o de todos eles.
+    pushAlignment(
+      params.data.alignment,
+      params.data.kind === 'mentees' ? label('alinhamentoGeral') : undefined,
+    );
 
     // 6. Mapa de empresas × prismas
     if (params.matrixTitle && params.data.groups.length > 0) {

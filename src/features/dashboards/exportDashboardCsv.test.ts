@@ -238,6 +238,26 @@ describe('exportDashboardCsv', () => {
       ]);
     });
 
+    it('should call the alignment of the mentees overall, not of a team', () => {
+      const comAlinhamento = (kind: 'companies' | 'mentees') => ({
+        ...retrato(kind),
+        alignment: companyDashboardFixture().alignment!,
+      });
+      const titulo = (kind: 'companies' | 'mentees') =>
+        buildDashboardCsvRows({
+          kind: 'overview',
+          data: comAlinhamento(kind),
+          t,
+          locale: 'pt-BR',
+          viewLabel: 'Todos',
+          responsesLabel: 'Respostas de 01/09/2026 a 15/10/2026',
+          groupHeading: 'Grupo',
+        }).find((r) => String(r[0]).startsWith('Alinhamento'))?.[0];
+
+      expect(titulo('mentees')).toBe('Alinhamento Geral');
+      expect(titulo('companies')).toBe('Alinhamento da Equipe');
+    });
+
     it('should neutralize company names that a spreadsheet would run as a formula', () => {
       const data = retrato('companies');
       data.groups[0] = { ...data.groups[0]!, label: '=HYPERLINK("x")' };

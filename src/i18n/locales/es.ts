@@ -261,6 +261,7 @@ export const es: typeof ptBR = {
     },
     alinhamento: {
       titulo: 'Alineación del equipo',
+      tituloGeral: 'Alineación general',
       respostas: '{{exibido}} · {{total}} respuestas',
       total: '{{total}} respuestas',
       semRespostas: 'Todavía no hay respuestas en este recorte.',
@@ -316,6 +317,7 @@ export const es: typeof ptBR = {
       oportunidade: 'Oportunidad',
       maisComum: 'Más Común',
       alinhamento: 'Alineación del Equipo',
+      alinhamentoGeral: 'Alineación General',
       respondentesTotal: 'Encuestados: {{total}}',
       nivel: 'Nivel',
       mapa: 'Mapa de Sectores × Prismas',

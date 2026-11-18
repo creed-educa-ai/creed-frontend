@@ -141,6 +141,7 @@ interface OverviewPdfReportProps extends PrintCallbacks {
   groupMatrix?:
     { title: string; heading: string; rows: OverviewGroup[] } | undefined;
   scopePlaceholder: string;
+  alignmentTitle?: string | undefined;
 }
 
 // O retrato atual da administradora (todas as empresas ou todos os
@@ -151,6 +152,7 @@ export function OverviewPdfReport({
   label,
   groupMatrix,
   scopePlaceholder,
+  alignmentTitle,
   onAfterPrint,
   onPrintError,
 }: OverviewPdfReportProps) {
@@ -181,6 +183,7 @@ export function OverviewPdfReport({
           }))}
           scopePlaceholder={scopePlaceholder}
           alignment={data.alignment}
+          alignmentTitle={alignmentTitle}
           groupMatrix={groupMatrix}
         />
       </section>

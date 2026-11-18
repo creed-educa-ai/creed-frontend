@@ -183,6 +183,13 @@ describe('AdminDashboardView', () => {
     expect(
       screen.queryByRole('heading', { name: /× prismas/ }),
     ).not.toBeInTheDocument();
+    // Os mentorandos não são uma equipe.
+    expect(
+      screen.getByRole('heading', { name: 'Alinhamento geral' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Alinhamento da equipe' }),
+    ).not.toBeInTheDocument();
   });
 
   it('should open the company from the URL, as the control panel links it', async () => {

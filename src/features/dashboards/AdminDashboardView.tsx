@@ -111,7 +111,7 @@ interface OverviewDashboardProps {
 // O retrato atual: cada pessoa entra com a resposta mais recente que enviou.
 // No lugar do filtro de período, de quando são as respostas.
 function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
-  const { t, i18n } = useTranslation(['comum', 'dashboard']);
+  const { t, i18n } = useTranslation(['comum', 'dashboard', 'dashboardPrisma']);
   const { data, status, error } = useAppSelector(
     (state) => state.dashboards.overview[kind],
   );
@@ -123,6 +123,11 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
       : t('dashboard:todosMentorandos');
   const groupHeading =
     kind === 'companies' ? t('dashboard:Empresa') : t('dashboard:Mentorando');
+  // Os mentorandos não são uma equipe: o alinhamento é o de todos eles.
+  const alignmentTitle =
+    kind === 'mentees'
+      ? t('dashboardPrisma:alinhamento.tituloGeral')
+      : undefined;
   const formatDate = (iso: string) =>
     new Intl.DateTimeFormat(i18n.language, {
       day: '2-digit',
@@ -228,6 +233,7 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
               }))}
               scopePlaceholder={groupHeading}
               alignment={data.alignment}
+              alignmentTitle={alignmentTitle}
               groupMatrix={groupMatrix}
             />
 
@@ -242,6 +248,7 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
           label={label}
           groupMatrix={groupMatrix}
           scopePlaceholder={groupHeading}
+          alignmentTitle={alignmentTitle}
           onAfterPrint={finishPdfExport}
           onPrintError={failPdfExport}
         />

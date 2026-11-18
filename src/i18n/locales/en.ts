@@ -258,6 +258,7 @@ export const en: typeof ptBR = {
     },
     alinhamento: {
       titulo: 'Team alignment',
+      tituloGeral: 'Overall alignment',
       respostas: '{{exibido}} · {{total}} responses',
       total: '{{total}} responses',
       semRespostas: 'There are no responses for this view yet.',
@@ -313,6 +314,7 @@ export const en: typeof ptBR = {
       oportunidade: 'Opportunity',
       maisComum: 'Most Common',
       alinhamento: 'Team Alignment',
+      alinhamentoGeral: 'Overall Alignment',
       respondentesTotal: 'Respondents: {{total}}',
       nivel: 'Level',
       mapa: 'Departments × Prisms Map',

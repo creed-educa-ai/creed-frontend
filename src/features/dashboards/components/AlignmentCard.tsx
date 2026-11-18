@@ -12,6 +12,9 @@ interface AlignmentCardProps {
   alignment: TeamAlignment;
   // O recorte, ex.: "Marketing 2026/1".
   shownLabel: string;
+  // Sem ele, "Alinhamento da equipe". O retrato dos mentorandos não é uma
+  // equipe: lá é o alinhamento geral.
+  title?: string | undefined;
 }
 
 const BANDS = ['baixa', 'media', 'alta'] as const;
@@ -35,8 +38,13 @@ const LEVEL_COLORS = {
 // Se o grupo deu notas parecidas em cada prisma ou se dividiu. Cada barra é o
 // grupo inteiro, repartido entre quem ficou com nota baixa, média e alta: uma
 // equipe dividida tem as duas pontas cheias e o meio vazio.
-export function AlignmentCard({ alignment, shownLabel }: AlignmentCardProps) {
+export function AlignmentCard({
+  alignment,
+  shownLabel,
+  title: customTitle,
+}: AlignmentCardProps) {
   const { t } = useTranslation(['dashboardPrisma', 'dashboard']);
+  const title = customTitle ?? t('dashboardPrisma:alinhamento.titulo');
   const { prismas, respondents } = alignment;
 
   return (
@@ -44,13 +52,8 @@ export function AlignmentCard({ alignment, shownLabel }: AlignmentCardProps) {
       <article>
         <CardContent className="flex flex-1 flex-col">
           <div className="flex items-center gap-1.5">
-            <h3 className={cardTitleClassName}>
-              {t('dashboardPrisma:alinhamento.titulo')}
-            </h3>
-            <InfoTip
-              title={t('dashboardPrisma:alinhamento.titulo')}
-              text={t('dashboard:info.alinhamento')}
-            />
+            <h3 className={cardTitleClassName}>{title}</h3>
+            <InfoTip title={title} text={t('dashboard:info.alinhamento')} />
           </div>
           {/* O recorte em etiqueta; o leitor de tela ouve a frase inteira. */}
           <p className="mt-3 text-sm text-muted-foreground">

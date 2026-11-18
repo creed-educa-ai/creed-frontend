@@ -261,6 +261,7 @@ export const ptBR = {
     },
     alinhamento: {
       titulo: 'Alinhamento da equipe',
+      tituloGeral: 'Alinhamento geral',
       respostas: '{{exibido}} · {{total}} respostas',
       total: '{{total}} respostas',
       semRespostas: 'Ainda não há respostas neste recorte.',
@@ -316,6 +317,7 @@ export const ptBR = {
       oportunidade: 'Oportunidade',
       maisComum: 'Mais Comum',
       alinhamento: 'Alinhamento da Equipe',
+      alinhamentoGeral: 'Alinhamento Geral',
       respondentesTotal: 'Respondentes: {{total}}',
       nivel: 'Nível',
       mapa: 'Mapa de Setores × Prismas',
