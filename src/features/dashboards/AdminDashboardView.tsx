@@ -135,14 +135,16 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
         fim: formatDate(data.responses_to),
       })
     : '';
-  const groupMatrix = data && {
-    title:
-      kind === 'companies'
-        ? t('dashboard:mapaEmpresas')
-        : t('dashboard:mapaMentorandos'),
-    heading: groupHeading,
-    rows: data.groups,
-  };
+  // O mapa compara grupos de pessoas: com uma pessoa por linha (mentorandos),
+  // ele só repetiria a nota de cada um, que a comparação já mostra.
+  const groupMatrix =
+    data && kind === 'companies'
+      ? {
+          title: t('dashboard:mapaEmpresas'),
+          heading: groupHeading,
+          rows: data.groups,
+        }
+      : undefined;
 
   const finishPdfExport = useCallback(() => {
     setPrinting(false);
@@ -154,7 +156,7 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
   }, [t]);
 
   const exportCsv = () => {
-    if (!data || !groupMatrix) return;
+    if (!data) return;
     exportDashboardCsv({
       kind: 'overview',
       data,
@@ -162,7 +164,7 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
       locale: i18n.language,
       viewLabel: label,
       responsesLabel,
-      matrixTitle: groupMatrix.title,
+      matrixTitle: groupMatrix?.title,
       groupHeading,
     });
   };
@@ -226,7 +228,7 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
               }))}
               scopePlaceholder={groupHeading}
               alignment={data.alignment}
-              groupMatrix={groupMatrix ?? undefined}
+              groupMatrix={groupMatrix}
             />
 
             <ResultText empresa {...data.creed_summary} />
@@ -234,7 +236,7 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
         )}
       </main>
 
-      {printing && data && groupMatrix && (
+      {printing && data && (
         <OverviewPdfReport
           data={data}
           label={label}

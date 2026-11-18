@@ -137,7 +137,9 @@ interface OverviewPdfReportProps extends PrintCallbacks {
   data: OverviewDashboard;
   // "Todas as empresas" ou "Todos os mentorandos".
   label: string;
-  groupMatrix: { title: string; heading: string; rows: OverviewGroup[] };
+  // Só no retrato das empresas.
+  groupMatrix?:
+    { title: string; heading: string; rows: OverviewGroup[] } | undefined;
   scopePlaceholder: string;
 }
 

@@ -176,12 +176,13 @@ describe('AdminDashboardView', () => {
     await escolher(user, 'Todas as empresas', 'Todos os mentorandos');
 
     expect(
-      await screen.findByRole('heading', { name: 'Mentorandos × prismas' }),
+      await screen.findByRole('button', { name: 'Todos os mentorandos' }),
     ).toBeInTheDocument();
-    // Uma linha por mentorando, com a nota em cada prisma (80, +20 da média).
-    expect(screen.getByRole('row', { name: /Mentorando 1/ })).toHaveTextContent(
-      '80 +20',
-    );
+    // Sem mapa: com uma pessoa por linha, ele só repetiria a nota de cada uma,
+    // que a comparação já mostra.
+    expect(
+      screen.queryByRole('heading', { name: /× prismas/ }),
+    ).not.toBeInTheDocument();
   });
 
   it('should open the company from the URL, as the control panel links it', async () => {
@@ -358,8 +359,8 @@ describe('AdminDashboardView', () => {
       expect(
         report?.querySelectorAll('.pdf-company-summary-grid > article'),
       ).toHaveLength(4);
-      expect(report).toHaveTextContent('Mentorandos × prismas');
-      expect(report).toHaveTextContent('Mentorando 1');
+      // Sem o mapa: com uma pessoa por linha, ele só repetiria a nota dela.
+      expect(report).not.toHaveTextContent('× prismas');
     });
   });
 });

@@ -217,6 +217,27 @@ describe('exportDashboardCsv', () => {
       ]);
     });
 
+    it('should leave the map out of the mentees picture', () => {
+      const rows = buildDashboardCsvRows({
+        kind: 'overview',
+        data: retrato('mentees'),
+        t,
+        locale: 'pt-BR',
+        viewLabel: 'Todos os mentorandos',
+        responsesLabel: 'Respostas de 01/09/2026 a 15/10/2026',
+        groupHeading: 'Mentorando',
+      });
+
+      expect(rows.some((r) => r[1] === 'Respondentes')).toBe(false);
+      // A comparação com cada mentorando continua.
+      expect(rows).toContainEqual([
+        'Mentorando 1',
+        'Segurança Psicológica',
+        80,
+        '-20',
+      ]);
+    });
+
     it('should neutralize company names that a spreadsheet would run as a formula', () => {
       const data = retrato('companies');
       data.groups[0] = { ...data.groups[0]!, label: '=HYPERLINK("x")' };

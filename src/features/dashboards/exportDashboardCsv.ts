@@ -47,7 +47,8 @@ export type ExportCsvParams =
       viewLabel: string;
       // "Respostas de … a …", já formatado.
       responsesLabel: string;
-      matrixTitle: string;
+      // Só no retrato das empresas: sem ele, a planilha sai sem o mapa.
+      matrixTitle?: string | undefined;
       groupHeading: string;
     };
 
@@ -227,8 +228,8 @@ export function buildDashboardCsvRows(params: ExportCsvParams): CsvCell[][] {
     pushDimensions();
     pushAlignment(params.data.alignment);
 
-    // 6. Mapa de empresas (ou mentorandos) × prismas
-    if (params.data.groups.length > 0) {
+    // 6. Mapa de empresas × prismas
+    if (params.matrixTitle && params.data.groups.length > 0) {
       const header = [
         params.groupHeading,
         label('respondentes'),
