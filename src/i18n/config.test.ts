@@ -1,4 +1,4 @@
-import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+import i18n, { IDIOMA_PADRAO, idiomaAtual } from '@/i18n/config';
 
 describe('i18n', () => {
   beforeEach(async () => {
@@ -55,6 +55,19 @@ describe('i18n', () => {
   it('resolve variante regional "es-MX" para espanhol', async () => {
     await i18n.changeLanguage('es-MX');
     expect(i18n.t('carregando')).toBe('Cargando…');
+  });
+
+  it.each([
+    ['pt-BR', 'pt-BR'],
+    ['en', 'en'],
+    ['es', 'es'],
+    ['pt', 'pt-BR'],
+    ['es-MX', 'es'],
+    ['en-US', 'en'],
+    ['fr', 'pt-BR'],
+  ])('idiomaAtual com a tela em "%s" é "%s"', async (tela, esperado) => {
+    await i18n.changeLanguage(tela);
+    expect(idiomaAtual()).toBe(esperado);
   });
 
   it('sincroniza o atributo lang do documento', async () => {

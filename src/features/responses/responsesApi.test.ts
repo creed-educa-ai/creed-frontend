@@ -89,16 +89,15 @@ describe('responsesApi', () => {
     });
   });
 
-  it('submitFormResponse envia sem corpo', async () => {
+  it('submitFormResponse envia o idioma da tela no corpo', async () => {
     const fetchMock = stubFetch();
 
-    await responsesApi.submitFormResponse(FORM_RESPONSE_ID);
+    await responsesApi.submitFormResponse(FORM_RESPONSE_ID, 'es');
 
-    expect(lastCall(fetchMock)).toEqual({
-      url: `/api/v1/form-responses/${FORM_RESPONSE_ID}`,
-      method: 'PATCH',
-      body: undefined,
-    });
+    const call = lastCall(fetchMock);
+    expect(call.url).toBe(`/api/v1/form-responses/${FORM_RESPONSE_ID}`);
+    expect(call.method).toBe('PATCH');
+    expect(JSON.parse(call.body as string)).toEqual({ language: 'es' });
   });
 
   it('getInsightStatus lê o insight da resposta e repassa o signal', async () => {

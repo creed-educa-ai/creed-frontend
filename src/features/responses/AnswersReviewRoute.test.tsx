@@ -189,7 +189,8 @@ describe('AnswersReviewRoute', () => {
       question_id: 'q-escala',
       option_id: 'q-escala-4',
     });
-    expect(submit).toHaveBeenCalledWith(FORM_RESPONSE_ID);
+    // A tela está no idioma padrão (beforeEach), e é ele que vai no envio.
+    expect(submit).toHaveBeenCalledWith(FORM_RESPONSE_ID, IDIOMA_PADRAO);
     // A resposta é aberta no formulário que o carregamento trouxe.
     expect(create).toHaveBeenCalledWith(FORM_ID);
   });

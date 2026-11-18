@@ -522,6 +522,14 @@ export interface FormResponseCreate {
   form_id: string;
 }
 
+// Os idiomas da tela; o back recusa qualquer outro (`app/shared/languages.py`).
+export type Language = 'pt-BR' | 'en' | 'es';
+
+// Corpo do envio. O insight da resposta é escrito no idioma informado.
+export interface FormResponseSubmit {
+  language: Language;
+}
+
 export interface FormResponseResponse {
   id: string;
   form_id: string;

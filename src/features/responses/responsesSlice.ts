@@ -11,6 +11,7 @@ import type { RootState } from '@/app/store';
 import type { QuestionType as TipoDaTela } from '@/features/responses/Question';
 import { questionsApi } from '@/features/questions/questionsApi';
 import { responsesApi } from '@/features/responses/responsesApi';
+import { idiomaAtual } from '@/i18n/config';
 import { ApiError } from '@/lib/apiClient';
 import type {
   AnswerCreate,
@@ -206,7 +207,7 @@ export const submitResponses = createAsyncThunk<
       }
 
       try {
-        await responsesApi.submitFormResponse(formResponseId);
+        await responsesApi.submitFormResponse(formResponseId, idiomaAtual());
       } catch (erro) {
         // Mesmo caso: o envio anterior chegou, a confirmação é que não voltou.
         if (!ehConflito(erro)) throw erro;
