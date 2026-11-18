@@ -288,6 +288,7 @@ export const es: typeof ptBR = {
     },
     // Rótulos da planilha baixada em "Baixar > CSV".
     csv: {
+      tituloRetrato: 'Panorama Actual - CREED.ai',
       relatorio: 'Informe',
       tituloIndividual: 'Dashboard Individual - CREED.ai',
       tituloOrganizacao: 'Dashboard de la Organización - CREED.ai',

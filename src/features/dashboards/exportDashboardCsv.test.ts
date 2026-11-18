@@ -8,6 +8,7 @@ import {
 } from './exportDashboardCsv';
 import { userDashboardFixture } from './__fixtures__/userDashboard';
 import { companyDashboardFixture } from './__fixtures__/companyDashboard';
+import { retrato } from './__fixtures__/overviewDashboard';
 
 describe('exportDashboardCsv', () => {
   // O i18n de verdade: um `t` falso devolveria qualquer chave, inclusive uma
@@ -167,6 +168,62 @@ describe('exportDashboardCsv', () => {
 
       expect(rows).toContainEqual(['Organização', `'=cmd|calc`]);
       expect(rows).toContainEqual(['Recorte / Visão', `'@membro`]);
+    });
+  });
+
+  describe('buildDashboardCsvRows - Overview', () => {
+    const overview = (data = retrato('companies')) =>
+      buildDashboardCsvRows({
+        kind: 'overview',
+        data,
+        t,
+        locale: 'pt-BR',
+        viewLabel: 'Todas as empresas',
+        responsesLabel: 'Respostas de 01/09/2026 a 15/10/2026',
+        matrixTitle: 'Empresas × prismas',
+        groupHeading: 'Empresa',
+      });
+
+    it('should identify the current picture, with the response dates in place of the period', () => {
+      const rows = overview();
+
+      expect(rows).toContainEqual(['Relatório', 'Retrato Atual - CREED.ai']);
+      expect(rows).toContainEqual(['Recorte / Visão', 'Todas as empresas']);
+      expect(rows).toContainEqual([
+        'Período',
+        'Respostas de 01/09/2026 a 15/10/2026',
+      ]);
+      expect(rows).toContainEqual(['Convidados', 10]);
+      expect(rows).toContainEqual(['Taxa de Conclusão', '90%']);
+    });
+
+    it('should list each company in the map and in the comparisons', () => {
+      const rows = overview();
+
+      const mapIndex = rows.findIndex((r) => r[0] === 'Empresas × prismas');
+      expect(rows[mapIndex + 1]?.slice(0, 2)).toEqual([
+        'Empresa',
+        'Respondentes',
+      ]);
+      expect(rows[mapIndex + 2]).toEqual(['Empresa A', 3, 70, 70, 70, 70, 70]);
+      expect(rows[mapIndex + 3]).toEqual(['Empresa B', 3, 50, 50, 50, 50, 50]);
+
+      // A comparação é com cada empresa, não com um período.
+      expect(rows).toContainEqual([
+        'Empresa B',
+        'Segurança Psicológica',
+        50,
+        '+10',
+      ]);
+    });
+
+    it('should neutralize company names that a spreadsheet would run as a formula', () => {
+      const data = retrato('companies');
+      data.groups[0] = { ...data.groups[0]!, label: '=HYPERLINK("x")' };
+
+      const rows = overview(data);
+
+      expect(rows).toContainEqual([`'=HYPERLINK("x")`, 3, 70, 70, 70, 70, 70]);
     });
   });
 

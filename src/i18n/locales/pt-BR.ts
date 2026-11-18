@@ -288,6 +288,7 @@ export const ptBR = {
     },
     // Rótulos da planilha baixada em "Baixar > CSV".
     csv: {
+      tituloRetrato: 'Retrato Atual - CREED.ai',
       relatorio: 'Relatório',
       tituloIndividual: 'Dashboard Individual - CREED.ai',
       tituloOrganizacao: 'Dashboard da Organização - CREED.ai',
