@@ -70,6 +70,10 @@ export interface UserSessionResponse {
   organization_id: string | null;
   // O back ainda devolve sempre nulo.
   organization_name: string | null;
+  // Quando aceitou o termo de consentimento; nulo enquanto não aceitou. Sessão
+  // guardada antes de o back mandar o campo chega sem ele: o termo aparece de
+  // novo uma vez, e o back só grava a data do primeiro aceite.
+  terms_accepted_at?: string | null;
 }
 
 export interface SessionResponse {

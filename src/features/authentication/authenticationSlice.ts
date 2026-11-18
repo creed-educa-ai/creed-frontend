@@ -1,7 +1,13 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { authenticationApi } from '@/features/authentication/authenticationApi';
 import { ApiError } from '@/lib/apiClient';
-import { clearSession, getSession, setSession } from '@/lib/session';
+import {
+  clearSession,
+  getSession,
+  setSession,
+  updateSessionUser,
+} from '@/lib/session';
+import type { RootState } from '@/app/store';
 import type {
   LoginRequest,
   PasswordResetRequest,
@@ -92,6 +98,23 @@ export const requestPasswordReset = createAsyncThunk<
   },
 );
 
+/**
+ * Devolve a data do aceite para o reducer. A data é a do front, só para liberar
+ * a tela: a que vale é a do back, que volta no próximo login ou renovação.
+ */
+export const acceptTerms = createAsyncThunk<
+  string,
+  undefined,
+  { state: RootState }
+>('authentication/acceptTerms', async (_, { getState }) => {
+  await authenticationApi.acceptTerms();
+
+  const acceptedAt = new Date().toISOString();
+  const { user } = getState().authentication;
+  if (user) updateSessionUser({ ...user, terms_accepted_at: acceptedAt });
+  return acceptedAt;
+});
+
 const authenticationSlice = createSlice({
   name: 'authentication',
   initialState,
@@ -122,6 +145,9 @@ const authenticationSlice = createSlice({
         state.status = 'error';
         state.error =
           action.payload ?? 'autenticacao:erros.servicoIndisponivel';
+      })
+      .addCase(acceptTerms.fulfilled, (state, action) => {
+        if (state.user) state.user.terms_accepted_at = action.payload;
       })
       .addCase(requestPasswordReset.pending, (state) => {
         state.passwordReset.status = 'loading';
