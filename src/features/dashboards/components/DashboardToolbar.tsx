@@ -14,7 +14,7 @@ interface DashboardToolbarProps {
   filters: ReactNode;
   onExportPdf: () => void;
   exportingPdf: boolean;
-  onExportCsv?: () => void;
+  onExportCsv?: (() => void) | undefined;
 }
 
 // Barra entre o header e o conteúdo: os filtros valem para a página inteira,

@@ -261,6 +261,7 @@ export const ptBR = {
     },
     alinhamento: {
       titulo: 'Alinhamento da equipe',
+      tituloGeral: 'Alinhamento geral',
       respostas: '{{exibido}} · {{total}} respostas',
       total: '{{total}} respostas',
       semRespostas: 'Ainda não há respostas neste recorte.',
@@ -288,6 +289,7 @@ export const ptBR = {
     },
     // Rótulos da planilha baixada em "Baixar > CSV".
     csv: {
+      tituloRetrato: 'Retrato Atual - CREED.ai',
       relatorio: 'Relatório',
       tituloIndividual: 'Dashboard Individual - CREED.ai',
       tituloOrganizacao: 'Dashboard da Organização - CREED.ai',
@@ -315,6 +317,7 @@ export const ptBR = {
       oportunidade: 'Oportunidade',
       maisComum: 'Mais Comum',
       alinhamento: 'Alinhamento da Equipe',
+      alinhamentoGeral: 'Alinhamento Geral',
       respondentesTotal: 'Respondentes: {{total}}',
       nivel: 'Nível',
       mapa: 'Mapa de Setores × Prismas',
@@ -612,8 +615,6 @@ export const ptBR = {
     Empresa: 'Empresa',
     Mentorando: 'Mentorando',
     respostasEntre: 'Respostas de {{inicio}} a {{fim}}',
-    mapaEmpresas: 'Empresas × prismas',
-    mapaMentorandos: 'Mentorandos × prismas',
     semResultadoEmpresa:
       'Ainda não há resultados. Eles aparecem aqui depois que alguém responder um questionário.',
     // A descrição de cada prisma nos cards do resumo executivo.

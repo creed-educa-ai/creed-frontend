@@ -261,6 +261,7 @@ export const es: typeof ptBR = {
     },
     alinhamento: {
       titulo: 'Alineación del equipo',
+      tituloGeral: 'Alineación general',
       respostas: '{{exibido}} · {{total}} respuestas',
       total: '{{total}} respuestas',
       semRespostas: 'Todavía no hay respuestas en este recorte.',
@@ -288,6 +289,7 @@ export const es: typeof ptBR = {
     },
     // Rótulos da planilha baixada em "Baixar > CSV".
     csv: {
+      tituloRetrato: 'Panorama Actual - CREED.ai',
       relatorio: 'Informe',
       tituloIndividual: 'Dashboard Individual - CREED.ai',
       tituloOrganizacao: 'Dashboard de la Organización - CREED.ai',
@@ -315,6 +317,7 @@ export const es: typeof ptBR = {
       oportunidade: 'Oportunidad',
       maisComum: 'Más Común',
       alinhamento: 'Alineación del Equipo',
+      alinhamentoGeral: 'Alineación General',
       respondentesTotal: 'Encuestados: {{total}}',
       nivel: 'Nivel',
       mapa: 'Mapa de Sectores × Prismas',
@@ -608,8 +611,6 @@ export const es: typeof ptBR = {
     Empresa: 'Empresa',
     Mentorando: 'Mentorado',
     respostasEntre: 'Respuestas del {{inicio}} al {{fim}}',
-    mapaEmpresas: 'Empresas × prismas',
-    mapaMentorandos: 'Mentorados × prismas',
     semResultadoEmpresa:
       'Todavía no hay resultados. Aparecen aquí después de que alguien responda un cuestionario.',
     descricaoPrisma: {

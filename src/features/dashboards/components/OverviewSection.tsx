@@ -4,7 +4,6 @@ import type {
   ComparisonOptions,
   ComparisonScope,
   DepartmentRow,
-  OverviewGroup,
   PrismaComparison,
   TeamAlignment,
 } from '@/features/dashboards/dashboardsApi';
@@ -39,6 +38,8 @@ interface OverviewSectionProps {
   viewScope?: ComparisonScope | null;
   // Só a visão da empresa manda; nulo no recorte de um funcionário.
   alignment?: TeamAlignment | null | undefined;
+  // O título do card de alinhamento, quando não é o de uma equipe.
+  alignmentTitle?: string | undefined;
   // Também só da empresa; não depende do recorte, só do período.
   departmentMatrix?: DepartmentRow[] | undefined;
   // O retrato atual da administradora: no lugar dos setores, as empresas (ou os
@@ -46,8 +47,6 @@ interface OverviewSectionProps {
   // some.
   scopeOptions?: { id: string; label: string }[] | undefined;
   scopePlaceholder?: string | undefined;
-  groupMatrix?:
-    { title: string; heading: string; rows: OverviewGroup[] } | undefined;
   pdfLayout?: boolean;
 }
 
@@ -65,7 +64,7 @@ export function OverviewSection({
   departmentMatrix,
   scopeOptions,
   scopePlaceholder,
-  groupMatrix,
+  alignmentTitle,
   pdfLayout = false,
 }: OverviewSectionProps) {
   const { t } = useTranslation([
@@ -245,13 +244,11 @@ export function OverviewSection({
           alinhamento fica estreito (as barras leem bem assim) e a tabela com
           o resto. Sem alinhamento (recorte de funcionário), a tabela ocupa a
           linha. Nenhum dos dois segue a comparação. */}
-      {(alignment ?? departmentMatrix ?? groupMatrix) && (
+      {(alignment ?? departmentMatrix) && (
         <div
           className={cn(
             'mt-4 grid grid-cols-1 gap-4',
-            alignment &&
-              (departmentMatrix ?? groupMatrix) &&
-              'xl:grid-cols-[2fr_3fr]',
+            alignment && departmentMatrix && 'xl:grid-cols-[2fr_3fr]',
             pdfLayout &&
               alignment &&
               departmentMatrix &&
@@ -259,20 +256,16 @@ export function OverviewSection({
           )}
         >
           {alignment && (
-            <AlignmentCard alignment={alignment} shownLabel={shownLabel} />
+            <AlignmentCard
+              alignment={alignment}
+              shownLabel={shownLabel}
+              title={alignmentTitle}
+            />
           )}
           {departmentMatrix && (
             <DepartmentMatrixCard
               rows={departmentMatrix}
               period={periodLabel(period)}
-            />
-          )}
-          {groupMatrix && (
-            <DepartmentMatrixCard
-              rows={groupMatrix.rows}
-              period={shownLabel}
-              title={groupMatrix.title}
-              heading={groupMatrix.heading}
             />
           )}
         </div>

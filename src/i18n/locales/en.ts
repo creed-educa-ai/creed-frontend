@@ -258,6 +258,7 @@ export const en: typeof ptBR = {
     },
     alinhamento: {
       titulo: 'Team alignment',
+      tituloGeral: 'Overall alignment',
       respostas: '{{exibido}} · {{total}} responses',
       total: '{{total}} responses',
       semRespostas: 'There are no responses for this view yet.',
@@ -285,6 +286,7 @@ export const en: typeof ptBR = {
     },
     // Rótulos da planilha baixada em "Baixar > CSV".
     csv: {
+      tituloRetrato: 'Current Snapshot - CREED.ai',
       relatorio: 'Report',
       tituloIndividual: 'Individual Dashboard - CREED.ai',
       tituloOrganizacao: 'Organization Dashboard - CREED.ai',
@@ -312,6 +314,7 @@ export const en: typeof ptBR = {
       oportunidade: 'Opportunity',
       maisComum: 'Most Common',
       alinhamento: 'Team Alignment',
+      alinhamentoGeral: 'Overall Alignment',
       respondentesTotal: 'Respondents: {{total}}',
       nivel: 'Level',
       mapa: 'Departments × Prisms Map',
@@ -603,8 +606,6 @@ export const en: typeof ptBR = {
     Empresa: 'Company',
     Mentorando: 'Mentee',
     respostasEntre: 'Responses from {{inicio}} to {{fim}}',
-    mapaEmpresas: 'Companies × prisms',
-    mapaMentorandos: 'Mentees × prisms',
     semResultadoEmpresa:
       'There are no results yet. They show up here after someone answers a questionnaire.',
     descricaoPrisma: {

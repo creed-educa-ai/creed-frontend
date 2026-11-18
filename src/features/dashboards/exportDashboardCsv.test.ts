@@ -8,6 +8,7 @@ import {
 } from './exportDashboardCsv';
 import { userDashboardFixture } from './__fixtures__/userDashboard';
 import { companyDashboardFixture } from './__fixtures__/companyDashboard';
+import { retrato } from './__fixtures__/overviewDashboard';
 
 describe('exportDashboardCsv', () => {
   // O i18n de verdade: um `t` falso devolveria qualquer chave, inclusive uma
@@ -167,6 +168,103 @@ describe('exportDashboardCsv', () => {
 
       expect(rows).toContainEqual(['Organização', `'=cmd|calc`]);
       expect(rows).toContainEqual(['Recorte / Visão', `'@membro`]);
+    });
+  });
+
+  describe('buildDashboardCsvRows - Overview', () => {
+    const overview = (data = retrato('companies')) =>
+      buildDashboardCsvRows({
+        kind: 'overview',
+        data,
+        t,
+        locale: 'pt-BR',
+        viewLabel: 'Todas as empresas',
+        responsesLabel: 'Respostas de 01/09/2026 a 15/10/2026',
+        groupHeading: 'Empresa',
+      });
+
+    it('should identify the current picture, with the response dates in place of the period', () => {
+      const rows = overview();
+
+      expect(rows).toContainEqual(['Relatório', 'Retrato Atual - CREED.ai']);
+      expect(rows).toContainEqual(['Recorte / Visão', 'Todas as empresas']);
+      expect(rows).toContainEqual([
+        'Período',
+        'Respostas de 01/09/2026 a 15/10/2026',
+      ]);
+      expect(rows).toContainEqual(['Convidados', 10]);
+      expect(rows).toContainEqual(['Taxa de Conclusão', '90%']);
+    });
+
+    it('should compare each company, without a map of companies', () => {
+      const rows = overview();
+
+      // Sem mapa × prismas: a linha de cada empresa só repetiria a comparação.
+      expect(rows.some((r) => r[1] === 'Respondentes')).toBe(false);
+
+      // A comparação é com cada empresa, não com um período.
+      expect(rows).toContainEqual([
+        'Empresa B',
+        'Segurança Psicológica',
+        50,
+        '+10',
+      ]);
+    });
+
+    it('should leave the map out of the mentees picture', () => {
+      const rows = buildDashboardCsvRows({
+        kind: 'overview',
+        data: retrato('mentees'),
+        t,
+        locale: 'pt-BR',
+        viewLabel: 'Todos os mentorandos',
+        responsesLabel: 'Respostas de 01/09/2026 a 15/10/2026',
+        groupHeading: 'Mentorando',
+      });
+
+      expect(rows.some((r) => r[1] === 'Respondentes')).toBe(false);
+      // A comparação com cada mentorando continua.
+      expect(rows).toContainEqual([
+        'Mentorando 1',
+        'Segurança Psicológica',
+        80,
+        '-20',
+      ]);
+    });
+
+    it('should call the alignment of the mentees overall, not of a team', () => {
+      const comAlinhamento = (kind: 'companies' | 'mentees') => ({
+        ...retrato(kind),
+        alignment: companyDashboardFixture().alignment!,
+      });
+      const titulo = (kind: 'companies' | 'mentees') =>
+        buildDashboardCsvRows({
+          kind: 'overview',
+          data: comAlinhamento(kind),
+          t,
+          locale: 'pt-BR',
+          viewLabel: 'Todos',
+          responsesLabel: 'Respostas de 01/09/2026 a 15/10/2026',
+          groupHeading: 'Grupo',
+        }).find((r) => String(r[0]).startsWith('Alinhamento'))?.[0];
+
+      expect(titulo('mentees')).toBe('Alinhamento Geral');
+      expect(titulo('companies')).toBe('Alinhamento da Equipe');
+    });
+
+    it('should neutralize company names that a spreadsheet would run as a formula', () => {
+      const data = retrato('companies');
+      data.groups[0] = { ...data.groups[0]!, label: '=HYPERLINK("x")' };
+
+      const rows = overview(data);
+
+      // O nome da empresa aparece na comparação com ela.
+      expect(rows).toContainEqual([
+        `'=HYPERLINK("x")`,
+        'Segurança Psicológica',
+        70,
+        '-10',
+      ]);
     });
   });
 

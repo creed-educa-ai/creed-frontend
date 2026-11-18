@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/states/EmptyState';
 import { ErrorState } from '@/components/states/ErrorState';
 import { LoadingState } from '@/components/states/LoadingState';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '@/components/ui/sonner';
 import { loadOverview } from '@/features/dashboards/dashboardsSlice';
 import { screenEnterClassName } from '@/lib/animations';
 import { pageGutterClassName } from '@/lib/layout';
@@ -14,11 +15,14 @@ import { cn } from '@/lib/utils';
 import { CompanyDashboardView } from './CompanyDashboardView';
 import { UserDashboardView } from './UserDashboardView';
 import { AdminViewFilter, type AdminView } from './components/AdminViewFilter';
+import { DashboardToolbar } from './components/DashboardToolbar';
+import { OverviewPdfReport } from './components/DashboardPdfReport';
 import { OverviewSection } from './components/OverviewSection';
 import { ResultText } from './components/ResultText';
 import { ShownChip } from './components/ShownChip';
 import { SummaryCards } from './components/SummaryCards';
 import type { OverviewKind } from './dashboardsApi';
+import { exportDashboardCsv } from './exportDashboardCsv';
 
 // Sem comparação por período: o retrato atual não tem período.
 const SEM_PERIODOS = { periods: [], departments: [], default_period: null };
@@ -107,20 +111,56 @@ interface OverviewDashboardProps {
 // O retrato atual: cada pessoa entra com a resposta mais recente que enviou.
 // No lugar do filtro de período, de quando são as respostas.
 function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
-  const { t, i18n } = useTranslation(['comum', 'dashboard']);
+  const { t, i18n } = useTranslation(['comum', 'dashboard', 'dashboardPrisma']);
   const { data, status, error } = useAppSelector(
     (state) => state.dashboards.overview[kind],
   );
+  // O PDF é o retrato já carregado: imprimir é só montar o relatório.
+  const [printing, setPrinting] = useState(false);
   const label =
     kind === 'companies'
       ? t('dashboard:todasEmpresas')
       : t('dashboard:todosMentorandos');
+  const groupHeading =
+    kind === 'companies' ? t('dashboard:Empresa') : t('dashboard:Mentorando');
+  // Os mentorandos não são uma equipe: o alinhamento é o de todos eles.
+  const alignmentTitle =
+    kind === 'mentees'
+      ? t('dashboardPrisma:alinhamento.tituloGeral')
+      : undefined;
   const formatDate = (iso: string) =>
     new Intl.DateTimeFormat(i18n.language, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     }).format(new Date(iso));
+  const responsesLabel = data
+    ? t('dashboard:respostasEntre', {
+        inicio: formatDate(data.responses_from),
+        fim: formatDate(data.responses_to),
+      })
+    : '';
+  const finishPdfExport = useCallback(() => {
+    setPrinting(false);
+  }, []);
+
+  const failPdfExport = useCallback(() => {
+    setPrinting(false);
+    toast.error(t('dashboard:erroAoExportarPdf'));
+  }, [t]);
+
+  const exportCsv = () => {
+    if (!data) return;
+    exportDashboardCsv({
+      kind: 'overview',
+      data,
+      t: i18n.getFixedT(i18n.language, ['comum', 'dashboardPrisma']),
+      locale: i18n.language,
+      viewLabel: label,
+      responsesLabel,
+      groupHeading,
+    });
+  };
 
   return (
     <div className="dashboard-view flex min-h-svh flex-col overflow-hidden bg-background">
@@ -133,17 +173,21 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
           screenEnterClassName,
         )}
       >
-        <div className="flex flex-wrap items-center gap-2">
-          {filter}
-          {data && (
-            <ShownChip>
-              {t('dashboard:respostasEntre', {
-                inicio: formatDate(data.responses_from),
-                fim: formatDate(data.responses_to),
-              })}
-            </ShownChip>
-          )}
-        </div>
+        {/* A barra fica no mesmo lugar desde a carga: o seletor não é
+            recriado quando o retrato chega. Sem dado, não há o que baixar. */}
+        <DashboardToolbar
+          filters={
+            <>
+              {filter}
+              {data && <ShownChip>{responsesLabel}</ShownChip>}
+            </>
+          }
+          onExportPdf={() => {
+            if (data) setPrinting(true);
+          }}
+          exportingPdf={printing || !data}
+          onExportCsv={data ? exportCsv : undefined}
+        />
 
         {status === 'loading' && !data && (
           <LoadingState>
@@ -175,29 +219,26 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
                 id,
                 label: name,
               }))}
-              scopePlaceholder={
-                kind === 'companies'
-                  ? t('dashboard:Empresa')
-                  : t('dashboard:Mentorando')
-              }
+              scopePlaceholder={groupHeading}
               alignment={data.alignment}
-              groupMatrix={{
-                title:
-                  kind === 'companies'
-                    ? t('dashboard:mapaEmpresas')
-                    : t('dashboard:mapaMentorandos'),
-                heading:
-                  kind === 'companies'
-                    ? t('dashboard:Empresa')
-                    : t('dashboard:Mentorando'),
-                rows: data.groups,
-              }}
+              alignmentTitle={alignmentTitle}
             />
 
             <ResultText empresa {...data.creed_summary} />
           </>
         )}
       </main>
+
+      {printing && data && (
+        <OverviewPdfReport
+          data={data}
+          label={label}
+          scopePlaceholder={groupHeading}
+          alignmentTitle={alignmentTitle}
+          onAfterPrint={finishPdfExport}
+          onPrintError={failPdfExport}
+        />
+      )}
     </div>
   );
 }

@@ -6,88 +6,15 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
 import dashboardsReducer from '@/features/dashboards/dashboardsSlice';
-import {
-  dashboardsApi,
-  type OverviewDashboard,
-  type OverviewKind,
-} from '@/features/dashboards/dashboardsApi';
+import { dashboardsApi } from '@/features/dashboards/dashboardsApi';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { ApiError } from '@/lib/apiClient';
-import type { Prisma } from '@/types/api';
 import { CompanyDashboardRoute } from './AdminDashboardView';
 import { companyDashboardFixture } from './__fixtures__/companyDashboard';
+import { retrato } from './__fixtures__/overviewDashboard';
 import { userDashboardFixture } from './__fixtures__/userDashboard';
 
 const CREED = 'org-creed';
-
-function notas(valor: number): Record<Prisma, number> {
-  return {
-    seguranca_psicologica: valor,
-    lideranca_adaptativa: valor,
-    cultura_empreendedora: valor,
-    adaptabilidade_cognitiva: valor,
-    neuroinovacao_prisma: valor,
-  };
-}
-
-// O retrato atual, como o back devolve: duas empresas, ou um mentorando.
-function retrato(kind: OverviewKind): OverviewDashboard {
-  const grupos =
-    kind === 'companies'
-      ? [
-          { id: 'org-a', label: 'Empresa A', valor: 70 },
-          { id: 'org-b', label: 'Empresa B', valor: 50 },
-        ]
-      : [{ id: 'link-m1', label: 'Mentorando 1', valor: 80 }];
-  const destaque = { prisma: 'seguranca_psicologica' as const, valor: 60 };
-  return {
-    kind,
-    responses_from: '2026-09-01T12:00:00Z',
-    responses_to: '2026-10-15T12:00:00Z',
-    scores: notas(60),
-    dimensions: { S2: 60, S4: 60, S5A: 60, S5B: 60, S6: 60, S7: 60, S8: 60 },
-    company_summary: {
-      concluidos: 9,
-      convidados: 10,
-      destaque,
-      oportunidade: destaque,
-      maisComum: destaque,
-    },
-    alignment: { respondents: 9, prismas: null },
-    groups: grupos.map(({ id, label, valor }) => ({
-      id,
-      label,
-      respondents: 3,
-      scores: notas(valor),
-      difference: notas(valor - 60),
-    })),
-    comparisons: grupos.map(({ id, valor }) => ({
-      period: null,
-      scope: id,
-      scores: notas(valor),
-      variation: notas(60 - valor),
-      dimensions: {
-        S2: valor,
-        S4: valor,
-        S5A: valor,
-        S5B: valor,
-        S6: valor,
-        S7: valor,
-        S8: valor,
-      },
-    })),
-    creed_summary: {
-      analiseTexto: [],
-      recomendacaoTexto: [],
-      prismas: {} as never,
-      destaque: 'seguranca_psicologica',
-      oportunidade: 'seguranca_psicologica',
-      // O retrato atual não tem insight.
-      insight_status: 'none',
-      generated_at: null,
-    },
-  };
-}
 
 function renderizar(role = 'admin', url = '/dashboard/company') {
   const store = configureStore({
@@ -162,12 +89,10 @@ describe('AdminDashboardView', () => {
     expect(
       screen.queryByRole('button', { name: /Período/ }),
     ).not.toBeInTheDocument();
+    // Sem mapa × prismas: a linha de cada empresa só repetiria a comparação.
     expect(
-      screen.getByRole('heading', { name: 'Empresas × prismas' }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('row', { name: /Empresa A/ })).toHaveTextContent(
-      '+10',
-    );
+      screen.queryByRole('heading', { name: /× prismas/ }),
+    ).not.toBeInTheDocument();
   });
 
   it('should list the companies and the mentees with results in the selector', async () => {
@@ -249,12 +174,20 @@ describe('AdminDashboardView', () => {
     await escolher(user, 'Todas as empresas', 'Todos os mentorandos');
 
     expect(
-      await screen.findByRole('heading', { name: 'Mentorandos × prismas' }),
+      await screen.findByRole('button', { name: 'Todos os mentorandos' }),
     ).toBeInTheDocument();
-    // Uma linha por mentorando, com a nota em cada prisma (80, +20 da média).
-    expect(screen.getByRole('row', { name: /Mentorando 1/ })).toHaveTextContent(
-      '80 +20',
-    );
+    // Sem mapa: com uma pessoa por linha, ele só repetiria a nota de cada uma,
+    // que a comparação já mostra.
+    expect(
+      screen.queryByRole('heading', { name: /× prismas/ }),
+    ).not.toBeInTheDocument();
+    // Os mentorandos não são uma equipe.
+    expect(
+      screen.getByRole('heading', { name: 'Alinhamento geral' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('heading', { name: 'Alinhamento da equipe' }),
+    ).not.toBeInTheDocument();
   });
 
   it('should open the company from the URL, as the control panel links it', async () => {
@@ -374,6 +307,65 @@ describe('AdminDashboardView', () => {
           'Recomendação para a equipe. Lorem ipsum dolor sit amet.',
         ),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('download do retrato atual', () => {
+    it('should list PDF and CSV in the download menu of all companies', async () => {
+      const user = userEvent.setup();
+      renderizar();
+
+      await screen.findByText('Respostas de 01/09/2026 a 15/10/2026');
+      await user.click(screen.getByRole('button', { name: 'Baixar' }));
+
+      expect(screen.getByRole('menuitem', { name: 'PDF' })).toBeEnabled();
+      expect(screen.getByRole('menuitem', { name: 'CSV' })).toBeEnabled();
+    });
+
+    it('should export the current picture of all companies as a CSV file', async () => {
+      const csvExportModule = await import('./exportDashboardCsv');
+      const exportCsvSpy = vi
+        .spyOn(csvExportModule, 'exportDashboardCsv')
+        .mockImplementation(() => undefined);
+      const user = userEvent.setup();
+      renderizar();
+
+      await screen.findByText('Respostas de 01/09/2026 a 15/10/2026');
+      await user.click(screen.getByRole('button', { name: 'Baixar' }));
+      await user.click(screen.getByRole('menuitem', { name: 'CSV' }));
+
+      expect(exportCsvSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          kind: 'overview',
+          viewLabel: 'Todas as empresas',
+          responsesLabel: 'Respostas de 01/09/2026 a 15/10/2026',
+          groupHeading: 'Empresa',
+        }),
+      );
+    });
+
+    it('should print the current picture of the mentees without asking the backend again', async () => {
+      const print = vi
+        .spyOn(window, 'print')
+        .mockImplementation(() => undefined);
+      const user = userEvent.setup();
+      renderizar('admin', '/dashboard/company?view=mentees');
+
+      await screen.findByText('Respostas de 01/09/2026 a 15/10/2026');
+      await user.click(screen.getByRole('button', { name: 'Baixar' }));
+      await user.click(screen.getByRole('menuitem', { name: 'PDF' }));
+
+      await waitFor(() => {
+        expect(print).toHaveBeenCalledTimes(1);
+      });
+      // Um pedido por retrato, o da carga: o PDF usa o que já está na tela.
+      expect(dashboardsApi.getOverview).toHaveBeenCalledTimes(2);
+      const report = document.querySelector('.dashboard-pdf-report');
+      expect(
+        report?.querySelectorAll('.pdf-company-summary-grid > article'),
+      ).toHaveLength(4);
+      // Sem o mapa: com uma pessoa por linha, ele só repetiria a nota dela.
+      expect(report).not.toHaveTextContent('× prismas');
     });
   });
 });
