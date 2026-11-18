@@ -4,7 +4,6 @@ import type {
   ComparisonOptions,
   ComparisonScope,
   DepartmentRow,
-  OverviewGroup,
   PrismaComparison,
   TeamAlignment,
 } from '@/features/dashboards/dashboardsApi';
@@ -48,8 +47,6 @@ interface OverviewSectionProps {
   // some.
   scopeOptions?: { id: string; label: string }[] | undefined;
   scopePlaceholder?: string | undefined;
-  groupMatrix?:
-    { title: string; heading: string; rows: OverviewGroup[] } | undefined;
   pdfLayout?: boolean;
 }
 
@@ -68,7 +65,6 @@ export function OverviewSection({
   scopeOptions,
   scopePlaceholder,
   alignmentTitle,
-  groupMatrix,
   pdfLayout = false,
 }: OverviewSectionProps) {
   const { t } = useTranslation([
@@ -248,13 +244,11 @@ export function OverviewSection({
           alinhamento fica estreito (as barras leem bem assim) e a tabela com
           o resto. Sem alinhamento (recorte de funcionário), a tabela ocupa a
           linha. Nenhum dos dois segue a comparação. */}
-      {(alignment ?? departmentMatrix ?? groupMatrix) && (
+      {(alignment ?? departmentMatrix) && (
         <div
           className={cn(
             'mt-4 grid grid-cols-1 gap-4',
-            alignment &&
-              (departmentMatrix ?? groupMatrix) &&
-              'xl:grid-cols-[2fr_3fr]',
+            alignment && departmentMatrix && 'xl:grid-cols-[2fr_3fr]',
             pdfLayout &&
               alignment &&
               departmentMatrix &&
@@ -272,14 +266,6 @@ export function OverviewSection({
             <DepartmentMatrixCard
               rows={departmentMatrix}
               period={periodLabel(period)}
-            />
-          )}
-          {groupMatrix && (
-            <DepartmentMatrixCard
-              rows={groupMatrix.rows}
-              period={shownLabel}
-              title={groupMatrix.title}
-              heading={groupMatrix.heading}
             />
           )}
         </div>

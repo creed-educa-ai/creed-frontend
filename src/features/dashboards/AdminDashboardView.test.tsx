@@ -89,12 +89,10 @@ describe('AdminDashboardView', () => {
     expect(
       screen.queryByRole('button', { name: /Período/ }),
     ).not.toBeInTheDocument();
+    // Sem mapa × prismas: a linha de cada empresa só repetiria a comparação.
     expect(
-      screen.getByRole('heading', { name: 'Empresas × prismas' }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('row', { name: /Empresa A/ })).toHaveTextContent(
-      '+10',
-    );
+      screen.queryByRole('heading', { name: /× prismas/ }),
+    ).not.toBeInTheDocument();
   });
 
   it('should list the companies and the mentees with results in the selector', async () => {

@@ -180,7 +180,6 @@ describe('exportDashboardCsv', () => {
         locale: 'pt-BR',
         viewLabel: 'Todas as empresas',
         responsesLabel: 'Respostas de 01/09/2026 a 15/10/2026',
-        matrixTitle: 'Empresas × prismas',
         groupHeading: 'Empresa',
       });
 
@@ -197,16 +196,11 @@ describe('exportDashboardCsv', () => {
       expect(rows).toContainEqual(['Taxa de Conclusão', '90%']);
     });
 
-    it('should list each company in the map and in the comparisons', () => {
+    it('should compare each company, without a map of companies', () => {
       const rows = overview();
 
-      const mapIndex = rows.findIndex((r) => r[0] === 'Empresas × prismas');
-      expect(rows[mapIndex + 1]?.slice(0, 2)).toEqual([
-        'Empresa',
-        'Respondentes',
-      ]);
-      expect(rows[mapIndex + 2]).toEqual(['Empresa A', 3, 70, 70, 70, 70, 70]);
-      expect(rows[mapIndex + 3]).toEqual(['Empresa B', 3, 50, 50, 50, 50, 50]);
+      // Sem mapa × prismas: a linha de cada empresa só repetiria a comparação.
+      expect(rows.some((r) => r[1] === 'Respondentes')).toBe(false);
 
       // A comparação é com cada empresa, não com um período.
       expect(rows).toContainEqual([
@@ -264,7 +258,13 @@ describe('exportDashboardCsv', () => {
 
       const rows = overview(data);
 
-      expect(rows).toContainEqual([`'=HYPERLINK("x")`, 3, 70, 70, 70, 70, 70]);
+      // O nome da empresa aparece na comparação com ela.
+      expect(rows).toContainEqual([
+        `'=HYPERLINK("x")`,
+        'Segurança Psicológica',
+        70,
+        '-10',
+      ]);
     });
   });
 

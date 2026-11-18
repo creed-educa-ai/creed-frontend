@@ -1,9 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { DepartmentTag } from '@/components/department/DepartmentTag';
-import type {
-  DepartmentRow,
-  OverviewGroup,
-} from '@/features/dashboards/dashboardsApi';
+import type { DepartmentRow } from '@/features/dashboards/dashboardsApi';
 import { PRISMAS } from '@/features/dashboards/prismas';
 import { cn } from '@/lib/utils';
 import { InfoTip } from './InfoTip';
@@ -12,19 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cardTitleClassName } from '@/lib/typography';
 
 interface DepartmentMatrixCardProps {
-  // Setores (o dashboard da empresa) ou grupos com nome: as empresas ou os
-  // mentorandos, no retrato atual da administradora.
-  rows: (DepartmentRow | OverviewGroup)[];
+  rows: DepartmentRow[];
   period: string;
-  // Sem eles, o mapa de setores.
-  title?: string | undefined;
-  heading?: string | undefined;
-}
-
-// O nome da linha: o setor como tag, igual à tabela de membros; o grupo, como
-// texto.
-function rowKey(row: DepartmentRow | OverviewGroup) {
-  return 'department' in row ? row.department : row.id;
 }
 
 // Diferenças menores que isto ficam sem cor: um ou dois pontos de distância
@@ -53,11 +39,9 @@ function signed(difference: number) {
 export function DepartmentMatrixCard({
   rows,
   period,
-  title: customTitle,
-  heading,
 }: DepartmentMatrixCardProps) {
   const { t } = useTranslation(['dashboardPrisma', 'dashboard']);
-  const title = customTitle ?? t('dashboardPrisma:mapa.titulo');
+  const title = t('dashboardPrisma:mapa.titulo');
 
   return (
     <Card asChild>
@@ -131,7 +115,7 @@ export function DepartmentMatrixCard({
                         scope="col"
                         className="pb-2 text-left font-bold text-muted-foreground"
                       >
-                        {heading ?? t('dashboard:Setor')}
+                        {t('dashboard:Setor')}
                       </th>
                       {PRISMAS.map((prisma) => (
                         <th
@@ -150,7 +134,7 @@ export function DepartmentMatrixCard({
                       return (
                         // Linha fina entre os setores, como nas outras tabelas.
                         <tr
-                          key={rowKey(row)}
+                          key={row.department}
                           className="border-b border-border last:border-b-0"
                         >
                           <th
@@ -160,13 +144,7 @@ export function DepartmentMatrixCard({
                             {/* O setor como tag, igual à tabela de membros. O selo não
                         quebra linha: um nome em duas linhas deixaria a linha
                         inteira mais alta que as outras. */}
-                            {'department' in row ? (
-                              <DepartmentTag department={row.department} />
-                            ) : (
-                              <span className="font-semibold text-heading">
-                                {row.label}
-                              </span>
-                            )}
+                            <DepartmentTag department={row.department} />
                             <span className="mt-1 block text-xs text-muted-foreground">
                               {t('dashboardPrisma:mapa.respostas', {
                                 total: respondents,

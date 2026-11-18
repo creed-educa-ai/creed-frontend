@@ -611,7 +611,6 @@ export const es: typeof ptBR = {
     Empresa: 'Empresa',
     Mentorando: 'Mentorado',
     respostasEntre: 'Respuestas del {{inicio}} al {{fim}}',
-    mapaEmpresas: 'Empresas × prismas',
     semResultadoEmpresa:
       'Todavía no hay resultados. Aparecen aquí después de que alguien responda un cuestionario.',
     descricaoPrisma: {

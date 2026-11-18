@@ -5,7 +5,6 @@ import wordmark from '@/components/logos/wordmark-dark.svg';
 import type {
   CompanyDashboard,
   OverviewDashboard,
-  OverviewGroup,
   UserDashboard,
 } from '@/features/dashboards/dashboardsApi';
 import { periodLabeler } from '../periods';
@@ -137,9 +136,6 @@ interface OverviewPdfReportProps extends PrintCallbacks {
   data: OverviewDashboard;
   // "Todas as empresas" ou "Todos os mentorandos".
   label: string;
-  // Só no retrato das empresas.
-  groupMatrix?:
-    { title: string; heading: string; rows: OverviewGroup[] } | undefined;
   scopePlaceholder: string;
   alignmentTitle?: string | undefined;
 }
@@ -150,7 +146,6 @@ interface OverviewPdfReportProps extends PrintCallbacks {
 export function OverviewPdfReport({
   data,
   label,
-  groupMatrix,
   scopePlaceholder,
   alignmentTitle,
   onAfterPrint,
@@ -184,7 +179,6 @@ export function OverviewPdfReport({
           scopePlaceholder={scopePlaceholder}
           alignment={data.alignment}
           alignmentTitle={alignmentTitle}
-          groupMatrix={groupMatrix}
         />
       </section>
 

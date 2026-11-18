@@ -47,8 +47,6 @@ export type ExportCsvParams =
       viewLabel: string;
       // "Respostas de … a …", já formatado.
       responsesLabel: string;
-      // Só no retrato das empresas: sem ele, a planilha sai sem o mapa.
-      matrixTitle?: string | undefined;
       groupHeading: string;
     };
 
@@ -235,26 +233,7 @@ export function buildDashboardCsvRows(params: ExportCsvParams): CsvCell[][] {
       params.data.kind === 'mentees' ? label('alinhamentoGeral') : undefined,
     );
 
-    // 6. Mapa de empresas × prismas
-    if (params.matrixTitle && params.data.groups.length > 0) {
-      const header = [
-        params.groupHeading,
-        label('respondentes'),
-        ...PRISMAS.map(getPrismaName),
-      ];
-      rows.push([params.matrixTitle, ...header.slice(1).map(() => '')]);
-      rows.push(header);
-      for (const group of params.data.groups) {
-        rows.push([
-          safeText(group.label),
-          group.respondents,
-          ...PRISMAS.map((prisma) => group.scores[prisma]),
-        ]);
-      }
-      rows.push([]);
-    }
-
-    // 7. Comparações com cada grupo (o retrato não tem período)
+    // 6. Comparações com cada grupo (o retrato não tem período)
     if (params.data.comparisons.length > 0) {
       pushComparisons(
         params.data.comparisons,

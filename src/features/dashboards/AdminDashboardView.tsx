@@ -140,17 +140,6 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
         fim: formatDate(data.responses_to),
       })
     : '';
-  // O mapa compara grupos de pessoas: com uma pessoa por linha (mentorandos),
-  // ele só repetiria a nota de cada um, que a comparação já mostra.
-  const groupMatrix =
-    data && kind === 'companies'
-      ? {
-          title: t('dashboard:mapaEmpresas'),
-          heading: groupHeading,
-          rows: data.groups,
-        }
-      : undefined;
-
   const finishPdfExport = useCallback(() => {
     setPrinting(false);
   }, []);
@@ -169,7 +158,6 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
       locale: i18n.language,
       viewLabel: label,
       responsesLabel,
-      matrixTitle: groupMatrix?.title,
       groupHeading,
     });
   };
@@ -234,7 +222,6 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
               scopePlaceholder={groupHeading}
               alignment={data.alignment}
               alignmentTitle={alignmentTitle}
-              groupMatrix={groupMatrix}
             />
 
             <ResultText empresa {...data.creed_summary} />
@@ -246,7 +233,6 @@ function OverviewDashboard({ kind, filter }: OverviewDashboardProps) {
         <OverviewPdfReport
           data={data}
           label={label}
-          groupMatrix={groupMatrix}
           scopePlaceholder={groupHeading}
           alignmentTitle={alignmentTitle}
           onAfterPrint={finishPdfExport}

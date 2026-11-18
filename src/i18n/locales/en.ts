@@ -606,7 +606,6 @@ export const en: typeof ptBR = {
     Empresa: 'Company',
     Mentorando: 'Mentee',
     respostasEntre: 'Responses from {{inicio}} to {{fim}}',
-    mapaEmpresas: 'Companies × prisms',
     semResultadoEmpresa:
       'There are no results yet. They show up here after someone answers a questionnaire.',
     descricaoPrisma: {

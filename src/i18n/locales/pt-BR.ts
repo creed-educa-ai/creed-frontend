@@ -615,7 +615,6 @@ export const ptBR = {
     Empresa: 'Empresa',
     Mentorando: 'Mentorando',
     respostasEntre: 'Respostas de {{inicio}} a {{fim}}',
-    mapaEmpresas: 'Empresas × prismas',
     semResultadoEmpresa:
       'Ainda não há resultados. Eles aparecem aqui depois que alguém responder um questionário.',
     // A descrição de cada prisma nos cards do resumo executivo.
