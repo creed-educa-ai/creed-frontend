@@ -8,7 +8,9 @@ import type {
   CurrentFormRead,
   FormResponseCreate,
   FormResponseResponse,
+  FormResponseSubmit,
   InsightStatusRead,
+  Language,
 } from '@/types/api';
 
 export const responsesApi = {
@@ -34,12 +36,12 @@ export const responsesApi = {
       `/form-responses/${formResponseId}/answers`,
     ),
 
-  // Sem corpo: o envio só muda o status para `submitted`.
-  submitFormResponse: (formResponseId: string) =>
-    apiClient.patch<FormResponseResponse>(
-      `/form-responses/${formResponseId}`,
-      undefined,
-    ),
+  // O envio muda o status para `submitted`. O idioma da tela decide em que
+  // língua o back pede o insight da resposta.
+  submitFormResponse: (formResponseId: string, language: Language) =>
+    apiClient.patch<FormResponseResponse>(`/form-responses/${formResponseId}`, {
+      language,
+    } satisfies FormResponseSubmit),
 
   // A rota mora em `insights` no back, mas é lida a partir da resposta: o
   // insight nasce no envio. O `signal` cancela a consulta ao sair da tela.

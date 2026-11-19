@@ -45,6 +45,13 @@ void i18n
     },
   });
 
+// O idioma em que a tela está, entre os da plataforma. É o `resolvedLanguage`,
+// e não o `language`: o detector pode devolver 'en-US', mas a tela usa 'en'.
+export function idiomaAtual(): Idioma {
+  const resolvido = i18n.resolvedLanguage;
+  return IDIOMAS.find((idioma) => idioma === resolvido) ?? IDIOMA_PADRAO;
+}
+
 // Mantém <html lang> em dia: leitor de tela e hifenização do browser leem esse
 // atributo, não o estado do React.
 i18n.on('languageChanged', (idioma: string) => {

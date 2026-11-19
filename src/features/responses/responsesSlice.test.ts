@@ -10,6 +10,7 @@ import reducer, {
   selectQuestionnaireSections,
   submitResponses,
 } from '@/features/responses/responsesSlice';
+import i18n from '@/i18n/config';
 import { ApiError } from '@/lib/apiClient';
 import type {
   AnswerResponse,
@@ -481,8 +482,13 @@ describe('responsesSlice', () => {
     it('abre, grava só as preenchidas e envia, nessa ordem', async () => {
       const back = simularBack();
       const store = criarStore();
+      await i18n.changeLanguage('es');
 
-      await enviar(store);
+      try {
+        await enviar(store);
+      } finally {
+        await i18n.changeLanguage('pt-BR');
+      }
 
       // O formulário é o que o carregamento trouxe.
       expect(back.create).toHaveBeenCalledWith(FORM_ID);
@@ -491,7 +497,8 @@ describe('responsesSlice', () => {
         value: 'Primeira',
       });
       expect(gravadas(back.record)).toEqual(['q1', 'q2', 'q5']);
-      expect(back.submit).toHaveBeenCalledWith(FORM_RESPONSE_ID);
+      // O idioma da tela no momento do envio.
+      expect(back.submit).toHaveBeenCalledWith(FORM_RESPONSE_ID, 'es');
       // Enviado: a retomada começa do zero.
       expect(store.getState().responses.submission).toEqual({
         status: 'ready',
