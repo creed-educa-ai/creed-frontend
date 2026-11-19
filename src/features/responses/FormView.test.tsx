@@ -1,0 +1,576 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { configureStore } from '@reduxjs/toolkit';
+import { Provider } from 'react-redux';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { FormView } from './FormView';
+import authenticationReducer from '@/features/authentication/authenticationSlice';
+import { questionsApi } from '@/features/questions/questionsApi';
+import { responsesApi } from '@/features/responses/responsesApi';
+import responsesReducer from '@/features/responses/responsesSlice';
+import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+import { ApiError } from '@/lib/apiClient';
+import type {
+  FormRead,
+  FormResponseResponse,
+  QuestionResponse,
+} from '@/types/api';
+
+const form: FormRead = {
+  id: 'd40b7a55-b9cc-4b78-ae5d-ab325fd655e2',
+  name: 'Período 2026/2',
+  organization_id: '00000000-0000-0000-0000-000000000001',
+  status: 'draft',
+  opens_at: '2026-11-01T12:00:00Z',
+  closes_at: '2026-12-01T12:00:00Z',
+  link_id: null,
+  created_at: '2026-09-30T18:38:18Z',
+};
+
+function question(
+  id: string,
+  section: QuestionResponse['section'],
+  order_index: number,
+  required = true,
+): QuestionResponse {
+  return {
+    id,
+    instrument_id: 'instrumento-creed',
+    text: `Texto da ${id}`,
+    order_index,
+    type: 'descriptive',
+    section,
+    required,
+    dimensao: null,
+    prisma: null,
+    created_at: '2026-09-30T18:38:18Z',
+  };
+}
+
+// Duas seções de três perguntas. A última da seção 2 é opcional (P-038).
+const perguntas: QuestionResponse[] = [
+  question('p1', 'S2', 0),
+  question('p2', 'S2', 1),
+  question('p3', 'S2', 2),
+  question('a1', 'S4', 3),
+  question('a2', 'S4', 4),
+  question('a3', 'S4', 5, false),
+];
+
+function ReviewRouteProbe() {
+  const location = useLocation();
+  const state = location.state as {
+    questions?: {
+      text: string;
+      answer: string | null;
+      required: boolean;
+    }[];
+  } | null;
+  const questions = state?.questions ?? [];
+
+  return (
+    <div>
+      <h1>Revisão</h1>
+      <p>{`Quantidade: ${String(questions.length)}`}</p>
+      <p>{questions[0]?.text}</p>
+      <p>{questions[0]?.answer}</p>
+      <p>{`Opcional: ${questions[5]?.required === false ? 'sim' : 'não'}`}</p>
+    </div>
+  );
+}
+
+describe('FormView', () => {
+  beforeEach(async () => {
+    await i18n.changeLanguage(IDIOMA_PADRAO);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function comPerguntas(lista: QuestionResponse[] = perguntas) {
+    vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue({
+      form,
+      form_response: null,
+    });
+    return vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue(lista);
+  }
+
+  function renderizar() {
+    const store = configureStore({
+      reducer: {
+        authentication: authenticationReducer,
+        responses: responsesReducer,
+      },
+      // Quem está respondendo: o cabeçalho mostra o nome da sessão.
+      preloadedState: {
+        authentication: {
+          user: {
+            id: 'usuario-1',
+            email: 'maria@example.com',
+            name: 'Maria Respondente',
+            role: 'respondente',
+            link_id: 'vinculo-1',
+            organization_id: 'org-1',
+            organization_name: null,
+          },
+          status: 'authenticated' as const,
+          error: null,
+          passwordReset: { status: 'idle' as const, error: null },
+        },
+      },
+    });
+    return render(
+      <Provider store={store}>
+        <MemoryRouter initialEntries={['/questionnaire/questions']}>
+          <Routes>
+            <Route path="/questionnaire/questions" element={<FormView />} />
+            <Route
+              path="/questionnaire/review"
+              element={<ReviewRouteProbe />}
+            />
+          </Routes>
+        </MemoryRouter>
+      </Provider>,
+    );
+  }
+
+  // Renderiza e espera a primeira pergunta vinda do "back".
+  async function renderizarCarregado(lista?: QuestionResponse[]) {
+    comPerguntas(lista);
+    renderizar();
+    await screen.findByText(/Pergunta 1 de/);
+  }
+
+  async function avancar() {
+    await userEvent.click(screen.getByRole('button', { name: /Avançar/i }));
+  }
+
+  // Na opcional em branco, o "Avançar" vira "Pular".
+  async function pular() {
+    await userEvent.click(screen.getByRole('button', { name: 'Pular' }));
+  }
+
+  // Responde a pergunta que está na tela (texto, escala ou alternativa) e
+  // clica em Avançar.
+  async function responderEAvancar(quantidade = 1) {
+    for (let i = 0; i < quantidade; i++) {
+      const campo = screen.queryByRole('textbox');
+      if (campo) {
+        await userEvent.type(campo, 'Minha resposta');
+      } else {
+        const [primeiraOpcao] = screen.getAllByRole('radio');
+        if (!primeiraOpcao) throw new Error('alternativa não encontrada');
+        await userEvent.click(primeiraOpcao);
+      }
+      await avancar();
+    }
+  }
+
+  function valorDaBarra() {
+    return Number(
+      screen.getByRole('progressbar').getAttribute('aria-valuenow'),
+    );
+  }
+
+  describe('carregamento', () => {
+    it('busca no back o questionário aberto para a pessoa', async () => {
+      const listQuestions = comPerguntas();
+      renderizar();
+
+      expect(screen.getByRole('status')).toHaveTextContent('Carregando');
+      await screen.findByText('Texto da p1');
+      expect(listQuestions).toHaveBeenCalledWith(form.id, { lang: 'pt-BR' });
+    });
+
+    it('sem questionário aberto, avisa e deixa tentar de novo', async () => {
+      vi.spyOn(responsesApi, 'getCurrentForm')
+        .mockRejectedValueOnce(new ApiError('nenhum aberto', 404))
+        .mockResolvedValue({ form, form_response: null });
+      vi.spyOn(questionsApi, 'listQuestions').mockResolvedValue(perguntas);
+      renderizar();
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Nenhum questionário aberto para você no momento.',
+      );
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Tentar novamente' }),
+      );
+      expect(await screen.findByText('Texto da p1')).toBeInTheDocument();
+    });
+
+    it('avisa quando a pessoa já respondeu', async () => {
+      const enviada: FormResponseResponse = {
+        id: '3b1bb89a-471f-48b0-9025-cfda3b20d240',
+        form_id: form.id,
+        vinculo_id: 'e541e500-8b88-45e7-9195-b6079023922b',
+        status: 'submitted',
+        started_at: '2026-11-02T12:00:00Z',
+        submitted_at: '2026-11-02T12:30:00Z',
+      };
+      vi.spyOn(responsesApi, 'getCurrentForm').mockResolvedValue({
+        form,
+        form_response: enviada,
+      });
+      renderizar();
+
+      expect(
+        await screen.findByText('Você já respondeu este questionário.'),
+      ).toBeInTheDocument();
+      expect(screen.queryByText('Texto da p1')).not.toBeInTheDocument();
+    });
+
+    it('pede as perguntas de novo ao trocar o idioma, sem perder a resposta', async () => {
+      const listQuestions = comPerguntas();
+      renderizar();
+      await screen.findByText('Texto da p1');
+      await userEvent.type(screen.getByRole('textbox'), 'Guardada');
+
+      await act(() => i18n.changeLanguage('es'));
+
+      await waitFor(() => {
+        expect(listQuestions).toHaveBeenLastCalledWith(form.id, { lang: 'es' });
+      });
+      expect(screen.getByRole('textbox')).toHaveValue('Guardada');
+    });
+
+    it('avisa quando o formulário não tem pergunta', async () => {
+      comPerguntas([]);
+      renderizar();
+
+      expect(
+        await screen.findByText('Este questionário ainda não tem perguntas.'),
+      ).toBeInTheDocument();
+    });
+
+    it('não mostra pergunta objetiva', async () => {
+      await renderizarCarregado([
+        question('p1', 'S2', 0),
+        { ...question('obj', 'S2', 1), type: 'objective' },
+      ]);
+
+      expect(screen.getByText(/Pergunta 1 de 1/)).toBeInTheDocument();
+      expect(screen.queryByText('Texto da obj')).not.toBeInTheDocument();
+    });
+  });
+
+  it('should render header with title and user name', async () => {
+    await renderizarCarregado();
+
+    expect(screen.getByText('Maria Respondente')).toBeInTheDocument();
+    expect(screen.queryByText('João Silva')).not.toBeInTheDocument();
+    expect(screen.getByText('Formulário')).toBeInTheDocument();
+  });
+
+  it('should render first question of section 1 with the text from the back', async () => {
+    await renderizarCarregado();
+
+    expect(screen.getByText(/Pergunta 1 de 3/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Texto da p1' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  it('should move the progress only when advancing an answered question', async () => {
+    await renderizarCarregado();
+
+    expect(valorDaBarra()).toBe(0);
+
+    // Escrever ainda não conta.
+    await userEvent.type(screen.getByRole('textbox'), 'Resposta');
+    expect(valorDaBarra()).toBe(0);
+
+    // Avançar com a resposta escrita conta: 1 de 3 da seção.
+    await avancar();
+    expect(valorDaBarra()).toBeCloseTo(100 / 3);
+
+    // Avançar sem responder não conta.
+    await avancar();
+    expect(valorDaBarra()).toBeCloseTo(100 / 3);
+
+    // Voltar à pergunta pulada e responder também só conta ao avançar.
+    await userEvent.click(screen.getByRole('button', { name: /Voltar/i }));
+    await userEvent.type(screen.getByRole('textbox'), 'Outra');
+    expect(valorDaBarra()).toBeCloseTo(100 / 3);
+    await avancar();
+    expect(valorDaBarra()).toBeCloseTo(200 / 3);
+  });
+
+  it('should keep the answer when going back to a question', async () => {
+    await renderizarCarregado();
+
+    await userEvent.type(screen.getByRole('textbox'), 'Guardada');
+    await avancar();
+    await userEvent.click(screen.getByRole('button', { name: /Voltar/i }));
+
+    expect(screen.getByRole('textbox')).toHaveValue('Guardada');
+  });
+
+  it('should slide the question in from the side of the button clicked', async () => {
+    await renderizarCarregado();
+
+    function blocoDaPergunta() {
+      return screen
+        .getByRole('heading', { level: 2 })
+        .closest('[data-direcao]');
+    }
+
+    await avancar();
+    expect(blocoDaPergunta()).toHaveAttribute('data-direcao', 'avancar');
+    expect(blocoDaPergunta()).toHaveClass('slide-in-from-right-4');
+
+    await userEvent.click(screen.getByRole('button', { name: /Voltar/i }));
+    expect(blocoDaPergunta()).toHaveAttribute('data-direcao', 'voltar');
+    expect(blocoDaPergunta()).toHaveClass('slide-in-from-left-4');
+  });
+
+  it('should go to the first question of a section by clicking its tab', async () => {
+    await renderizarCarregado();
+
+    // Seção 2 ainda não foi vista: a aba fica bloqueada.
+    expect(screen.getByRole('button', { name: 'Seção 2' })).toBeDisabled();
+
+    await responderEAvancar(4);
+    expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 2 de 3/)).toBeInTheDocument();
+
+    // Volta pela aba: cai na primeira pergunta da seção 1.
+    await userEvent.click(screen.getByRole('button', { name: 'Seção 1' }));
+    expect(screen.getByText('Seção 1', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 1 de 3/)).toBeInTheDocument();
+
+    // A seção 2 continua liberada: dá para ir e vir.
+    const abaSecao2 = screen.getByRole('button', { name: 'Seção 2' });
+    expect(abaSecao2).toBeEnabled();
+    await userEvent.click(abaSecao2);
+    expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 1 de 3/)).toBeInTheDocument();
+  });
+
+  it('should go back to a section from the completion screen', async () => {
+    await renderizarCarregado();
+
+    await responderEAvancar(6);
+    await userEvent.click(screen.getByRole('button', { name: 'Seção 1' }));
+
+    expect(screen.getByText('Seção 1', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 1 de 3/)).toBeInTheDocument();
+  });
+
+  it('should disable voltar button on first question', async () => {
+    await renderizarCarregado();
+
+    expect(screen.getByRole('button', { name: /Voltar/i })).toBeDisabled();
+  });
+
+  it('should go back to the last question of the previous section', async () => {
+    await renderizarCarregado();
+
+    await responderEAvancar(3);
+    await userEvent.click(screen.getByRole('button', { name: /Voltar/i }));
+
+    expect(screen.getByText('Seção 1', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 3 de 3/)).toBeInTheDocument();
+  });
+
+  it('should change section when finishing all questions in section 1', async () => {
+    await renderizarCarregado();
+
+    await responderEAvancar(3);
+
+    expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 1 de 3/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Seção 2' })).toHaveAttribute(
+      'aria-current',
+      'step',
+    );
+    expect(screen.getByRole('button', { name: 'Seção 1' })).not.toHaveAttribute(
+      'aria-current',
+    );
+  });
+
+  it('should translate texts when changing language', async () => {
+    await i18n.changeLanguage('en');
+    comPerguntas();
+    renderizar();
+
+    expect(await screen.findByText(/Question 1 of 3/)).toBeInTheDocument();
+    expect(screen.getByText('Form')).toBeInTheDocument();
+  });
+
+  it('should render the header menu items with accessible names', async () => {
+    await renderizarCarregado();
+
+    expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Questionário' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Sobre' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
+    expect(screen.getByAltText('CREED.ai')).toBeInTheDocument();
+  });
+
+  it('should show completion message when all questions are answered', async () => {
+    await renderizarCarregado();
+
+    await responderEAvancar(6);
+
+    expect(
+      screen.getByRole('heading', { name: 'Todas as perguntas respondidas' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Revisar e enviar' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute(
+      'aria-valuenow',
+      '100',
+    );
+    expect(screen.getByText('6 de 6 respondidas')).toBeInTheDocument();
+    for (const aba of screen.getAllByRole('button', { name: /^Seção/ })) {
+      expect(aba).not.toHaveAttribute('aria-current');
+    }
+  });
+
+  it('should not leave the section with unanswered required questions', async () => {
+    await renderizarCarregado();
+
+    // Responde a 1, pula a 2, responde a 3 e tenta sair da seção.
+    await responderEAvancar();
+    await avancar();
+    await responderEAvancar();
+
+    // Continua na seção 1, na pergunta que faltou, com o aviso.
+    expect(screen.getByText('Seção 1', { selector: 'p' })).toBeInTheDocument();
+    expect(screen.getByText(/Pergunta 2 de 3/)).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Responda as perguntas obrigatórias da seção para avançar.',
+    );
+
+    // Respondeu a que faltava: o aviso some.
+    await userEvent.type(screen.getByRole('textbox'), 'Agora sim');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+
+    // Agora dá para sair.
+    await avancar();
+    await avancar();
+    expect(screen.getByText('Seção 2', { selector: 'p' })).toBeInTheDocument();
+  });
+
+  it('should let an optional question stay blank (P-038)', async () => {
+    await renderizarCarregado();
+
+    // Seção 1 inteira, e na seção 2 as duas obrigatórias; a opcional fica vazia.
+    await responderEAvancar(5);
+    // A opcional avisa que dá para pular, e o botão diz isso.
+    expect(
+      screen.getByText(
+        /Pergunta opcional: se preferir, você pode pular\. Seja breve/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Avançar' }),
+    ).not.toBeInTheDocument();
+    // Com texto, volta a ser "Avançar"; apagado, "Pular" de novo.
+    await userEvent.type(screen.getByRole('textbox'), 'oi');
+    expect(screen.getByRole('button', { name: 'Avançar' })).toBeInTheDocument();
+    await userEvent.clear(screen.getByRole('textbox'));
+    await pular();
+
+    expect(
+      screen.getByRole('heading', { name: 'Você chegou ao fim das perguntas' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('5 de 6 respondidas')).toBeInTheDocument();
+    // A seção 2 conta como concluída: a opcional em branco não tira o check.
+    expect(
+      screen.getByRole('button', { name: 'Seção 2' }).querySelector('svg'),
+    ).not.toBeNull();
+  });
+
+  it('should not mark an optional-only section as done before passing through it', async () => {
+    // Como a S9 do instrumento: a última seção só tem opcional.
+    await renderizarCarregado([
+      question('p1', 'S2', 0),
+      question('a1', 'S4', 1),
+      question('c1', 'S9', 2, false),
+    ]);
+
+    function temCheck(nome: string) {
+      return (
+        screen.getByRole('button', { name: nome }).querySelector('svg') !== null
+      );
+    }
+
+    expect(temCheck('Seção 3')).toBe(false);
+
+    // Chega na seção 3: ainda sem check, a pessoa está nela.
+    await responderEAvancar(2);
+    expect(screen.getByText('Seção 3', { selector: 'p' })).toBeInTheDocument();
+    expect(temCheck('Seção 3')).toBe(false);
+
+    // Passa por ela em branco: agora conta como concluída (P-038).
+    await pular();
+    expect(temCheck('Seção 3')).toBe(true);
+  });
+
+  it('should only mark a tab as done when its section is complete', async () => {
+    await renderizarCarregado();
+
+    await responderEAvancar(3);
+    const abaSecao1 = screen.getByRole('button', { name: 'Seção 1' });
+    expect(abaSecao1.querySelector('svg')).not.toBeNull();
+    const abaSecao2 = screen.getByRole('button', { name: 'Seção 2' });
+    expect(abaSecao2.querySelector('svg')).toBeNull();
+
+    // Voltar para a seção 1 pela aba não tira o check dela.
+    await userEvent.click(abaSecao1);
+    expect(
+      screen.getByRole('button', { name: 'Seção 1' }).querySelector('svg'),
+    ).not.toBeNull();
+  });
+
+  it('should not mark the section as done before advancing the last question', async () => {
+    await renderizarCarregado();
+
+    await responderEAvancar(2);
+    // Na última pergunta: escreve, mas ainda não avança.
+    await userEvent.type(screen.getByRole('textbox'), 'Quase');
+    expect(
+      screen.getByRole('button', { name: 'Seção 1' }).querySelector('svg'),
+    ).toBeNull();
+
+    await avancar();
+    expect(
+      screen.getByRole('button', { name: 'Seção 1' }).querySelector('svg'),
+    ).not.toBeNull();
+  });
+
+  it('should show the section percentage next to the section name', async () => {
+    await renderizarCarregado();
+
+    expect(screen.getByText('0%')).toBeInTheDocument();
+    await responderEAvancar();
+    expect(screen.getByText('33%')).toBeInTheDocument();
+  });
+
+  it('should pass collected answers to the review route', async () => {
+    await renderizarCarregado();
+    await userEvent.type(screen.getByRole('textbox'), 'Primeira resposta');
+    await avancar();
+    await responderEAvancar(5);
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Revisar e enviar' }),
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Revisão' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Quantidade: 6')).toBeInTheDocument();
+    expect(screen.getByText('Texto da p1')).toBeInTheDocument();
+    expect(screen.getByText('Primeira resposta')).toBeInTheDocument();
+    expect(screen.getByText('Opcional: sim')).toBeInTheDocument();
+  });
+});

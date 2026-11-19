@@ -1,0 +1,342 @@
+import { PageHeader } from '@/components/layout/pageHeader';
+import { useEffect, useState } from 'react';
+import {
+  Questions,
+  QuestionsCompleted,
+  type Direcao,
+} from '@/features/responses/Question';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import type { ReviewQuestion } from '@/features/responses/AnswersReviewView';
+import { Button } from '@/components/ui/button';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { IDIOMAS, IDIOMA_PADRAO } from '@/i18n/config';
+import type { QuestionLang } from '@/types/api';
+import {
+  loadQuestionnaire,
+  selectQuestionnaireSections,
+  type PerguntaDaTela,
+  type QuestionnaireSection,
+} from '@/features/responses/responsesSlice';
+
+// Busca no back o questionário aberto para a pessoa e decide o que desenhar:
+// carregando, erro (inclusive "nenhum aberto"), já respondido, vazio ou o
+// questionário. A navegação entre as perguntas mora em `FormQuestions`.
+export function FormView() {
+  const { t, i18n } = useTranslation(['formulario', 'comum']);
+  const dispatch = useAppDispatch();
+  const status = useAppSelector((state) => state.responses.status);
+  const error = useAppSelector((state) => state.responses.error);
+  const formResponse = useAppSelector((state) => state.responses.formResponse);
+  const userName = useAppSelector(
+    (state) => state.authentication.user?.name ?? null,
+  );
+  const secoes = useAppSelector(selectQuestionnaireSections);
+  // O idioma da tela é o das perguntas. Trocar no menu recarrega o texto.
+  const lang: QuestionLang =
+    IDIOMAS.find((idioma) => idioma === i18n.resolvedLanguage) ?? IDIOMA_PADRAO;
+
+  useEffect(() => {
+    void dispatch(loadQuestionnaire(lang));
+  }, [dispatch, lang]);
+
+  function conteudo() {
+    if (status === 'error') {
+      return (
+        <div
+          role="alert"
+          className="mx-auto my-auto flex max-w-md flex-col items-center gap-4 text-center"
+        >
+          <p className="text-foreground">
+            {/* O slice guarda a chave como string; mesma saída do LoginView. */}
+            {t((error ?? 'formulario:erros.servicoIndisponivel') as never)}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              void dispatch(loadQuestionnaire(lang));
+            }}
+          >
+            {t('comum:acoes.tentarNovamente')}
+          </Button>
+        </div>
+      );
+    }
+
+    if (status !== 'ready') {
+      return (
+        <p role="status" className="mx-auto my-auto text-muted-foreground">
+          {t('comum:carregando')}
+        </p>
+      );
+    }
+
+    if (formResponse?.status === 'submitted') {
+      return (
+        <p className="mx-auto my-auto text-center text-muted-foreground">
+          {t('formulario:jaRespondido')}
+        </p>
+      );
+    }
+
+    if (secoes.length === 0) {
+      return (
+        <p className="mx-auto my-auto text-center text-muted-foreground">
+          {t('formulario:semPerguntas')}
+        </p>
+      );
+    }
+
+    return <FormQuestions secoes={secoes} />;
+  }
+
+  return (
+    <div className="relative flex min-h-svh flex-col overflow-hidden bg-background">
+      {/* O mesmo header das outras telas, para o menu não pular. A partir de
+          `sm` ele sai do fluxo e fica sobre o topo: assim a área da pergunta
+          ocupa a tela toda e a pergunta fica no centro dela. No celular o
+          header empilha e fica alto, então continua no fluxo. */}
+      <PageHeader
+        eyebrow={userName}
+        title={t('formulario:titulo')}
+        className="sm:absolute sm:inset-x-0 sm:top-0 sm:z-10"
+      />
+
+      {/* Em cima e embaixo, o mesmo espaço, um pouco maior que o header:
+          centralizado na tela, e a pergunta nunca passa por baixo dele. */}
+      <div className="flex flex-1 flex-col overflow-hidden p-6 sm:py-40 lg:px-8">
+        {conteudo()}
+      </div>
+    </div>
+  );
+}
+
+interface FormQuestionsProps {
+  secoes: QuestionnaireSection[];
+}
+
+// A navegação do questionário: abas, avançar, voltar e barra de progresso.
+// As respostas ficam aqui, em memória, até a revisão (🟡 Premissa P-034: nada
+// é gravado no back antes de confirmar o envio). A chave é o id da pergunta.
+function FormQuestions({ secoes }: FormQuestionsProps) {
+  const [secao, setSecao] = useState(1);
+  const [perguntaAtual, setPerguntaAtual] = useState(1);
+  // Para que lado a pergunta nova entra na tela (ver `Questions`).
+  const [direcao, setDirecao] = useState<Direcao>('avancar');
+  // A seção mais adiante a que a pessoa já chegou: libera as abas até ela.
+  // Voltar por uma aba não "desfaz" o avanço, dá para ir e vir.
+  const [secaoMaisAvancada, setSecaoMaisAvancada] = useState(1);
+  const [respostas, setRespostas] = useState<Record<string, string>>({});
+  // Perguntas em que a pessoa clicou "Avançar" (pelo id da pergunta).
+  // É o clique em Avançar que confirma a resposta para a barra de progresso.
+  const [confirmadas, setConfirmadas] = useState<string[]>([]);
+  // Aviso de "responda as obrigatórias antes de sair da seção" (ver handleProximo).
+  const [avisoSecaoIncompleta, setAvisoSecaoIncompleta] = useState(false);
+  const { t } = useTranslation(['formulario']);
+  const navigate = useNavigate();
+
+  const totalSecoes = secoes.length;
+
+  function perguntasDaSecao(numeroSecao: number) {
+    return secoes[numeroSecao - 1]?.perguntas ?? [];
+  }
+
+  function temResposta(questionId: string) {
+    return (respostas[questionId] ?? '').trim() !== '';
+  }
+
+  const perguntasDaSecaoAtual = perguntasDaSecao(secao);
+  const totalPerguntasNaSecao = perguntasDaSecaoAtual.length;
+
+  // Progresso da seção = perguntas respondidas E confirmadas com "Avançar",
+  // ÷ total da seção. A barra não anda ao marcar uma opção, só ao avançar.
+  // Contar pela posição (pergunta 1 de 3 = 33%) marcava como feita a
+  // pergunta que a pessoa ainda estava lendo.
+  const respondidasNaSecao = perguntasDaSecaoAtual.filter(
+    ({ id }) => confirmadas.includes(id) && temResposta(id),
+  ).length;
+  const progresso = (respondidasNaSecao / totalPerguntasNaSecao) * 100;
+
+  const perguntasParaRevisao: ReviewQuestion[] = secoes.flatMap(
+    ({ numero, perguntas }) =>
+      perguntas.map((pergunta) => ({
+        id: pergunta.id,
+        section: numero,
+        text: pergunta.texto,
+        type: pergunta.tipo,
+        options: pergunta.opcoes,
+        required: pergunta.obrigatoria,
+        answer: respostas[pergunta.id] ?? null,
+      })),
+  );
+
+  // Ao passar da última pergunta, `perguntaAtualData` fica undefined e a tela
+  // mostra o fim do formulário.
+  const perguntaAtualData = perguntasDaSecaoAtual[perguntaAtual - 1];
+
+  // A instrução que aparece acima de cada pergunta, conforme o tipo. A
+  // dissertativa opcional avisa antes que dá para pular.
+  function subtituloDa(pergunta: PerguntaDaTela) {
+    if (pergunta.tipo === 'dissertativa' && !pergunta.obrigatoria) {
+      return t('formulario:dissertativaOpcional');
+    }
+    return {
+      dissertativa: t('formulario:dissertativa'),
+      quantitativa: t('formulario:quantitativa'),
+      objetiva: t('formulario:objetiva'),
+    }[pergunta.tipo];
+  }
+  const valorAtual = perguntaAtualData
+    ? (respostas[perguntaAtualData.id] ?? '')
+    : '';
+
+  // 🟡 Premissa P-038: só as obrigatórias seguram a pessoa na seção.
+  // Número da primeira obrigatória sem resposta da seção, ou null se não há.
+  function primeiraSemResposta(numeroSecao: number): number | null {
+    const indice = perguntasDaSecao(numeroSecao).findIndex(
+      (pergunta) => pergunta.obrigatoria && !temResposta(pergunta.id),
+    );
+    return indice === -1 ? null : indice + 1;
+  }
+
+  // Concluída = a pessoa já passou pela seção (avançou para a seguinte ou para
+  // o fim) E toda obrigatória está respondida e confirmada com "Avançar". Sem
+  // o "já passou", uma seção só de opcionais nasceria com o check, antes de ser
+  // aberta. Só responder a última, sem avançar, ainda não conclui.
+  const secoesConcluidas = secoes
+    .filter(
+      ({ numero, perguntas }) =>
+        numero < secaoMaisAvancada &&
+        perguntas.every(
+          (pergunta) =>
+            !pergunta.obrigatoria ||
+            (confirmadas.includes(pergunta.id) && temResposta(pergunta.id)),
+        ),
+    )
+    .map(({ numero }) => numero);
+
+  // Dentro da seção dá para pular perguntas; sair dela, não. Quem tenta sair
+  // com obrigatória em aberto vai para a primeira sem resposta e vê o aviso.
+  // Devolve true quando barrou a saída.
+  function barrarSaidaDaSecao(): boolean {
+    const faltando = primeiraSemResposta(secao);
+    if (faltando === null) {
+      return false;
+    }
+    setDirecao('voltar');
+    setPerguntaAtual(faltando);
+    setAvisoSecaoIncompleta(true);
+    return true;
+  }
+
+  const handleRespostaChange = (valor: string) => {
+    if (!perguntaAtualData) return;
+    setRespostas({
+      ...respostas,
+      [perguntaAtualData.id]: valor,
+    });
+  };
+
+  const handleProximo = () => {
+    setDirecao('avancar');
+    // Só confirma com resposta: quem pulou, volta e responde depois precisa
+    // avançar de novo para a barra contar.
+    if (
+      perguntaAtualData &&
+      valorAtual.trim() !== '' &&
+      !confirmadas.includes(perguntaAtualData.id)
+    ) {
+      setConfirmadas([...confirmadas, perguntaAtualData.id]);
+    }
+    if (perguntaAtual < totalPerguntasNaSecao) {
+      setPerguntaAtual(perguntaAtual + 1);
+      return;
+    }
+    if (barrarSaidaDaSecao()) {
+      return;
+    }
+    setAvisoSecaoIncompleta(false);
+    if (secao < totalSecoes) {
+      setSecao(secao + 1);
+      setPerguntaAtual(1);
+      setSecaoMaisAvancada(Math.max(secaoMaisAvancada, secao + 1));
+    } else {
+      // Última pergunta da última seção: perguntaAtualData fica undefined.
+      setPerguntaAtual(perguntaAtual + 1);
+      // Passou da última: todas as seções ficam feitas.
+      setSecaoMaisAvancada(totalSecoes + 1);
+    }
+  };
+
+  // Clique numa aba: vai para a primeira pergunta daquela seção.
+  const handleIrParaSecao = (numero: number) => {
+    // Ir para uma seção seguinte pela aba também é sair desta.
+    if (numero > secao && barrarSaidaDaSecao()) {
+      return;
+    }
+    setAvisoSecaoIncompleta(false);
+    setDirecao(numero > secao ? 'avancar' : 'voltar');
+    setSecao(numero);
+    setPerguntaAtual(1);
+  };
+
+  const handleVoltar = () => {
+    setDirecao('voltar');
+    if (perguntaAtual > 1) {
+      setPerguntaAtual(perguntaAtual - 1);
+    } else if (secao > 1) {
+      setAvisoSecaoIncompleta(false);
+      setSecao(secao - 1);
+      setPerguntaAtual(perguntasDaSecao(secao - 1).length);
+    }
+  };
+
+  if (!perguntaAtualData) {
+    return (
+      <QuestionsCompleted
+        totalSecoes={totalSecoes}
+        totalPerguntas={perguntasParaRevisao.length}
+        respondidas={
+          perguntasParaRevisao.filter(
+            ({ answer }) => answer !== null && answer.trim() !== '',
+          ).length
+        }
+        secoesConcluidas={secoesConcluidas}
+        onIrParaSecao={handleIrParaSecao}
+        onRevisar={() => {
+          navigate('/questionnaire/review', {
+            state: { questions: perguntasParaRevisao },
+          });
+        }}
+      />
+    );
+  }
+
+  return (
+    <Questions
+      secao={secao}
+      totalSecoes={totalSecoes}
+      perguntaAtual={perguntaAtual}
+      totalPerguntas={totalPerguntasNaSecao}
+      progresso={progresso}
+      titulo={perguntaAtualData.texto}
+      subtitulo={subtituloDa(perguntaAtualData)}
+      tipo={perguntaAtualData.tipo}
+      opcional={!perguntaAtualData.obrigatoria}
+      respostas={perguntaAtualData.opcoes}
+      valor={valorAtual}
+      onMudar={handleRespostaChange}
+      onProximo={handleProximo}
+      onVoltar={handleVoltar}
+      direcao={direcao}
+      secaoMaisAvancada={secaoMaisAvancada}
+      secoesConcluidas={secoesConcluidas}
+      onIrParaSecao={handleIrParaSecao}
+      // Some sozinho quando a última obrigatória que faltava é respondida.
+      avisoSecaoIncompleta={
+        avisoSecaoIncompleta && primeiraSemResposta(secao) !== null
+      }
+    />
+  );
+}

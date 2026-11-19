@@ -1,0 +1,247 @@
+import { useId, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ChevronDown } from 'lucide-react';
+import type {
+  CreedInsightStatus,
+  CreedSummary,
+} from '@/features/dashboards/dashboardsApi';
+import { PRISMAS } from '@/features/dashboards/prismas';
+import { cn } from '@/lib/utils';
+import type { Prisma } from '@/types/api';
+import { InfoTip } from './InfoTip';
+import { Card, CardContent } from '@/components/ui/card';
+import { cardTitleClassName, sectionTitleClassName } from '@/lib/typography';
+
+interface ResultTextProps extends CreedSummary {
+  // A recomendação é só da visão da empresa.
+  empresa?: boolean;
+  collapsible?: boolean;
+  showPrismaSummaries?: boolean;
+}
+
+// O aviso no lugar de cada texto, conforme o estado do insight. Os textos só
+// vêm em `done`; em `none` não há insight para esta tela. Sem "tentar de
+// novo" (P-044). Os cards e as marcas de destaque e oportunidade ficam em
+// todos os estados: são do cálculo, não da IA.
+const AVISO_SEM_TEXTO = {
+  pending: 'resultado:insightEmPreparo',
+  failed: 'resultado:insightIndisponivel',
+  none: 'resultado:analiseIndisponivel',
+  done: 'resultado:analiseIndisponivel',
+} as const satisfies Record<CreedInsightStatus, string>;
+
+function SemTexto({ status }: { status: CreedInsightStatus }) {
+  const { t } = useTranslation(['resultado']);
+  return <p className="text-muted-foreground">{t(AVISO_SEM_TEXTO[status])}</p>;
+}
+
+interface PrismaCardProps {
+  prisma: Prisma;
+  // Sem texto (ou nulo): o aviso do estado do insight.
+  texto: string | undefined;
+  marca: 'destaque' | 'oportunidade' | null;
+  status: CreedInsightStatus;
+}
+
+// Um card curto por prisma. O destaque e a oportunidade não têm card próprio:
+// são marcados no card do prisma, para nada aparecer duas vezes.
+function PrismaCard({ prisma, texto, marca, status }: PrismaCardProps) {
+  const { t } = useTranslation(['resultado', 'dashboardPrisma', 'dashboard']);
+  const nome = t(`dashboardPrisma:prismas.${prisma}`);
+
+  return (
+    <Card asChild>
+      <article>
+        <CardContent className="flex flex-1 flex-col">
+          {marca && (
+            <p
+              className={cn(
+                'mb-1 flex items-center gap-2 text-sm font-semibold',
+                marca === 'destaque' ? 'text-success' : 'text-warning',
+              )}
+            >
+              <span
+                className={cn(
+                  'size-2 rounded-full',
+                  marca === 'destaque' ? 'bg-success' : 'bg-warning',
+                )}
+                aria-hidden="true"
+              />
+              {t(`resultado:${marca}`)}
+            </p>
+          )}
+          <div className="flex items-center gap-1.5">
+            <h3 className={cardTitleClassName}>{nome}</h3>
+            <InfoTip title={nome} text={t('dashboard:info.creedPrisma')} />
+          </div>
+          {texto ? (
+            <p className="mt-2 text-sm text-card-foreground">{texto}</p>
+          ) : (
+            <div className="mt-2 text-sm">
+              <SemTexto status={status} />
+            </div>
+          )}
+        </CardContent>
+      </article>
+    </Card>
+  );
+}
+
+export function ResultText({
+  analiseTexto,
+  recomendacaoTexto,
+  prismas,
+  destaque,
+  oportunidade,
+  insight_status,
+  generated_at,
+  empresa = false,
+  collapsible = true,
+  showPrismaSummaries = true,
+}: ResultTextProps) {
+  const { t, i18n } = useTranslation(['resultado', 'dashboard']);
+  const [isOpen, setIsOpen] = useState(true);
+  const conteudoId = useId();
+  // A data em que o texto ficou pronto, no formato do idioma da tela.
+  const geradoEm =
+    insight_status === 'done' && generated_at
+      ? new Intl.DateTimeFormat(i18n.language, {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }).format(new Date(generated_at))
+      : null;
+
+  const marcaDe = (prisma: Prisma) =>
+    prisma === destaque
+      ? 'destaque'
+      : prisma === oportunidade
+        ? 'oportunidade'
+        : null;
+
+  return (
+    <section className="w-full">
+      {/* HEADER */}
+      <div className="flex items-center gap-3">
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen((prev) => !prev);
+            }}
+            aria-expanded={isOpen}
+            aria-controls={conteudoId}
+            className="flex cursor-pointer items-center gap-2 text-heading"
+          >
+            <ChevronDown
+              size={20}
+              className={`transition-transform duration-200 ${
+                isOpen ? 'rotate-0' : '-rotate-90'
+              }`}
+            />
+            <h2 className={cn(sectionTitleClassName, 'text-inherit')}>
+              {t('resultado:creedAi')}
+            </h2>
+          </button>
+        ) : (
+          <h2 className={sectionTitleClassName}>{t('resultado:creedAi')}</h2>
+        )}
+        <div className="h-px flex-1 bg-primary" aria-hidden="true" />
+      </div>
+
+      {(!collapsible || isOpen) && (
+        <div id={conteudoId} className="mt-6 flex flex-col gap-4">
+          {geradoEm && (
+            <p className="text-sm text-muted-foreground">
+              {t('resultado:geradoEm', { data: geradoEm })}
+            </p>
+          )}
+
+          {/* Análise geral, grande; a recomendação ao lado, na empresa. */}
+          <div
+            className={cn(
+              'grid grid-cols-1 gap-4',
+              empresa && 'lg:grid-cols-[2fr_1fr]',
+            )}
+          >
+            <Card asChild>
+              <article>
+                <CardContent>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className={cardTitleClassName}>
+                      {t('resultado:analise')}
+                    </h3>
+                    <InfoTip
+                      title={t('resultado:analise')}
+                      text={t('dashboard:info.creedAnalise')}
+                    />
+                  </div>
+                  <div className="mt-3 flex flex-col gap-4 text-sm text-card-foreground">
+                    {analiseTexto.length > 0 ? (
+                      analiseTexto.map((paragrafo) => (
+                        <p key={paragrafo}>{paragrafo}</p>
+                      ))
+                    ) : (
+                      <SemTexto status={insight_status} />
+                    )}
+                  </div>
+                </CardContent>
+              </article>
+            </Card>
+
+            {empresa && (
+              <Card asChild>
+                <article>
+                  <CardContent>
+                    <div className="flex items-center gap-1.5">
+                      <h3
+                        className={cn(
+                          cardTitleClassName,
+                          'flex items-center gap-2',
+                        )}
+                      >
+                        <span
+                          className="bg-brand size-2.5 rounded-full"
+                          aria-hidden="true"
+                        />
+                        {t('resultado:recomendacao')}
+                      </h3>
+                      <InfoTip
+                        title={t('resultado:recomendacao')}
+                        text={t('dashboard:info.creedRecomendacao')}
+                      />
+                    </div>
+                    <div className="mt-2 flex flex-col gap-2 text-sm text-card-foreground">
+                      {recomendacaoTexto.length > 0 ? (
+                        recomendacaoTexto.map((paragrafo) => (
+                          <p key={paragrafo}>{paragrafo}</p>
+                        ))
+                      ) : (
+                        <SemTexto status={insight_status} />
+                      )}
+                    </div>
+                  </CardContent>
+                </article>
+              </Card>
+            )}
+          </div>
+
+          {/* Um card por prisma: cinco na linha no desktop. */}
+          {showPrismaSummaries && (
+            <div className="pdf-prisma-summaries grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {PRISMAS.map((prisma) => (
+                <PrismaCard
+                  key={prisma}
+                  prisma={prisma}
+                  texto={prismas[prisma]}
+                  marca={marcaDe(prisma)}
+                  status={insight_status}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}

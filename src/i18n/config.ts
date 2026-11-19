@@ -2,9 +2,10 @@ import i18n from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 import { en } from '@/i18n/locales/en';
+import { es } from '@/i18n/locales/es';
 import { ptBR } from '@/i18n/locales/pt-BR';
 
-export const IDIOMAS = ['pt-BR', 'en'] as const;
+export const IDIOMAS = ['pt-BR', 'en', 'es'] as const;
 export type Idioma = (typeof IDIOMAS)[number];
 
 export const IDIOMA_PADRAO: Idioma = 'pt-BR';
@@ -14,6 +15,7 @@ export const defaultNS = 'comum';
 export const resources = {
   'pt-BR': ptBR,
   en,
+  es,
 };
 
 // Prefixo do projeto para não colidir com o `i18nextLng` genérico de outra
@@ -42,6 +44,13 @@ void i18n
       lookupLocalStorage: CHAVE_IDIOMA,
     },
   });
+
+// O idioma em que a tela está, entre os da plataforma. É o `resolvedLanguage`,
+// e não o `language`: o detector pode devolver 'en-US', mas a tela usa 'en'.
+export function idiomaAtual(): Idioma {
+  const resolvido = i18n.resolvedLanguage;
+  return IDIOMAS.find((idioma) => idioma === resolvido) ?? IDIOMA_PADRAO;
+}
 
 // Mantém <html lang> em dia: leitor de tela e hifenização do browser leem esse
 // atributo, não o estado do React.

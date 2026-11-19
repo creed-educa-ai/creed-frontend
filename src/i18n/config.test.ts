@@ -1,4 +1,4 @@
-import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
+import i18n, { IDIOMA_PADRAO, idiomaAtual } from '@/i18n/config';
 
 describe('i18n', () => {
   beforeEach(async () => {
@@ -16,6 +16,12 @@ describe('i18n', () => {
     expect(i18n.t('respondentes:titulo')).toBe('Respondents');
   });
 
+  it('troca para espanhol', async () => {
+    await i18n.changeLanguage('es');
+    expect(i18n.t('carregando')).toBe('Cargando…');
+    expect(i18n.t('respondentes:titulo')).toBe('Encuestados');
+  });
+
   it('aplica plural por idioma', () => {
     expect(i18n.t('respondentes:contagem', { count: 0 })).toBe(
       '0 pessoas cadastradas',
@@ -28,13 +34,49 @@ describe('i18n', () => {
     );
   });
 
+  it('aplica plural em espanhol', async () => {
+    await i18n.changeLanguage('es');
+    expect(i18n.t('respondentes:contagem', { count: 0 })).toBe(
+      '0 personas registradas',
+    );
+    expect(i18n.t('respondentes:contagem', { count: 1 })).toBe(
+      '1 persona registrada',
+    );
+    expect(i18n.t('respondentes:contagem', { count: 3 })).toBe(
+      '3 personas registradas',
+    );
+  });
+
   it('trata "pt" sem região como pt-BR', async () => {
     await i18n.changeLanguage('pt');
     expect(i18n.t('carregando')).toBe('Carregando…');
   });
 
+  it('resolve variante regional "es-MX" para espanhol', async () => {
+    await i18n.changeLanguage('es-MX');
+    expect(i18n.t('carregando')).toBe('Cargando…');
+  });
+
+  it.each([
+    ['pt-BR', 'pt-BR'],
+    ['en', 'en'],
+    ['es', 'es'],
+    ['pt', 'pt-BR'],
+    ['es-MX', 'es'],
+    ['en-US', 'en'],
+    ['fr', 'pt-BR'],
+  ])('idiomaAtual com a tela em "%s" é "%s"', async (tela, esperado) => {
+    await i18n.changeLanguage(tela);
+    expect(idiomaAtual()).toBe(esperado);
+  });
+
   it('sincroniza o atributo lang do documento', async () => {
     await i18n.changeLanguage('en');
     expect(document.documentElement.lang).toBe('en');
+  });
+
+  it('sincroniza o atributo lang do documento em espanhol', async () => {
+    await i18n.changeLanguage('es');
+    expect(document.documentElement.lang).toBe('es');
   });
 });

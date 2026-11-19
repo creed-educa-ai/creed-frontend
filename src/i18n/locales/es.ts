@@ -1,0 +1,847 @@
+import type { ptBR } from './pt-BR';
+
+// pt-BR é a fonte da verdade: tipar por ele faz o TypeScript acusar chave
+// faltando ou sobrando nas demais traduções.
+export const es: typeof ptBR = {
+  comum: {
+    tenteNovamenteEmInstantes: 'Inténtalo de nuevo en unos instantes.',
+    // Região dos toasts (src/components/ui/sonner.tsx).
+    notificacoes: 'Notificaciones',
+    // Setores (`DepartmentType` do back): tags, filtros e o mapa.
+    setores: {
+      Marketing: 'Marketing',
+      Financeiro: 'Finanzas',
+      Administrativo: 'Administración',
+      RecursosHumanos: 'RR. HH.',
+      TecnologiaInformacao: 'TI',
+    },
+    // Textos que as tabelas compartilham (src/components/table).
+    tabela: {
+      ordenarPorNome: 'Ordenar por nombre',
+      ordenarPorStatus: 'Ordenar por estado',
+      paginacao: 'Paginación',
+      pagina: 'Página {{current}} de {{total}}',
+      anterior: 'Anterior',
+      proximo: 'Siguiente',
+      selecionadas: '{{count}} de {{total}} fila(s) seleccionada(s).',
+      excluir: 'Eliminar',
+      excluindo: 'Eliminando…',
+      erroExcluir: 'No se pudo eliminar. Inténtalo de nuevo.',
+    },
+    carregando: 'Cargando…',
+    semDado: '—',
+    tenteRecarregar: 'Intenta recargar la página.',
+    erros: {
+      obrigatorio: 'El campo es obligatorio',
+    },
+    acoes: {
+      fechar: 'Cerrar',
+      tentarNovamente: 'Intentar de nuevo',
+      cancelar: 'Cancelar',
+      salvar: 'Guardar',
+    },
+    navegacao: {
+      voltar: 'Volver',
+      irParaBoasVindas: 'Ir a la página de bienvenido',
+    },
+    idioma: {
+      rotulo: 'Idioma',
+      'pt-BR': 'Portugués',
+      en: 'Inglés',
+      es: 'Español',
+    },
+  },
+  respondentes: {
+    titulo: 'Encuestados',
+    vazio:
+      'Aún no hay encuestados. Registra al primero para comenzar a recopilar.',
+    contagem_zero: '{{count}} personas registradas',
+    contagem_one: '{{count}} persona registrada',
+    contagem_other: '{{count}} personas registradas',
+    idade_zero: '{{count}} años',
+    idade_one: '{{count}} año',
+    idade_other: '{{count}} años',
+
+    escolher: 'Elegir',
+    semResultado: 'No se encontró ninguna opción',
+    avancar: 'Continuar',
+    pular: 'Omitir',
+
+    demograficos: {
+      carregando: 'Cargando tus datos…',
+      erroCarregar: 'No fue posible cargar tus datos.',
+      erroSalvar: 'No fue posible guardar tus datos. Inténtalo de nuevo.',
+    },
+
+    demograficos2: {
+      clear: 'Borrar {{field}}',
+      remove: 'Quitar {{option}}',
+      invalidOption: 'Elige una opción válida.',
+      options: {
+        gender: {
+          feminino: 'Femenino',
+          masculino: 'Masculino',
+          nao_binario: 'No binario',
+          prefiro_nao_informar: 'Prefiero no informar',
+        },
+        ageRange: {
+          '18_25': '18–25 años',
+          '26_35': '26–35 años',
+          '36_45': '36–45 años',
+          '46_55': '46–55 años',
+          '56_65': '56–65 años',
+          '65_mais': 'Más de 65 años',
+          prefiro_nao_informar: 'Prefiero no informar',
+        },
+        ethnicity: {
+          africana_afrodescendente: 'Africana o afrodescendiente',
+          indigena_amerindia: 'Indígena / Amerindia',
+          europeia: 'Europea (p. ej., portuguesa, italiana, española, alemana)',
+          asiatica: 'Asiática (p. ej., japonesa, china, coreana, india)',
+          arabe_medio_oriente: 'Árabe o de Oriente Medio',
+          latino_americana: 'Latinoamericana (excepto Brasil)',
+          romani_cigana: 'Romaní / Gitana',
+          multipla_hibrida: 'Múltiple / Mixta',
+          prefiro_nao_responder: 'Prefiero no responder',
+        },
+        religion: {
+          crista: 'Cristiana (cualquier denominación)',
+          judaica: 'Judía',
+          islamica: 'Islámica',
+          matriz_africana:
+            'Religiones de matriz africana (p. ej., Candomblé, Umbanda)',
+          espiritismo: 'Espiritismo / Espiritualidad',
+          budismo: 'Budismo',
+          sem_religiao: 'Sin religión / No practicante',
+          outra: 'Otra',
+          prefiro_nao_responder: 'Prefiero no responder',
+        },
+        nationality: {
+          brasileira: 'Brasileña',
+          portuguesa: 'Portuguesa',
+          outra: 'Otra',
+        },
+        brazilState: {
+          AC: 'Acre',
+          AL: 'Alagoas',
+          AP: 'Amapá',
+          AM: 'Amazonas',
+          BA: 'Bahía',
+          CE: 'Ceará',
+          DF: 'Distrito Federal',
+          ES: 'Espírito Santo',
+          GO: 'Goiás',
+          MA: 'Maranhão',
+          MT: 'Mato Grosso',
+          MS: 'Mato Grosso do Sul',
+          MG: 'Minas Gerais',
+          PA: 'Pará',
+          PB: 'Paraíba',
+          PR: 'Paraná',
+          PE: 'Pernambuco',
+          PI: 'Piauí',
+          RJ: 'Río de Janeiro',
+          RN: 'Río Grande del Norte',
+          RS: 'Río Grande del Sur',
+          RO: 'Rondônia',
+          RR: 'Roraima',
+          SC: 'Santa Catarina',
+          SP: 'São Paulo',
+          SE: 'Sergipe',
+          TO: 'Tocantins',
+        },
+        portugalRegion: {
+          norte: 'Norte',
+          centro: 'Centro',
+          area_metropolitana_lisboa: 'Área Metropolitana de Lisboa',
+          alentejo: 'Alentejo',
+          algarve: 'Algarve',
+          acores: 'Azores',
+          madeira: 'Madeira',
+        },
+      },
+      titulo: 'Cuéntanos más sobre ti',
+      subtitulo: '¡Todas las respuestas son opcionales!',
+    },
+    campos: {
+      nome: 'Nombre',
+      nomePlaceholder: 'Tu nombre completo',
+      genero: 'Género (opcional)',
+      faixaEtaria: 'Rango de edad (opcional)',
+      origemEtnica: 'Origen étnico (opcional)',
+      religiao: 'Religión (opcional)',
+      nacionalidade: 'Nacionalidad (opcional)',
+      nacionalidadeOutra: '¿Cuál nacionalidad?',
+      estado: 'Estado',
+      regiao: 'Región',
+    },
+    demograficos3: {
+      titulo: 'Comparte brevemente tu perspectiva',
+      subtitulo: 'Pregunta abierta - opcional',
+      pergunta:
+        '¿Cómo influyó, o no, tu crianza familiar en tu trayectoria emprendedora o innovadora? Explica brevemente (opcional)',
+      placeholder: 'Tu respuesta',
+    },
+  },
+  questionarioRevisao: {
+    titulo: 'Revisa y envía tus respuestas',
+    descricao: 'Verifica tus respuestas antes de finalizar el cuestionario.',
+    semPerguntas: 'No hay respuestas para revisar.',
+    pergunta: 'Pregunta',
+    resposta: 'Respuesta',
+    acoes: 'Acciones',
+    revisar: 'Revisar',
+    revisarPergunta: 'Revisar pregunta {{numero}}',
+    respostaEscala: '{{valor}} (en una escala del 1 al 5)',
+    gerarPdf: 'Generar PDF',
+    modalTitulo: 'Revisar pregunta {{numero}}',
+    selecioneResposta: 'Selecciona tu respuesta',
+    escalaMinima: 'Totalmente en desacuerdo',
+    escalaMaxima: 'Totalmente de acuerdo',
+    cancelar: 'Cancelar',
+    salvarResposta: 'Guardar respuesta',
+    enviar: 'Enviar respuestas',
+    confirmarEnvioTitulo: '¿Enviar tus respuestas?',
+    confirmarEnvioDescricao:
+      'Después del envío, tus respuestas quedarán registradas para su evaluación.',
+    confirmarEnvio: 'Confirmar envío',
+    enviado: 'Respuestas enviadas.',
+    enviando: 'Enviando…',
+    erros: {
+      jaRespondido: 'Ya has respondido este cuestionario.',
+      envioFalhou: 'No se pudo enviar. Inténtalo de nuevo.',
+    },
+    obrigatoria: 'Obligatoria',
+    respostaObrigatoria: 'Esta pregunta es obligatoria.',
+    semResposta: 'Sin respuesta',
+    obrigatoriasPendentes_one: '{{count}} pregunta obligatoria sin responder.',
+    obrigatoriasPendentes_other:
+      '{{count}} preguntas obligatorias sin responder.',
+    respostaDissertativaPlaceholder: 'Escribe tu respuesta',
+  },
+  dashboardPrisma: {
+    titulo: 'Prisma de competencias',
+    prisma: 'Prisma',
+    periodoAtual: 'Período actual',
+    periodoComparado: 'Período comparado',
+    descricaoComComparacao:
+      'Resultados de {{atual}} comparados con {{comparado}}.',
+    descricaoSemComparacao: 'Resultados del período {{atual}}.',
+    compararCom: 'Comparar con',
+    semComparacao: 'Sin comparación',
+    prismas: {
+      seguranca_psicologica: 'Seguridad Psicológica',
+      lideranca_adaptativa: 'Liderazgo Adaptativo',
+      cultura_empreendedora: 'Cultura Emprendedora',
+      adaptabilidade_cognitiva: 'Adaptabilidad Cognitiva',
+      neuroinovacao_prisma: 'Neuroinnovación',
+    },
+    // As sete dimensões da Matriz CREED (`Dimension` do back).
+    dimensoes: {
+      titulo: 'Desempeño por dimensión',
+      nomes: {
+        S2: 'Vivencia y Competencias Emprendedoras',
+        S4: 'Multiculturalismo en la Educación',
+        S5A: 'Metodologías de Innovación',
+        S5B: 'Aprendizaje y Metacognición',
+        S6: 'Enseñanza Culturalmente Receptiva',
+        S7: 'Competencias Culturales, Receptivas y Emprendedoras',
+        S8: 'Innovación e Impacto Social',
+      },
+    },
+    mapa: {
+      semSetores: 'Esta organización todavía no tiene sectores registrados.',
+      titulo: 'Sectores × prismas',
+      subtitulo: '{{periodo}} · diferencia con la empresa',
+      diferenca: 'diferencia con la empresa',
+      acima: 'Por encima de la empresa',
+      abaixo: 'Por debajo de la empresa',
+      neutro: 'Sin color: diferencia menor que 3 puntos',
+      respostas: '{{total}} respuestas',
+    },
+    alinhamento: {
+      titulo: 'Alineación del equipo',
+      tituloGeral: 'Alineación general',
+      respostas: '{{exibido}} · {{total}} respuestas',
+      total: '{{total}} respuestas',
+      semRespostas: 'Todavía no hay respuestas en este recorte.',
+      faixas: {
+        baixa: 'Baja (hasta 40)',
+        media: 'Media (40 a 70)',
+        alta: 'Alta (más de 70)',
+      },
+      niveis: {
+        alinhado: 'Alineado',
+        moderado: 'Moderado',
+        dividido: 'Dividido',
+      },
+      leitor: '{{baixa}} con nota baja, {{media}} media y {{alta}} alta.',
+    },
+    variacao: {
+      titulo: 'Variación por prisma',
+      comparadoCom: '{{exibido}} en relación con {{referencia}}',
+      semComparacao: '{{exibido}}, sin comparación.',
+      emRelacaoA: 'en relación con',
+      semReferencia: 'sin comparación',
+      aumentou: 'subió {{valor}}',
+      diminuiu: 'bajó {{valor}}',
+      estavel: 'sin variación',
+    },
+    // Rótulos da planilha baixada em "Baixar > CSV".
+    csv: {
+      tituloRetrato: 'Panorama Actual - CREED.ai',
+      relatorio: 'Informe',
+      tituloIndividual: 'Dashboard Individual - CREED.ai',
+      tituloOrganizacao: 'Dashboard de la Organización - CREED.ai',
+      organizacao: 'Organización',
+      mentorando: 'Mentoreado',
+      periodo: 'Período',
+      recorte: 'Recorte / Vista',
+      resumoCreed: 'Resumen CREED.ai',
+      prismaDestaque: 'Prisma Destacado',
+      prismaOportunidade: 'Prisma de Oportunidad',
+      pontuacao: 'Puntuación',
+      pontuacaoEscala: 'Puntuación (0-100)',
+      codigo: 'Código',
+      dimensao: 'Dimensión',
+      variacao: 'Variación',
+      comparacoesAnteriores: 'Comparaciones con Períodos Anteriores',
+      comparacoes: 'Comparaciones',
+      recorteSetor: 'Recorte / Sector',
+      resumoOrganizacao: 'Resumen de la Organización',
+      valor: 'Valor',
+      convidados: 'Invitados',
+      concluidos: 'Completados',
+      taxaConclusao: 'Tasa de Finalización',
+      destaque: 'Destacado',
+      oportunidade: 'Oportunidad',
+      maisComum: 'Más Común',
+      alinhamento: 'Alineación del Equipo',
+      alinhamentoGeral: 'Alineación General',
+      respondentesTotal: 'Encuestados: {{total}}',
+      nivel: 'Nivel',
+      mapa: 'Mapa de Sectores × Prismas',
+      setor: 'Sector',
+      respondentes: 'Encuestados',
+    },
+  },
+  boasVindas: {
+    titulo: '¡Bienvenido!',
+    apresentacao:
+      'CREED.ai Educa es una plataforma de evaluación de competencias para organizaciones en transformación, que reúne la Plasticidad Humana y la Inteligencia Neuroinnovadora para la Educación, el Emprendimiento y las Organizaciones en Transformación.',
+    entrar: {
+      chamada: '¿Ya tienes acceso? Inicia sesión en tu cuenta.',
+      acao: 'Iniciar sesión',
+    },
+    criarConta: {
+      chamada: 'La creación de cuentas está disponible solo para empresas.',
+      acao: 'Crear cuenta',
+    },
+    saibaMais: 'Conoce más sobre la plataforma',
+    faleConosco: 'Contáctanos',
+    tagline:
+      'Evaluación de competencias que muestra a tu equipo con claridad, sin hojas de cálculo y sin conjeturas.',
+  },
+  sobre: {
+    titulo: 'Acerca de',
+    tituloTexto: 'Cómo surgió CREED',
+    paragrafos: [
+      'CREED nació de la trayectoria de investigación académica de la Dra. Naira Libermann, a partir de estudios profundos desarrollados a lo largo de su recorrido científico, que actualmente incluye una estancia de investigación posdoctoral en la Universidade Aberta de Portugal.',
+      'La metodología surgió de la necesidad de comprender por qué algunas personas logran innovar, adaptarse y transformar ideas en acciones, mientras que otras encuentran barreras en ese proceso. Combinando conocimientos de neurociencia, educación, emprendimiento y comportamiento humano, Naira desarrolló un enfoque basado en cinco pilares: seguridad psicológica, liderazgo adaptativo, cultura emprendedora, adaptabilidad cognitiva y neuroplasticidad.',
+      'Así nació CREED: una metodología que transforma el conocimiento científico en desarrollo humano, ayudando a personas y organizaciones a reconocer sus capacidades, superar barreras y desarrollar su potencial de innovación.',
+      'Las respuestas existían, pero estaban dispersas. La effectuation propone actuar a partir de quién soy, qué sé y a quién conozco. La educación implica desarrollar competencias mediante la experiencia, la reflexión y la acción. La neurociencia aborda cómo aprender, desaprender y crear nuevos patrones. El comportamiento demuestra que la confianza, el liderazgo y la cultura condicionan la acción. La integración de estos conocimientos dio origen a CREED.',
+      'CREED es una sigla que corresponde a Competencias Responsivas para la Educación Emprendedora y el Desarrollo del Potencial Innovador Humano en la Era de la Inteligencia Artificial. La sigla articula cinco elementos conceptuales: Competencias, Responsivas, Educación, Emprendedora y Desarrollo.',
+      'La C de Competencias representa la movilización integrada de conocimientos, habilidades y actitudes, reuniendo el saber, el saber hacer y el ser.',
+      'La R de Responsivas expresa la capacidad de adaptarse y responder a contextos complejos, dinámicos y culturalmente diversos, teniendo en cuenta la complejidad, el cambio y la diversidad cultural.',
+      'La primera E, de Educación, representa un proceso continuo de aprendizaje y transformación humana. No es un evento, sino un camino de aprender, desaprender y transformarse.',
+      'La segunda E, de Emprendedora, indica una orientación hacia el protagonismo, la experimentación, la creatividad y la generación de valor.',
+      'La D de Desarrollo corresponde a la ampliación continua de las capacidades cognitivas, conductuales, socioemocionales y relacionales que sustentan el potencial innovador humano.',
+      'En resumen, CREED es una arquitectura que reúne lo que estaba separado: educación emprendedora, neurociencia y multiculturalismo, para comprender y favorecer el desarrollo del potencial innovador humano.',
+      'El siguiente paso es comprender dónde estás y hacia dónde puedes llegar. Descubre cómo se manifiestan hoy los cinco Prismas CREED en tu manera de innovar, cambiar y actuar. Haz tu Mapa de Potenciales, gratis. CREED: tu punto de partida para el siguiente paso.',
+    ],
+    voltar: 'Volver',
+  },
+  error: {
+    message: 'Algo salió mal. Inténtalo de nuevo.',
+  },
+  cadastro: {
+    titulo: 'Crea tu cuenta',
+    subtitulo: 'Ingresa tus datos para continuar',
+    campos: {
+      nomeEmpresa: {
+        rotulo: 'Nombre de la empresa',
+        placeholder: 'Ingresa el nombre de la empresa',
+      },
+      documento: {
+        rotulo: 'Documento (CPF/CNPJ)',
+        placeholder: 'Ingresa el documento de la empresa',
+      },
+      email: {
+        rotulo: 'Correo electrónico de la empresa',
+        placeholder: 'Ingresa el correo electrónico de la empresa',
+      },
+      nomeCompleto: {
+        rotulo: 'Tu nombre completo',
+        placeholder: 'Ingresa tu nombre completo',
+      },
+      telefone: {
+        rotulo: 'Teléfono',
+        placeholder: 'Ingresa tu número de teléfono',
+      },
+    },
+    botaoAvancar: 'Continuar',
+    textoLogin: '¿Ya tienes una cuenta?',
+    linkLogin: 'Iniciar sesión',
+    erros: {
+      ate200Caracteres: 'Usa como máximo 200 caracteres.',
+      ate30Caracteres: 'Usa como máximo 30 caracteres.',
+      nomeCompletoInvalido: 'Ingresa un nombre de 2 a 200 caracteres.',
+      documentoInvalido: 'Ingresa un CPF (11 dígitos) o un CNPJ (14 dígitos).',
+      documentoJaCadastrado: 'Ya existe un registro con este documento.',
+      envioIndisponivel:
+        'No fue posible enviar el registro ahora. Inténtalo de nuevo.',
+    },
+    painelDescricao:
+      'Evaluación de competencias que muestra a tu equipo con claridad, sin hojas de cálculo y sin conjeturas.',
+  },
+
+  autenticacao: {
+    login: {
+      titulo: 'Inicia sesión en tu cuenta',
+      subtitulo: 'Usa el correo electrónico registrado por tu empresa.',
+      email: { rotulo: 'Correo electrónico', placeholder: 'tu@tuempresa.com' },
+      senha: {
+        rotulo: 'Contraseña',
+        placeholder: 'Ingresa tu contraseña',
+        mostrar: 'Mostrar contraseña',
+        ocultar: 'Ocultar contraseña',
+      },
+      lembrarDeMim: 'Recordarme',
+      esqueciSenha: 'Olvidé mi contraseña',
+      entrar: 'Iniciar sesión',
+      semConta: '¿Tu empresa aún no tiene una cuenta?',
+      criarConta: 'Crear cuenta',
+      painelTitulo: 'Qué bueno tenerte aquí.',
+      painelDescricao:
+        'Evaluación de competencias que muestra a tu equipo con claridad, sin hojas de cálculo y sin conjeturas.',
+    },
+    recuperarSenha: {
+      titulo: '¿Olvidaste tu contraseña?',
+      subtitulo:
+        'Ingresa el correo electrónico de tu cuenta para recibir un enlace de nueva contraseña.',
+      email: { rotulo: 'Correo electrónico', placeholder: 'tu@tuempresa.com' },
+      enviar: 'Enviar enlace',
+      enviado:
+        'Si este correo electrónico tiene acceso, enviamos un enlace para definir una nueva contraseña.',
+      painelTitulo: 'Recuperemos tu acceso.',
+      painelDescricao:
+        'El enlace llega por correo electrónico y abre la página donde defines tu nueva contraseña.',
+    },
+    erros: {
+      emailInvalido: 'Ingresa un correo electrónico válido.',
+      loginInvalido: 'No fue posible iniciar sesión con estas credenciales.',
+      servicoIndisponivel:
+        'El inicio de sesión no está disponible en este momento. Inténtalo de nuevo.',
+      envioIndisponivel:
+        'No fue posible enviar el enlace en este momento. Inténtalo de nuevo.',
+    },
+  },
+
+  mentees: {
+    questionnaireDialog: {
+      title: 'Cuestionario de {{name}}',
+      description:
+        'Define el período en que {{name}} puede responder el cuestionario.',
+    },
+    toasts: {
+      questionnaireSaved: '{{name}} ya puede responder en el período definido.',
+      deleted: 'Mentoreado eliminado',
+      deletedDescription: '{{nome}} ya no tiene acceso a la plataforma.',
+    },
+    title: 'Mentorados',
+    loadError: 'No se pudieron cargar los mentorados.',
+    search: {
+      label: 'Buscar mentorados por nombre o correo',
+      placeholder: 'Buscar por nombre o correo',
+    },
+    columnsMenu: 'Columnas',
+    select: { all: 'Seleccionar todos', row: 'Seleccionar {{name}}' },
+    columns: {
+      name: 'Nombre',
+      email: 'Correo',
+      questionnaire: 'Cuestionario',
+      results: 'Resultados',
+      delete: 'Eliminar',
+    },
+    actions: {
+      edit: 'Editar',
+      viewResults: 'Ver resultados',
+      delete: 'Eliminar',
+      editFor: 'Editar cuestionario de {{name}}',
+      viewResultsFor: 'Ver resultados de {{name}}',
+      deleteFor: 'Eliminar a {{name}}',
+    },
+    empty: 'Aún no hay mentorados registrados.',
+    noResults: 'Ningún mentorado coincide con la búsqueda.',
+    confirmDelete: {
+      title: '¿Eliminar mentorado?',
+      description:
+        '{{name}} y todos sus resultados se eliminarán para siempre. Esta acción no se puede deshacer.',
+      confirm: 'Eliminar',
+    },
+    errors: {
+      deleteUnavailable: 'No se pudo eliminar ahora. Inténtalo de nuevo.',
+    },
+  },
+  termo: {
+    titulo: 'FORMULARIO DE CONSENTIMIENTO LIBRE, INFORMADO Y ACLARADO',
+    corpo:
+      'Investigação: Culturally Responsive Entrepreneurship Education (CREED) \nInstituição: Universidade Aberta (UAb) — Portugal \nInvestigadora responsável: Naira Libermann · 2406837@estudante.uab.pt \nOrientador: Doutor Manuel Jacinto de Ascensão Jardim · jacinto.jardim@uab.pt \nOBJETIVO: Compreender o impacto das abordagens multiculturais na educação empreendedora. \nPARTICIPAÇÃO: Instrumento de autorrelato com 49 itens Likert em 7 dimensões + 4 questões abertas (~15 min). \nCONFIDENCIALIDADE: Dados tratados de forma estritamente confidencial, analisados de forma agregada e anonimizados. \nVOLUNTARIEDADE: Participação inteiramente voluntária e gratuita. Pode retirar o consentimento a qualquer momento. \nBASE LEGAL: RGPD (UE) 2016/679 · Lei n.º 58/2019 (Portugal) · LGPD Lei nº 13.709/2018 (Brasil)',
+    aceitar: 'Aceptar',
+    recusar: 'Rechazar',
+    erroAoAceitar:
+      'No fue posible registrar la aceptación ahora. Inténtalo de nuevo.',
+  },
+  contato: {
+    titulo: 'Contáctanos',
+    email: 'Correo electrónico',
+    telefone: 'Teléfono',
+  },
+
+  aguardeConfirmacao: {
+    titulo: 'Espera la confirmación',
+    mensagem:
+      'Recibimos el registro de tu empresa. Cuando sea aprobado, recibirás en el correo electrónico informado un enlace para definir tu contraseña. Si el correo no llega, usa "Olvidé mi contraseña" en la pantalla de inicio de sesión.',
+    voltar: 'Volver',
+    ouSaibaMais: 'O CONOCE MÁS',
+    saibaMais: '¿Qué es el método CREED?',
+  },
+  respostasEnviadas: {
+    titulo: 'Gracias por responder',
+    mensagem: 'Tus respuestas han sido enviadas.',
+    voltar: 'Volver',
+    insightEmPreparo: 'Creed.ai está preparando tu insight.',
+    insightPronto: 'Tu insight de Creed.ai está listo.',
+    verInsight: 'Ver mi insight',
+    insightNoDashboard:
+      'Tu insight aparecerá en el dashboard cuando esté listo.',
+    insightIndisponivel:
+      'El insight de esta respuesta no quedó disponible. Tu resultado ya está en el dashboard.',
+  },
+  formulario: {
+    titulo: 'Formulario',
+    secao: 'Sección',
+    pergunta: 'Pregunta',
+    de: 'de',
+    quantitativa: 'Evalúa cada afirmación según tu experiencia real.',
+    escalaMinima: 'Totalmente en desacuerdo',
+    escalaMaxima: 'Totalmente de acuerdo',
+    dissertativa:
+      'Responde de forma breve y objetiva, con un máximo de 200 palabras.',
+    dissertativaOpcional:
+      'Pregunta opcional: si prefieres, puedes saltarla. Sé breve y objetivo, con un máximo de 200 palabras.',
+    objetiva: 'Elige la alternativa que mejor describa tu experiencia.',
+    textbox: 'Escribe tu respuesta aquí...',
+    avancar: 'Siguiente',
+    pular: 'Omitir',
+    voltar: 'Volver',
+    responderTudoAviso:
+      'Responde las preguntas obligatorias de la sección para continuar.',
+    semPerguntas: 'Este cuestionario aún no tiene preguntas.',
+    jaRespondido: 'Ya has respondido este cuestionario.',
+    concluido: 'Completado',
+    perguntasRespondidas: '{{respondidas}} de {{total}} respondidas',
+    concluidoTitulo: 'Todas las preguntas respondidas',
+    fimDasPerguntasTitulo: 'Has llegado al final de las preguntas',
+    concluidoMensagem: 'Revisa tus respuestas antes de enviarlas.',
+    revisarEEnviar: 'Revisar y enviar',
+    menuNavegacao: 'Navegación',
+    menuPainel: 'Dashboard',
+    menuPainelControle: 'Panel de control',
+    menuFormulario: 'Cuestionario',
+    menuInformacoes: 'Acerca de',
+    menuSair: 'Cerrar sesión',
+    erros: {
+      semQuestionarioAberto:
+        'No hay ningún cuestionario abierto para ti en este momento.',
+      semAcesso: 'No tienes acceso a este cuestionario.',
+      servicoIndisponivel:
+        'No se pudo establecer conexión con el servidor. Inténtalo de nuevo.',
+    },
+  },
+  onboardQuestionario: {
+    titulo: 'Formulario',
+    start: '¿Comenzamos?',
+    subtitulo: 'Tienes un cuestionario disponible',
+    mensagem:
+      'Tus respuestas ayudan a mapear no solo el panorama de tu organización, sino también el tuyo.',
+    iniciar: 'Comenzar',
+  },
+  onboardQuestionarioInfo: {
+    titulo: 'Actualizar información',
+    mensagem: '¿Quieres revisar tus datos personales?',
+    revisarDados: 'Revisar datos',
+    iniciarQuestionario: 'Comenzar cuestionario',
+  },
+  resultado: {
+    // Nome de marca: igual em todo idioma.
+    creedAi: 'Creed.ai',
+    destaque: 'Destacado',
+    oportunidade: 'Oportunidad',
+    analise: 'Análisis de Creed.ai',
+    analiseIndisponivel: 'Análisis aún no disponible.',
+    insightEmPreparo: 'Creed.ai está preparando este texto.',
+    insightIndisponivel: 'Este texto no quedó disponible.',
+    geradoEm: 'Generado el {{data}}',
+    recomendacao: 'Recomendación',
+    resumoEmpresa: 'Resumen de {{empresa}}',
+    taxaConclusao: 'Tasa de Finalización',
+    maisComum: 'Más común',
+    metricas: 'Métricas',
+  },
+  dashboard: {
+    titulo: 'Dashboard',
+    erroAoCarregar: 'No se pudo cargar el dashboard.',
+    semResultado:
+      'Todavía no tienes resultado. Aparece aquí después de que envíes un cuestionario.',
+    irParaQuestionario: 'Ir al cuestionario',
+    semResultadoMentorando:
+      'Este mentoreado aún no tiene resultado. Aparece aquí después de que envíe un cuestionario.',
+    voltarParaEmpresa: 'Volver al dashboard de la empresa',
+    todasEmpresas: 'Todas las empresas',
+    todosMentorandos: 'Todos los mentorados',
+    Empresa: 'Empresa',
+    Mentorando: 'Mentorado',
+    respostasEntre: 'Respuestas del {{inicio}} al {{fim}}',
+    semResultadoEmpresa:
+      'Todavía no hay resultados. Aparecen aquí después de que alguien responda un cuestionario.',
+    descricaoPrisma: {
+      seguranca_psicologica:
+        'El equipo muestra apertura y confianza para compartir opiniones y experimentar.',
+      lideranca_adaptativa:
+        'Capacidad de los líderes y equipos de adaptarse a cambios rápidos de contexto.',
+      cultura_empreendedora:
+        'Estímulo a la proactividad, sentido de pertenencia y búsqueda continua de innovación.',
+      adaptabilidade_cognitiva:
+        'Flexibilidad cognitiva para resolver problemas y aprender de nuevas situaciones.',
+      neuroinovacao_prisma:
+        'Potencial de inteligencia colectiva y de generar un impacto relevante en el mercado.',
+    },
+    Funcionario: 'Empleado',
+    Baixar: 'Descargar',
+    erroAoExportarPdf: 'No se pudo generar el PDF del dashboard.',
+    Periodo: 'Período',
+    Setor: 'Sector',
+    // Texto do ícone de informação ao lado do título de cada card.
+    info: {
+      sobre: 'Sobre: {{titulo}}',
+      taxaConclusao:
+        'Cuántas de las personas invitadas ya terminaron el cuestionario.',
+      destaque: 'El prisma con la nota más alta.',
+      oportunidade:
+        'El prisma con la nota más baja: donde hay más espacio para crecer.',
+      maisComum:
+        'El prisma que más veces es el punto fuerte de cada persona del recorte.',
+      variacao:
+        'Cuánto subió (▲) o bajó (▼) cada prisma en relación con lo elegido en "Comparar con".',
+      prisma:
+        'Las notas de los cinco prismas, de 0 a 100. La línea continua es lo que se muestra; la discontinua, la comparación.',
+      dimensoes:
+        'El promedio de las respuestas a cada tema del cuestionario. Los prismas se calculan a partir de ellas.',
+      alinhamento:
+        'Si las personas del grupo dieron notas parecidas en cada prisma (alineado) o se dividieron entre notas bajas y altas (dividido).',
+      mapa: 'La nota de cada sector en cada prisma. El color muestra si el sector está por encima (verde) o por debajo (amarillo) de toda la empresa. Muestra siempre toda la empresa en el período elegido.',
+      creedPrisma: 'Lo que Creed.ai leyó sobre este prisma en las respuestas.',
+      creedRecomendacao: 'Un próximo paso sugerido por Creed.ai.',
+      creedAnalise:
+        'La lectura general de los resultados, escrita por Creed.ai.',
+    },
+  },
+  organizations: {
+    toasts: {
+      tagAtualizada: 'Sector actualizado',
+      tagAtualizadaDescricao: '{{nome}} ahora está en {{tag}}.',
+      tagRemovidaDescricao: '{{nome}} se quedó sin sector.',
+      erroTag: 'No se pudo cambiar el sector',
+      membroExcluido: 'Miembro eliminado',
+      membroExcluidoDescricao: '{{nome}} ya no tiene acceso a la plataforma.',
+    },
+    addMember: {
+      name: {
+        label: 'Nombre',
+        placeholder: 'Ingresa un nombre',
+      },
+      email: {
+        label: 'Correo',
+        placeholder: 'Ingresa un correo',
+      },
+      submit: 'Agregar',
+      role: {
+        label: 'Función',
+        options: { respondente: 'Miembro', gestor: 'Gestor' },
+      },
+    },
+    members: {
+      title: 'Miembros',
+      tags: {
+        none: 'Sin sector',
+        change: '{{tag}}: cambiar el sector de {{name}}',
+      },
+      search: {
+        label: 'Buscar miembros por nombre o correo',
+        placeholder: 'Buscar por nombre o correo',
+      },
+      columns: 'Columnas',
+      columnsMenu: 'Mostrar columnas',
+      table: 'Miembros de la empresa',
+      selectPage: 'Seleccionar todos los miembros de esta página',
+      pagination: 'Paginación de miembros',
+      page: 'Página {{current}} de {{total}}',
+      deleting: 'Eliminando…',
+      deleteError: 'No se pudo eliminar al miembro. Inténtalo de nuevo.',
+      loadError: 'No se pudieron cargar los miembros de la empresa.',
+      selected_zero: '{{count}} de {{total}} filas seleccionadas.',
+      selected_one: '{{count}} de {{total}} filas seleccionadas.',
+      selected_other: '{{count}} de {{total}} filas seleccionadas.',
+      previous: 'Anterior',
+      next: 'Siguiente',
+      empty: 'No hay miembros asociados a la empresa.',
+      emptySearch: 'No se encontraron miembros para esta búsqueda.',
+      confirmDeleteTitle: 'Eliminar miembro',
+      confirmDeleteDescription:
+        '¿Quieres eliminar a {{name}} de la lista de miembros de la empresa? Esta acción no se puede deshacer.',
+      delete: 'Eliminar',
+      sortByRole: 'Ordenar por función',
+      roles: { admin: 'Admin', gestor: 'Gestor', respondente: 'Miembro' },
+      sortByTag: 'Ordenar por sector',
+      columnNames: {
+        name: 'Nombre',
+        email: 'Correo electrónico',
+        status: 'Estado',
+        tag: 'Sector',
+        role: 'Función',
+        delete: 'Eliminar',
+      },
+      status: {
+        respondeu: 'Respondió',
+        pendente: 'Pendiente',
+        semPeriodo: 'Sin período',
+      },
+    },
+    errors: {
+      invalidName: 'Ingresa un nombre de 2 a 200 caracteres.',
+      invalidEmail: 'Ingresa un correo válido.',
+      emailTaken: 'Este correo ya tiene acceso a la plataforma.',
+      inviteFailed: 'No se pudo enviar la invitación. Inténtalo de nuevo.',
+    },
+  },
+  aceite: {
+    titulo: 'Solicitud de registro',
+    responsavel: 'Responsable del registro',
+    aceitar: 'Aceptar',
+    rejeitar: 'Rechazar',
+    rejeitarConfirmacao: {
+      titulo: '¿Rechazar empresa?',
+      descricao:
+        'Vas a rechazar a {{nome}}. La empresa no tendrá acceso a la plataforma.',
+      rejeitando: 'Rechazando…',
+    },
+  },
+  empresas: {
+    toasts: {
+      aprovada: 'Empresa aprobada',
+      aprovadaDescricao:
+        'La invitación de acceso de {{nome}} se envió al correo del registro.',
+      rejeitada: 'Empresa rechazada',
+      rejeitadaDescricao: '{{nome}} no tendrá acceso a la plataforma.',
+      erroAprovar: 'No se pudo aprobar la empresa',
+      naoAprovadaDescricao:
+        'Puede que ya haya sido aprobada, o el correo informado ya tiene acceso a la plataforma. Si es el correo, rechaza el registro.',
+      erroRejeitar: 'No se pudo rechazar la empresa',
+      erroExcluir: 'No se pudo eliminar la empresa',
+      excluida: 'Empresa eliminada',
+      excluidaDescricao: '{{nome}} fue eliminada de la plataforma.',
+    },
+    titulo: 'Empresas',
+    erroAoCarregar: 'No se pudieron cargar las empresas.',
+    pesquisar: {
+      label: 'Buscar empresas por nombre o correo',
+      placeholder: 'Buscar por nombre o correo',
+    },
+    colunas: {
+      titulo: 'Columnas',
+      aprovar: 'Aprobar',
+      nome: 'Nombre',
+      email: 'Correo',
+      resultados: 'Resultados',
+      status: 'Estado',
+      excluir: 'Eliminar',
+    },
+    verResultados: 'Ver Resultados',
+    status: { ativo: 'Activo', pendente: 'Pendiente', inativo: 'Inactivo' },
+    aprovar: 'Aprobar',
+    anterior: 'Anterior',
+    proxima: 'Siguiente',
+    selecionadas: '{{selecionadas}} de {{total}} fila(s) seleccionada(s).',
+    selecionarLinha: 'Seleccionar {{nome}}',
+    excluirEmpresa: 'Eliminar {{nome}}',
+    analisarCadastro: 'Pendiente: revisar el registro de {{nome}}',
+    confirmarExclusao: {
+      titulo: 'Eliminar empresa',
+      descricao:
+        'Eliminar {{nome}} borra la empresa, todos sus miembros, las respuestas y los cuestionarios. No se puede deshacer.',
+    },
+    vazio: 'No se encontraron empresas.',
+  },
+  painelControle: {
+    toasts: {
+      conviteEnviado: 'Invitación enviada',
+      conviteEnviadoDescricao:
+        '{{email}} recibirá la invitación por correo electrónico.',
+      questionarioNoAr: 'El cuestionario está activo',
+      questionarioNoArDescricao:
+        'Las respuestas están abiertas durante el período definido.',
+    },
+    controles: 'Controles',
+    administradora: 'Administradora',
+    titulo: 'Panel de control',
+    membros: 'Miembros',
+    gerenciar: 'Gestionar cuestionario',
+    adicionarMembro: 'Agregar Miembro',
+    inicio: 'Inicio',
+    termino: 'Finalización',
+    confirmar: 'Confirmar',
+    selecionarData: 'Fecha',
+    selecionarHora: 'Hora',
+    seletorHora: {
+      hora: 'Hora',
+      minuto: 'Min',
+      opcaoHora: '{{hora}} h',
+      valor: '{{hora}}:{{minuto}}',
+    },
+    erros: {
+      inicioObrigatorio: 'Selecciona la fecha de inicio.',
+      horaInicioObrigatoria: 'Selecciona la hora de inicio.',
+      terminoObrigatorio: 'Selecciona la fecha de finalización.',
+      horaTerminoObrigatoria: 'Selecciona la hora de finalización.',
+      inicioNoPassado: 'La fecha de inicio no puede ser anterior a hoy.',
+      horaInicioNoPassado:
+        'La hora de inicio no puede ser anterior a la hora actual.',
+      terminoAntesInicio:
+        'La fecha de finalización no puede ser anterior a la fecha de inicio.',
+      horaTerminoAntesInicio:
+        'La hora de finalización debe ser posterior a la hora de inicio.',
+      periodoConflito:
+        'Ya existe un período en esas fechas. Elige fechas que no se crucen con él.',
+      periodoFalhou: 'No se pudo abrir el período. Inténtalo de nuevo.',
+      carregarPeriodo: 'No se pudo cargar el período actual.',
+    },
+    periodo: {
+      somenteLeitura:
+        'Solo se puede programar un período nuevo cuando este termine.',
+    },
+  },
+  adicionarMentorando: {
+    titulo: 'Agregar mentoreado',
+  },
+};
