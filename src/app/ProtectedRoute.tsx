@@ -1,12 +1,12 @@
-import { useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { useTranslation } from 'react-i18next';
 import { TermsModal } from '@/components/modals/TermsModal';
-import { logout } from '@/features/authentication/authenticationSlice';
+import { toast } from '@/components/ui/sonner';
 import {
-  recordTermsAcceptance,
-  hasAcceptedTerms,
-} from '@/features/authentication/termsAcceptance';
+  acceptTerms,
+  logout,
+} from '@/features/authentication/authenticationSlice';
 import { DemographicsGate } from '@/features/demographics/demographicsFlow';
 
 interface ProtectedRouteProps {
@@ -17,9 +17,7 @@ export function ProtectedRoute({ enabled = true }: ProtectedRouteProps) {
   const user = useAppSelector((state) => state.authentication.user);
   const dispatch = useAppDispatch();
   const location = useLocation();
-  // O aceite mora no localStorage, que não avisa o React quando muda: este
-  // estado é o que faz a tela re-renderizar logo depois do clique em Aceitar.
-  const [acceptedUserId, setAcceptedUserId] = useState<string | null>(null);
+  const { t } = useTranslation(['termo']);
 
   if (enabled && !user) {
     return <Navigate to="/login" replace state={{ from: location }} />;
@@ -35,20 +33,19 @@ export function ProtectedRoute({ enabled = true }: ProtectedRouteProps) {
   // Termo de consentimento no primeiro acesso. Fica aqui, na porta da área
   // logada, e não na tela de login: assim também vale para quem volta com a
   // sessão salva. A tela protegida só é montada depois do aceite — antes
-  // disso, nenhum dado da plataforma é carregado.
-  if (
-    enabled &&
-    user &&
-    acceptedUserId !== user.id &&
-    !hasAcceptedTerms(user.id)
-  ) {
+  // disso, nenhum dado da plataforma é carregado. O aceite mora no back
+  // (`terms_accepted_at` da sessão).
+  if (enabled && user && !user.terms_accepted_at) {
     return (
       <TermsModal
         open
         onOpenChange={() => undefined}
+        // Se o back não registrar, o termo continua na tela: sem aceite gravado,
+        // não entra.
         onAccept={() => {
-          recordTermsAcceptance(user.id);
-          setAcceptedUserId(user.id);
+          void dispatch(acceptTerms())
+            .unwrap()
+            .catch(() => toast.error(t('termo:erroAoAceitar')));
         }}
         // Sem aceitar, não usa a plataforma: desloga, e o redirecionamento
         // acima leva de volta ao login.
@@ -59,6 +56,6 @@ export function ProtectedRoute({ enabled = true }: ProtectedRouteProps) {
     );
   }
 
-  // O aceite é local e pode existir mesmo quando o onboarding ficou incompleto.
+  // O aceite pode existir mesmo quando o onboarding ficou incompleto.
   return enabled ? <DemographicsGate /> : <Outlet />;
 }

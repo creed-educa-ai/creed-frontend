@@ -58,6 +58,14 @@ export function renewSession(session: SessionResponse): void {
   writeSession(session);
 }
 
+// Muda só o usuário da sessão guardada (ex.: depois do aceite do termo), para
+// que ele não volte desatualizado ao recarregar a página. Tokens e escolha de
+// armazenamento ficam como estão.
+export function updateSessionUser(user: SessionResponse['user']): void {
+  const session = getSession();
+  if (session) writeSession({ ...session, user });
+}
+
 export function clearSession(): void {
   sessionVersion += 1;
   for (const armazenamento of armazenamentos()) {

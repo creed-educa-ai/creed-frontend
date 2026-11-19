@@ -12,12 +12,14 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import i18n, { IDIOMA_PADRAO } from '@/i18n/config';
 import { ProtectedRoute } from '@/app/ProtectedRoute';
+import { Toaster } from '@/components/ui/sonner';
+import { authenticationApi } from '@/features/authentication/authenticationApi';
 import authenticationReducer from '@/features/authentication/authenticationSlice';
-import { recordTermsAcceptance } from '@/features/authentication/termsAcceptance';
 import { demographicsApi } from '@/features/demographics/demographicsApi';
 import { DemographicsStep2Route } from '@/features/demographics/demographicsFlow';
 import demographicsReducer from '@/features/demographics/demographicsSlice';
 import { ApiError } from '@/lib/apiClient';
+import { getSession, setSession } from '@/lib/session';
 import type { DemographicResponse, UserSessionResponse } from '@/types/api';
 
 const usuario: UserSessionResponse = {
@@ -27,6 +29,12 @@ const usuario: UserSessionResponse = {
   link_id: null,
   organization_id: null,
   organization_name: null,
+  terms_accepted_at: null,
+};
+
+const usuarioQueAceitou: UserSessionResponse = {
+  ...usuario,
+  terms_accepted_at: '2026-11-10T14:00:00Z',
 };
 
 const skippedProfile: DemographicResponse = {
@@ -78,6 +86,7 @@ function renderSignedIn({ enabled = true, user = usuario } = {}) {
   });
   return render(
     <Provider store={store}>
+      <Toaster />
       <MemoryRouter initialEntries={['/dashboard?periodo=atual#resumo']}>
         <Routes>
           <Route path="/login" element={<p>tela de login</p>} />
@@ -105,6 +114,7 @@ describe('ProtectedRoute — termo de consentimento', () => {
     vi.spyOn(demographicsApi, 'getMyDemographics').mockRejectedValue(
       new ApiError('Perfil demográfico não encontrado', 404),
     );
+    vi.spyOn(authenticationApi, 'acceptTerms').mockResolvedValue(undefined);
     await i18n.changeLanguage(IDIOMA_PADRAO);
   });
 
@@ -139,6 +149,48 @@ describe('ProtectedRoute — termo de consentimento', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 
+  it('records the consent in the backend and in the saved session', async () => {
+    setSession({
+      access_token: 'access',
+      refresh_token: 'refresh',
+      expires_in: 900,
+      user: usuario,
+    });
+    renderSignedIn();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
+    await screen.findByRole('combobox', { name: /Gênero/ });
+
+    expect(authenticationApi.acceptTerms).toHaveBeenCalledTimes(1);
+    // Sem isto, recarregar a página traria o usuário sem aceite de volta.
+    expect(getSession()?.user.terms_accepted_at).toEqual(expect.any(String));
+  });
+
+  it('keeps the consent open with an error when the backend does not record it', async () => {
+    vi.mocked(authenticationApi.acceptTerms).mockRejectedValue(
+      new ApiError('Erro interno', 500),
+    );
+    renderSignedIn();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
+
+    expect(
+      await screen.findByText(
+        'Não foi possível registrar o aceite agora. Tente de novo.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.queryByText(/área logada/)).toBeNull();
+    expect(demographicsApi.getMyDemographics).not.toHaveBeenCalled();
+  });
+
+  it('skips the consent for who already accepted it in the backend', () => {
+    renderSignedIn({ user: usuarioQueAceitou });
+
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(authenticationApi.acceptTerms).not.toHaveBeenCalled();
+  });
+
   it('resumes onboarding on the next access when consent was saved but the profile was not', async () => {
     const { unmount } = renderSignedIn();
 
@@ -146,7 +198,8 @@ describe('ProtectedRoute — termo de consentimento', () => {
     await screen.findByRole('combobox', { name: /Gênero/ });
 
     unmount();
-    renderSignedIn();
+    // No próximo acesso, a sessão já chega com o aceite do back.
+    renderSignedIn({ user: usuarioQueAceitou });
 
     expect(
       await screen.findByRole('combobox', { name: /Gênero/ }),
@@ -162,8 +215,7 @@ describe('ProtectedRoute — termo de consentimento', () => {
       vi.mocked(demographicsApi.getMyDemographics).mockResolvedValue(
         skippedProfile,
       );
-      if (hasConsent) recordTermsAcceptance(usuario.id);
-      renderSignedIn();
+      renderSignedIn({ user: hasConsent ? usuarioQueAceitou : usuario });
       if (!hasConsent) {
         await userEvent.click(screen.getByRole('button', { name: 'Aceitar' }));
       }
@@ -190,11 +242,10 @@ describe('ProtectedRoute — termo de consentimento', () => {
   });
 
   it('retries a failed profile check before opening the requested page', async () => {
-    recordTermsAcceptance(usuario.id);
     vi.mocked(demographicsApi.getMyDemographics)
       .mockRejectedValueOnce(new ApiError('Erro interno', 500))
       .mockResolvedValueOnce(skippedProfile);
-    renderSignedIn();
+    renderSignedIn({ user: usuarioQueAceitou });
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Não foi possível carregar seus dados.',
